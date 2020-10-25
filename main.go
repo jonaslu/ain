@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -17,9 +16,9 @@ func printErrorAndExit(err error) {
 	os.Exit(1)
 }
 
-func captureEditorOutput(editorFile string) {
+func captureEditorOutput(tempFile *os.File) string {
 	editorCmd := os.Getenv("EDITOR")
-	cmd := exec.Command(editorCmd, editorFile)
+	cmd := exec.Command(editorCmd, tempFile.Name())
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
 		errors.Wrap(err, "can't open /dev/tty")
@@ -33,10 +32,41 @@ func captureEditorOutput(editorFile string) {
 	if err != nil {
 		printErrorAndExit(err)
 	}
+
+	_, err = tempFile.Seek(0, 0)
+	if err != nil {
+		printErrorAndExit(err)
+	}
+
+	tempFileContents, err := ioutil.ReadAll(tempFile)
+	if err != nil {
+		printErrorAndExit(err)
+	}
+
+	return string(tempFileContents)
+}
+
+func copySourceTemplate(sourceTemplateFileName string) *os.File {
+	sourceTemplate, err := os.Open(sourceTemplateFileName)
+	if err != nil {
+		printErrorAndExit(err)
+	}
+
+	// .ini formats it like ini file in some editors
+	tempFile, err := ioutil.TempFile("", "ain*.ini")
+	if err != nil {
+		printErrorAndExit(err)
+	}
+
+	writtenLen, err := io.Copy(tempFile, sourceTemplate)
+	if writtenLen == 0 {
+		printErrorAndExit(errors.New("Written 0 bytes"))
+	}
+
+	return tempFile
 }
 
 func main() {
-
 	fi, err := os.Stdin.Stat()
 	if err != nil {
 		printErrorAndExit(err)
@@ -55,28 +85,10 @@ func main() {
 		fileName = os.Args[1]
 	}
 
-	sourceTemplate, err := os.Open(strings.TrimSpace(fileName))
-	if err != nil {
-		fmt.Println(fileName)
-		printErrorAndExit(err)
-	}
+	tempFile := copySourceTemplate(fileName)
+	defer tempFile.Close()
 
-	// .ini formats it like ini file in some editors
-	tempFile, err := ioutil.TempFile("", "ain*.ini")
-	if err != nil {
-		printErrorAndExit(err)
-	}
+	editedTemplate := captureEditorOutput(tempFile)
 
-	writtenLen, err := io.Copy(tempFile, sourceTemplate)
-	if writtenLen == 0 {
-		printErrorAndExit(errors.New("Written 0 bytes"))
-	}
-
-	fmt.Println(tempFile.Name())
-
-	if err != nil {
-		printErrorAndExit(err)
-	}
-
-	captureEditorOutput(tempFile.Name())
+	fmt.Println("Tempfile contents", string(editedTemplate))
 }
