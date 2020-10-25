@@ -18,7 +18,8 @@ func printErrorAndExit(err error) {
 }
 
 func captureEditorOutput(editorFile string) {
-	cmd := exec.Command("vim", editorFile)
+	editorCmd := os.Getenv("EDITOR")
+	cmd := exec.Command(editorCmd, editorFile)
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
 		errors.Wrap(err, "can't open /dev/tty")
