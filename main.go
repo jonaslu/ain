@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -66,13 +68,27 @@ func copySourceTemplate(sourceTemplateFileName string) *os.File {
 	return tempFile
 }
 
+func stripComments(editedTemplate string) string {
+	strippedLines := []string{}
+
+	allLines := strings.Split(editedTemplate, "\n")
+	for _, line := range allLines {
+		isCommentLine, _ := regexp.MatchString("^\\s*#", line)
+		if !isCommentLine {
+			strippedLines = append(strippedLines, line)
+		}
+	}
+
+	return strings.Join(strippedLines, "\n")
+}
+
 func main() {
 	fi, err := os.Stdin.Stat()
 	if err != nil {
 		printErrorAndExit(err)
 	}
 
-	var fileName string
+	var sourceTemplateFileName string
 	if (fi.Mode() & os.ModeCharDevice) == 0 {
 		// Connected to a pipe
 		fileNameBytes, err := ioutil.ReadAll(os.Stdin)
@@ -80,15 +96,15 @@ func main() {
 			printErrorAndExit(err)
 		}
 
-		fileName = string(fileNameBytes)
+		sourceTemplateFileName = string(fileNameBytes)
 	} else {
-		fileName = os.Args[1]
+		sourceTemplateFileName = os.Args[1]
 	}
 
-	tempFile := copySourceTemplate(fileName)
+	tempFile := copySourceTemplate(sourceTemplateFileName)
 	defer tempFile.Close()
 
 	editedTemplate := captureEditorOutput(tempFile)
 
-	fmt.Println("Tempfile contents", string(editedTemplate))
+	fmt.Println("Tempfile contents", stripComments(editedTemplate))
 }
