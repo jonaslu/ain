@@ -1,0 +1,27 @@
+[Variables]
+ENV=test
+GOAT=${TEST}
+UUIDS=`
+// Supports multiline
+`
+
+[Host]
+http://localhost:8080/
+https://www.google.com/
+
+[URL]
+
+[Headers]
+-H $TOKEN
+
+[Method]
+GET
+
+[QPs]
+
+[Body]
+
+[Backend]
+curl
+-sS
+--no-buffer
