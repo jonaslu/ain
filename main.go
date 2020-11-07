@@ -9,6 +9,9 @@ import (
 	"regexp"
 	"strings"
 
+
+	"github.com/jonaslu/ain/template"
+
 	"github.com/pkg/errors"
 )
 
@@ -68,18 +71,19 @@ func copySourceTemplate(sourceTemplateFileName string) *os.File {
 	return tempFile
 }
 
-func stripComments(editedTemplate string) string {
-	strippedLines := []string{}
+func tokenizeTemplate(editedTemplate string) template.Template {
+	strippedLines := template.Template{}
 
 	allLines := strings.Split(editedTemplate, "\n")
-	for _, line := range allLines {
-		isCommentLine, _ := regexp.MatchString("^\\s*#", line)
-		if !isCommentLine {
-			strippedLines = append(strippedLines, line)
+	for sourceIndex, line := range allLines {
+		isCommentOrWhitespaceLine, _ := regexp.MatchString("^\\s*#|^\\s*$", line)
+		if !isCommentOrWhitespaceLine {
+			sourceMarker := template.SourceMarker{LineContents: strings.TrimSpace(line), SourceLineIndex: sourceIndex + 1}
+			strippedLines = append(strippedLines, sourceMarker)
 		}
 	}
 
-	return strings.Join(strippedLines, "\n")
+	return strippedLines
 }
 
 func main() {
@@ -105,6 +109,9 @@ func main() {
 	defer tempFile.Close()
 
 	editedTemplate := captureEditorOutput(tempFile)
+	tokeniedTemplate := tokenizeTemplate(editedTemplate)
+	fmt.Println(tokeniedTemplate)
+
 
 	fmt.Println("Tempfile contents", stripComments(editedTemplate))
 }
