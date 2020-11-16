@@ -6,9 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"regexp"
-	"strings"
 
+	"github.com/jonaslu/ain/sections"
 
 	"github.com/jonaslu/ain/template"
 
@@ -71,21 +70,6 @@ func copySourceTemplate(sourceTemplateFileName string) *os.File {
 	return tempFile
 }
 
-func tokenizeTemplate(editedTemplate string) template.Template {
-	strippedLines := template.Template{}
-
-	allLines := strings.Split(editedTemplate, "\n")
-	for sourceIndex, line := range allLines {
-		isCommentOrWhitespaceLine, _ := regexp.MatchString("^\\s*#|^\\s*$", line)
-		if !isCommentOrWhitespaceLine {
-			sourceMarker := template.SourceMarker{LineContents: strings.TrimSpace(line), SourceLineIndex: sourceIndex + 1}
-			strippedLines = append(strippedLines, sourceMarker)
-		}
-	}
-
-	return strippedLines
-}
-
 func main() {
 	fi, err := os.Stdin.Stat()
 	if err != nil {
@@ -109,9 +93,13 @@ func main() {
 	defer tempFile.Close()
 
 	editedTemplate := captureEditorOutput(tempFile)
-	tokeniedTemplate := tokenizeTemplate(editedTemplate)
+	tokeniedTemplate := template.TokenizeTemplate(editedTemplate)
 	fmt.Println(tokeniedTemplate)
 
+	templateSections := &sections.TemplateSections{}
 
-	fmt.Println("Tempfile contents", stripComments(editedTemplate))
+	parseResult := sections.ParseHostSection(tokeniedTemplate, templateSections)
+
+	fmt.Println("Warnings and errors", parseResult)
+	fmt.Println("sections", templateSections)
 }

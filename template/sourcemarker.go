@@ -10,3 +10,5 @@ func NewSourceMarker(lineContents string, sourceLineIndex int) SourceMarker {
 }
 
 type Template []SourceMarker
+
+var EmptyLine SourceMarker
