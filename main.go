@@ -98,8 +98,8 @@ func main() {
 
 	templateSections := &sections.TemplateSections{}
 
-	parseResult := sections.ParseHostSection(tokeniedTemplate, templateSections)
+	warnings, error := sections.ParseHostSection(tokeniedTemplate, templateSections)
 
-	fmt.Println("Warnings and errors", parseResult)
+	fmt.Println("Warnings and errors", warnings, error)
 	fmt.Println("sections", templateSections)
 }
