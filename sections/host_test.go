@@ -7,28 +7,6 @@ import (
 	"github.com/jonaslu/ain/template"
 )
 
-func TestParseHostTwoHeaders(t *testing.T) {
-	parsedTemplate := &TemplateSections{}
-
-	templat := template.TokenizeTemplate(`
-[Host]
-  [Host]`)
-
-	warnings, error := ParseHostSection(templat, parsedTemplate)
-
-	if len(warnings) != 0 {
-		t.Errorf("Expected no warnings")
-	}
-
-	if error == nil {
-		t.Error("Expected one error on parsing [Host]")
-	}
-
-	if !strings.Contains(error.Message, "Several [Host] sections found") {
-		t.Error("Expected warning on several [Hosts]")
-	}
-}
-
 func TestParseHostEmptyHeader(t *testing.T) {
 	parsedTemplate := &TemplateSections{}
 
