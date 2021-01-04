@@ -9,7 +9,7 @@ import (
 
 func ParseHostSection(templ template.Template, templateSections *TemplateSections) (Warnings, *Error) {
 	warnings := Warnings{}
-	captureResult, captureErr := captureSection("Host", templ)
+	captureResult, captureErr := captureSection("Host", templ, true)
 
 	if captureErr != nil {
 		return nil, captureErr

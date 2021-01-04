@@ -12,7 +12,7 @@ type captureResult struct {
 	sectionLines      template.Template
 }
 
-func captureSection(sectionName string, templ template.Template) (*captureResult, *Error) {
+func captureSection(sectionName string, templ template.Template, trim bool) (*captureResult, *Error) {
 	var sectionLines template.Template
 	sectionHeaderLine := template.EmptyLine
 	capturing := false
@@ -36,6 +36,10 @@ func captureSection(sectionName string, templ template.Template) (*captureResult
 		}
 
 		if capturing {
+			if trim {
+				templateLine.LineContents = strings.TrimSpace(templateLine.LineContents)
+			}
+
 			sectionLines = append(sectionLines, templateLine)
 		}
 	}
