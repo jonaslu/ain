@@ -8,4 +8,5 @@ type TemplateSections struct {
 	Body       string
 	Parameters []string
 	Method     string
+	Headers    []string
 }

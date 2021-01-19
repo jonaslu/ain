@@ -99,7 +99,10 @@ func main() {
 	templateSections := &sections.TemplateSections{}
 
 	warnings, error := sections.ParseHostSection(tokeniedTemplate, templateSections)
+	fmt.Println("Warnings and errors for host section", warnings, error)
 
-	fmt.Println("Warnings and errors", warnings, error)
-	fmt.Println("sections", templateSections)
+	warnings, error = sections.ParseHeadersSection(tokeniedTemplate, templateSections)
+	fmt.Println("Warnings and errors for header section", warnings, error)
+
+	fmt.Println("Parsed result", templateSections)
 }
