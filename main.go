@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func printErrorAndExit(err error) {
+func printFatalErrorAndExit(err error) {
 	formattedError := fmt.Errorf("An error occurred: %v", err.Error())
 	fmt.Fprintln(os.Stderr, formattedError.Error())
 	os.Exit(1)
@@ -25,7 +25,7 @@ func captureEditorOutput(tempFile *os.File) string {
 	cmd := exec.Command(editorCmd, tempFile.Name())
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
-		errors.Wrap(err, "can't open /dev/tty")
+		printFatalErrorAndExit(errors.Wrap(err, "can't open /dev/tty"))
 	}
 
 	cmd.Stdin = tty
@@ -34,17 +34,17 @@ func captureEditorOutput(tempFile *os.File) string {
 
 	err = cmd.Run()
 	if err != nil {
-		printErrorAndExit(err)
+		printFatalErrorAndExit(err)
 	}
 
 	_, err = tempFile.Seek(0, 0)
 	if err != nil {
-		printErrorAndExit(err)
+		printFatalErrorAndExit(err)
 	}
 
 	tempFileContents, err := ioutil.ReadAll(tempFile)
 	if err != nil {
-		printErrorAndExit(err)
+		printFatalErrorAndExit(err)
 	}
 
 	return string(tempFileContents)
@@ -53,18 +53,18 @@ func captureEditorOutput(tempFile *os.File) string {
 func copySourceTemplate(sourceTemplateFileName string) *os.File {
 	sourceTemplate, err := os.Open(sourceTemplateFileName)
 	if err != nil {
-		printErrorAndExit(err)
+		printFatalErrorAndExit(err)
 	}
 
 	// .ini formats it like ini file in some editors
 	tempFile, err := ioutil.TempFile("", "ain*.ini")
 	if err != nil {
-		printErrorAndExit(err)
+		printFatalErrorAndExit(err)
 	}
 
 	writtenLen, err := io.Copy(tempFile, sourceTemplate)
 	if writtenLen == 0 {
-		printErrorAndExit(errors.New("Written 0 bytes"))
+		printFatalErrorAndExit(errors.New("Written 0 bytes"))
 	}
 
 	return tempFile
@@ -73,7 +73,7 @@ func copySourceTemplate(sourceTemplateFileName string) *os.File {
 func main() {
 	fi, err := os.Stdin.Stat()
 	if err != nil {
-		printErrorAndExit(err)
+		printFatalErrorAndExit(err)
 	}
 
 	var sourceTemplateFileName string
@@ -81,7 +81,7 @@ func main() {
 		// Connected to a pipe
 		fileNameBytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			printErrorAndExit(err)
+			printFatalErrorAndExit(err)
 		}
 
 		sourceTemplateFileName = string(fileNameBytes)
