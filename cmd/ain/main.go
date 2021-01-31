@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/jonaslu/ain/internal/pkg/disk"
+	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
 func printInternalErrorAndExit(err error) {
@@ -31,10 +32,8 @@ func main() {
 		printInternalErrorAndExit(err)
 	}
 
-	fmt.Println(template)
-
-	// callData, fatals := parse.ParseTemplate(template)
-	// fmt.Println(callData, fatals)
+	callData, fatals := parse.ParseTemplate(template)
+	fmt.Println(callData, fatals)
 
 	// ~/.ain/ain.conf
 	// ~/.ain/global.ain

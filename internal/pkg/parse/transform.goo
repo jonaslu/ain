@@ -1,0 +1,8 @@
+package parse
+
+// Do I run transforms on all of the lines? I don't want to run them on comments, but I can filter those out
+// It would be better to do it here right, because when I parse I can validate right off
+func transform(template string) ([]string, fatal) {
+	// Or this filters and returns the string transformed already.
+	// It also returns fatals, which are errors in the template (as opposed to internal errors)
+}
