@@ -33,7 +33,11 @@ func main() {
 	}
 
 	callData, fatals := parse.ParseTemplate(template)
-	fmt.Println(callData, fatals)
+	if len(fatals) > 0 {
+		fmt.Println("Fatal errors", fatals)
+	} else {
+		fmt.Println("Successful", callData)
+	}
 
 	// ~/.ain/ain.conf
 	// ~/.ain/global.ain

@@ -47,18 +47,22 @@ func ParseTemplate(template string) (*call.Data, []string) {
 		return nil, []string{"Cannot process empty template"}
 	}
 
-	// Transform
+	tranformedTemplate, transformFatals := transform(trimmedTemplate)
+	if len(transformFatals) > 0 {
+		for _, transformFatalMarker := range transformFatals {
+			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
+		}
 
-	// Parse in order of importance (URL, Headers, Body)
-	// Concatenate any error and return them formatted with markers into the source
+		return nil, fatals
+	}
 
 	callData := &call.Data{}
-	hostFatalMarker := parseHostSection(trimmedTemplate, callData)
+	hostFatalMarker := parseHostSection(tranformedTemplate, callData)
 	if hostFatalMarker != nil {
 		fatals = append(fatals, formatFatalMarker(hostFatalMarker, templateLines))
 	}
 
-	headersFatalMarker := parseHeadersSection(trimmedTemplate, callData)
+	headersFatalMarker := parseHeadersSection(tranformedTemplate, callData)
 	if headersFatalMarker != nil {
 		fatals = append(fatals, formatFatalMarker(headersFatalMarker, templateLines))
 	}
