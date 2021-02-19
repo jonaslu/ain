@@ -22,6 +22,12 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	strippedLines := []sourceMarker{}
 
 	templateLines := strings.Split(template, "\n")
+	lastRowIndex := len(templateLines) - 1
+
+	if lastRowIndex > 0 && templateLines[lastRowIndex] == "" {
+		templateLines = templateLines[:len(templateLines)-1]
+	}
+
 	for sourceIndex, line := range templateLines {
 		isCommentOrWhitespaceLine, _ := regexp.MatchString("^\\s*#|^\\s*$", line)
 		if !isCommentOrWhitespaceLine {
@@ -36,8 +42,10 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 func ParseTemplate(template string) (*call.Data, []string) {
 	var fatals []string
 
-	// !! TODO !! Empty template
 	trimmedTemplate, templateLines := trimTemplate(template)
+	if len(trimmedTemplate) == 0 {
+		return nil, []string{"Cannot process empty template"}
+	}
 
 	// Transform
 
