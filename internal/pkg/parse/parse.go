@@ -25,7 +25,7 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	for sourceIndex, line := range templateLines {
 		isCommentOrWhitespaceLine, _ := regexp.MatchString("^\\s*#|^\\s*$", line)
 		if !isCommentOrWhitespaceLine {
-			sourceMarker := sourceMarker{lineContents: strings.TrimSpace(line), sourceLineIndex: sourceIndex + 1}
+			sourceMarker := sourceMarker{lineContents: strings.TrimSpace(line), sourceLineIndex: sourceIndex}
 			strippedLines = append(strippedLines, sourceMarker)
 		}
 	}
