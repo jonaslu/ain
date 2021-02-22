@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/disk"
 	"github.com/jonaslu/ain/internal/pkg/parse"
 )
@@ -45,7 +46,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%+v", callData)
+	curlOutput, err := call.Curl(ctx, callData)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Fprint(os.Stdout, curlOutput)
+
+	// !! TODO !! Print errors to stderr
 
 	// ~/.ain/ain.conf
 	// ~/.ain/global.ain
