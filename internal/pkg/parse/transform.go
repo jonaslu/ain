@@ -10,7 +10,7 @@ import (
 var envVarExpressionRe = regexp.MustCompile(`(m?)\${[^}]*}?`)
 var envVarValueRe = regexp.MustCompile(`\${([^}]*)}`)
 
-func transform(templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
+func transformEnvVars(templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
 	var fatals []*fatalMarker
 	var transformedTemplateLines []sourceMarker
 	// Scan template lines for ${VAR} - env variables

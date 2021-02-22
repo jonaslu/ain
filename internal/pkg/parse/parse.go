@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"context"
 	"regexp"
 	"strings"
 
@@ -39,7 +40,7 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	return strippedLines, templateLines
 }
 
-func ParseTemplate(template string) (*call.Data, []string) {
+func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) {
 	var fatals []string
 
 	trimmedTemplate, templateLines := trimTemplate(template)
@@ -47,9 +48,18 @@ func ParseTemplate(template string) (*call.Data, []string) {
 		return nil, []string{"Cannot process empty template"}
 	}
 
-	tranformedTemplate, transformFatals := transform(trimmedTemplate)
-	if len(transformFatals) > 0 {
-		for _, transformFatalMarker := range transformFatals {
+	envVarsTemplate, envVarsFatals := transformEnvVars(trimmedTemplate)
+	if len(envVarsFatals) > 0 {
+		for _, transformFatalMarker := range envVarsFatals {
+			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
+		}
+
+		return nil, fatals
+	}
+
+	shellCommandsTemplate, shellCommandFatals := transformShellCommands(ctx, envVarsTemplate)
+	if len(shellCommandFatals) > 0 {
+		for _, transformFatalMarker := range shellCommandFatals {
 			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
 		}
 
@@ -57,12 +67,12 @@ func ParseTemplate(template string) (*call.Data, []string) {
 	}
 
 	callData := &call.Data{}
-	hostFatalMarker := parseHostSection(tranformedTemplate, callData)
+	hostFatalMarker := parseHostSection(shellCommandsTemplate, callData)
 	if hostFatalMarker != nil {
 		fatals = append(fatals, formatFatalMarker(hostFatalMarker, templateLines))
 	}
 
-	headersFatalMarker := parseHeadersSection(tranformedTemplate, callData)
+	headersFatalMarker := parseHeadersSection(shellCommandsTemplate, callData)
 	if headersFatalMarker != nil {
 		fatals = append(fatals, formatFatalMarker(headersFatalMarker, templateLines))
 	}

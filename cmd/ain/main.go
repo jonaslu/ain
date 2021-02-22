@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -32,12 +33,19 @@ func main() {
 		printInternalErrorAndExit(err)
 	}
 
-	callData, fatals := parse.ParseTemplate(template)
+	// !! TODO !! Hook into SIGINT etc and cancel this context if hit
+	ctx := context.Background()
+
+	callData, fatals := parse.ParseTemplate(ctx, template)
 	if len(fatals) > 0 {
-		fmt.Println("Fatal errors", fatals)
-	} else {
-		fmt.Println("Successful", callData)
+		for _, fatal := range fatals {
+			fmt.Println(fatal)
+		}
+
+		os.Exit(1)
 	}
+
+	fmt.Printf("%+v", callData)
 
 	// ~/.ain/ain.conf
 	// ~/.ain/global.ain
@@ -47,6 +55,11 @@ func main() {
 	// -h 1 first in history
 	// -i ignore global
 	// -c insert global as comments
+	// -p print the command, don't run it. Allows for ain test.ain > share_me.sh
+	// -v verbose (print subshell results, curl command line)
+
+	/* If body too big (like 500 characters - save it in a temp-file in .ain/
+	use folders so I can wipe the folder when storing 1-10 calls */
 
 	// default is file first and global last if collision
 }
