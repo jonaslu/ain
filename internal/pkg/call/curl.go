@@ -32,9 +32,9 @@ func Curl(ctx context.Context, callData *Data) (string, error) {
 	err := curlCmd.Run()
 
 	stdoutStr := string(stdout.Bytes())
-	stderrStr := string(stderr.Bytes())
 
 	if err != nil {
+		stderrStr := string(stderr.Bytes())
 		return "", errors.Errorf("Error: %v, running curl command: %s.\nCurl output: %s %s", curlCmd.String(), stderrStr, stdoutStr)
 	}
 

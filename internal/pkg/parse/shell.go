@@ -118,10 +118,10 @@ func callShellCommands(ctx context.Context, shellCommands []shellCommandAndArgs)
 			}
 
 			stdoutStr := string(stdout.Bytes())
-			stderrStr := string(stdout.Bytes())
 
 			if err != nil {
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error: %v running command: %s. Command stderr: %s %s", err, cmd.String(), stderrStr, stdoutStr)
+				stderrStr := string(stdout.Bytes())
+				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error: %v running command: %s. Command output: %s %s", err, cmd.String(), stderrStr, stdoutStr)
 				return
 			}
 
