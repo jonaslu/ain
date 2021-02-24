@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
 // !! TODO !! This should be a global config things
@@ -25,36 +27,6 @@ type shellCommandAndArgs struct {
 type shellCommandOutput struct {
 	output       string
 	fatalMessage string
-}
-
-func unsplitLineOnSeparator(commandArgs []string, unsplitSeparator string) []string {
-	var unsplitLines []string
-	var splitLine []string
-
-	unsplitting := false
-
-	for _, commandArg := range commandArgs {
-		if strings.HasPrefix(commandArg, unsplitSeparator) {
-			unsplitting = true
-			commandArg = strings.TrimPrefix(commandArg, unsplitSeparator)
-		}
-
-		if strings.HasSuffix(commandArg, unsplitSeparator) {
-			commandArg = strings.TrimSuffix(commandArg, unsplitSeparator)
-			commandArg = strings.Join(splitLine, " ") + " " + commandArg
-
-			unsplitting = false
-			splitLine = nil
-		}
-
-		if unsplitting {
-			splitLine = append(splitLine, commandArg)
-		} else {
-			unsplitLines = append(unsplitLines, commandArg)
-		}
-	}
-
-	return unsplitLines
 }
 
 func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAndArgs, []*fatalMarker) {
@@ -83,8 +55,8 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 			}
 
 			args := shellCommandAndArgsSlice[1:]
-			shellCommandAndArgsSlice = unsplitLineOnSeparator(args, "\"")
-			shellCommandAndArgsSlice = unsplitLineOnSeparator(shellCommandAndArgsSlice, "'")
+			shellCommandAndArgsSlice = utils.UnsplitLineOnSeparator(args, "\"")
+			shellCommandAndArgsSlice = utils.UnsplitLineOnSeparator(shellCommandAndArgsSlice, "'")
 
 			shellCommands = append(shellCommands, shellCommandAndArgs{
 				cmd:  command,

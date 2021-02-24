@@ -46,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	curlOutput, err := call.Curl(ctx, callData)
+	curlOutput, err := call.CallBackend(ctx, callData, "httpie")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
