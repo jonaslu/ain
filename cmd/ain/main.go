@@ -46,13 +46,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	curlOutput, err := call.CallBackend(ctx, callData, "httpie")
+	backendOutput, err := call.CallBackend(ctx, callData, "httpie")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	fmt.Fprint(os.Stdout, curlOutput)
+	fmt.Fprint(os.Stdout, backendOutput)
 
 	// !! TODO !! Print errors to stderr
 

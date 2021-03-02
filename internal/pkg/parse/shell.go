@@ -45,22 +45,25 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 			}
 
 			shellCommandAndArgsStr := shellCommandAndArgsCapture[1]
-			shellCommandAndArgsSlice := strings.Split(shellCommandAndArgsStr, " ")
 
-			command := shellCommandAndArgsSlice[0]
+			fmt.Println(shellCommandAndArgsStr)
+
+			tokenizedCommandLine, err := utils.TokenizeLine(shellCommandAndArgsStr, false)
+			if err != nil {
+				fatals = append(fatals, newFatalMarker(err.Error(), templateLine))
+				continue
+			}
+
+			command := tokenizedCommandLine[0]
 
 			if command == "" {
 				fatals = append(fatals, newFatalMarker("Empty shell command", templateLine))
 				continue
 			}
 
-			args := shellCommandAndArgsSlice[1:]
-			shellCommandAndArgsSlice = utils.UnsplitLineOnSeparator(args, "\"")
-			shellCommandAndArgsSlice = utils.UnsplitLineOnSeparator(shellCommandAndArgsSlice, "'")
-
 			shellCommands = append(shellCommands, shellCommandAndArgs{
 				cmd:  command,
-				args: shellCommandAndArgsSlice,
+				args: tokenizedCommandLine[1:],
 			})
 		}
 	}

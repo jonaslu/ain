@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
@@ -18,7 +17,7 @@ const backendTimeoutSeconds = 10
 func getTemplate(backend string) string {
 	switch backend {
 	case "curl":
-		return `curl {{range .Headers}} -H "{{.}}" {{end}} {{.Host.String}}`
+		return `curl -sS {{range .Headers}} -H "{{.}}" {{end}} {{.Host.String}}`
 	case "httpie":
 		return `http --ignore-stdin {{.Host.String}} {{range .Headers}} "{{.}}" {{end}}`
 	}
@@ -50,16 +49,18 @@ func CallBackend(ctx context.Context, callData *Data, backend string) (string, e
 		return "", errors.New("Empty backend template result")
 	}
 
-	backendCommandAndArgsSlice := strings.Split(templateOutput, " ")
-	command := backendCommandAndArgsSlice[0]
+	tokenizedCommandLine, err := utils.TokenizeLine(templateOutput, true)
+	if err != nil {
+		return "", errors.Wrap(err, "Error tokenizing backend template")
+	}
+
+	command := tokenizedCommandLine[0]
 
 	if command == "" {
 		return "", errors.Errorf("Empty backend command. Template output: %s", templateOutput)
 	}
 
-	args := backendCommandAndArgsSlice[1:]
-	backendCommandAndArgsSlice = utils.UnsplitLineOnSeparator(args, "\"")
-	backendCommandAndArgsSlice = utils.UnsplitLineOnSeparator(backendCommandAndArgsSlice, "'")
+	args := tokenizedCommandLine[1:]
 
 	backendTimeoutContext, _ := context.WithTimeout(ctx, backendTimeoutSeconds*time.Second)
 
