@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
@@ -17,12 +18,25 @@ const backendTimeoutSeconds = 10
 func getTemplate(backend string) string {
 	switch backend {
 	case "curl":
-		return `curl -sS {{range .Headers}} -H "{{.}}" {{end}} {{.Host.String}}`
+		return `curl -sS
+		{{if .Method}} -X {{.Method | ToUpper }} {{end}}
+		{{range .Headers}} -H "{{.}}" {{end}}
+		{{.Host.String}}`
+
 	case "httpie":
-		return `http --ignore-stdin {{.Host.String}} {{range .Headers}} "{{.}}" {{end}}`
+		return `http --ignore-stdin
+		{{if .Method}} {{.Method | ToUpper }} {{end}}
+		{{.Host.String}}
+		{{range .Headers}} "{{.}}" {{end}}`
 	}
 
 	return ""
+}
+
+func getFuncMap() map[string]interface{} {
+	return template.FuncMap{
+		"ToUpper": strings.ToUpper,
+	}
 }
 
 func CallBackend(ctx context.Context, callData *Data, backend string) (string, error) {
@@ -31,7 +45,7 @@ func CallBackend(ctx context.Context, callData *Data, backend string) (string, e
 		return "", errors.Errorf("Template for backend: %s not found", backend)
 	}
 
-	backendTemplate, err := template.New("backend").Parse(backendTemplateStr)
+	backendTemplate, err := template.New("backend").Funcs(getFuncMap()).Parse(backendTemplateStr)
 	if err != nil {
 		return "", errors.Wrap(err, "Could not parse template")
 	}

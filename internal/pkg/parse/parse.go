@@ -77,5 +77,10 @@ func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) 
 		fatals = append(fatals, formatFatalMarker(headersFatalMarker, templateLines))
 	}
 
+	methodFatalMarker := parseMethodSection(shellCommandsTemplate, callData)
+	if methodFatalMarker != nil {
+		fatals = append(fatals, formatFatalMarker(methodFatalMarker, templateLines))
+	}
+
 	return callData, fatals
 }
