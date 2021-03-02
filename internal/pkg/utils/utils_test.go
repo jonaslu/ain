@@ -7,7 +7,7 @@ import (
 )
 
 func tokenizeAndExpectError(commandLine string, t *testing.T) {
-	_, err := TokenizeLine(commandLine)
+	_, err := TokenizeLine(commandLine, false)
 	if err == nil {
 		t.Fatal("Expected error to be non-nil")
 	}
@@ -17,8 +17,8 @@ func tokenizeAndExpectError(commandLine string, t *testing.T) {
 	}
 }
 
-func tokenizeAndCompare(commandLine string, expected []string, t *testing.T) {
-	res, err := TokenizeLine(commandLine)
+func tokenizeAndCompareWithQuotes(commandLine string, expected []string, trimQuotes bool, t *testing.T) {
+	res, err := TokenizeLine(commandLine, trimQuotes)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,34 +30,46 @@ func tokenizeAndCompare(commandLine string, expected []string, t *testing.T) {
 
 func TestEverythingPositive(t *testing.T) {
 	commandLine := `""`
-	tokenizeAndCompare(commandLine, []string{`""`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`""`}, false, t)
 
 	commandLine = `" "`
-	tokenizeAndCompare(commandLine, []string{`" "`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`" "`}, false, t)
 
 	commandLine = `"yaketi 😎 yak"`
-	tokenizeAndCompare(commandLine, []string{`"yaketi 😎 yak"`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`"yaketi 😎 yak"`}, false, t)
 
 	commandLine = `''`
-	tokenizeAndCompare(commandLine, []string{`''`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`''`}, false, t)
 
 	commandLine = `   'doh'`
-	tokenizeAndCompare(commandLine, []string{`'doh'`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`'doh'`}, false, t)
 
 	commandLine = `goat`
-	tokenizeAndCompare(commandLine, []string{`goat`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`goat`}, false, t)
 
 	commandLine = `   goat`
-	tokenizeAndCompare(commandLine, []string{`goat`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`goat`}, false, t)
 
 	commandLine = `"this has \" unquote"   `
-	tokenizeAndCompare(commandLine, []string{`"this has \" unquote"`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`"this has \" unquote"`}, false, t)
 
 	commandLine = `  'and this \' "" has unquote'`
-	tokenizeAndCompare(commandLine, []string{`'and this \' "" has unquote'`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`'and this \' "" has unquote'`}, false, t)
 
 	commandLine = `\"`
-	tokenizeAndCompare(commandLine, []string{`\"`}, t)
+	tokenizeAndCompareWithQuotes(commandLine, []string{`\"`}, false, t)
+
+	commandLine = `"giat monkey  "`
+	tokenizeAndCompareWithQuotes(commandLine, []string{`giat monkey`}, true, t)
+
+	commandLine = `"giat '' monkey  "`
+	tokenizeAndCompareWithQuotes(commandLine, []string{`giat '' monkey`}, true, t)
+
+	commandLine = `""`
+	tokenizeAndCompareWithQuotes(commandLine, nil, true, t)
+
+	commandLine = `sheeba ""`
+	tokenizeAndCompareWithQuotes(commandLine, []string{"sheeba"}, true, t)
 }
 
 func TestUnterminatedQuotes(t *testing.T) {

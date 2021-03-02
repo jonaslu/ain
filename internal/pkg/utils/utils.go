@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strings"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -32,7 +33,7 @@ func isSpace(r rune) bool {
 	return false
 }
 
-func TokenizeLine(commandLine string) ([]string, error) {
+func TokenizeLine(commandLine string, removeQuotes bool) ([]string, error) {
 	var tokenizedLines []string
 	commandLineBytes := []byte(commandLine)
 
@@ -61,7 +62,16 @@ func TokenizeLine(commandLine string) ([]string, error) {
 		} else {
 			if lastQuoteRune > 0 {
 				if headRune == lastQuoteRune && lastRune != quoteEscapeRune {
-					tokenizedLines = append(tokenizedLines, string(commandLineBytes[startWordMarker:head+width]))
+					if removeQuotes {
+						firstWordSansQuotes := startWordMarker + utf8.RuneLen(headRune)
+						if head > firstWordSansQuotes {
+							stringSansQuotes := strings.TrimSpace(string(commandLineBytes[firstWordSansQuotes:head]))
+							tokenizedLines = append(tokenizedLines, stringSansQuotes)
+						}
+					} else {
+						tokenizedLines = append(tokenizedLines, string(commandLineBytes[startWordMarker:head+width]))
+					}
+
 					startWordMarker = -1
 					lastQuoteRune = 0
 				}
