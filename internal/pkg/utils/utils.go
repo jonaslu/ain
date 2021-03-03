@@ -33,6 +33,7 @@ func isSpace(r rune) bool {
 	return false
 }
 
+// TODO Do I need the removeQuotes or should I revert it?
 func TokenizeLine(commandLine string, removeQuotes bool) ([]string, error) {
 	var tokenizedLines []string
 	commandLineBytes := []byte(commandLine)
