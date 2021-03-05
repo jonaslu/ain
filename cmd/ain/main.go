@@ -53,22 +53,4 @@ func main() {
 	}
 
 	fmt.Fprint(os.Stdout, backendOutput)
-
-	// !! TODO !! Print errors to stderr
-
-	// ~/.ain/ain.conf
-	// ~/.ain/global.ain
-
-	// -e execute, do not edit meld <(ain -e -h 1) <(ain -e file.ain)
-	// -h history
-	// -h 1 first in history
-	// -i ignore global
-	// -c insert global as comments
-	// -p print the command, don't run it. Allows for ain test.ain > share_me.sh
-	// -v verbose (print subshell results, curl command line)
-
-	/* If body too big (like 500 characters - save it in a temp-file in .ain/
-	use folders so I can wipe the folder when storing 1-10 calls */
-
-	// default is file first and global last if collision
 }
