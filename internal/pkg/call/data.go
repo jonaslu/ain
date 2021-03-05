@@ -3,7 +3,9 @@ package call
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
 	"net/url"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -19,8 +21,29 @@ type Data struct {
 	Headers    []string
 }
 
+func (data Data) getBodyAsTempFile() (*os.File, error) {
+	bodyStr := strings.Join(data.Body, "\n")
+
+	// TODO Make this configurable so it can be inspected
+	tmpFile, err := ioutil.TempFile("", "ain-body")
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not create tempfile")
+	}
+
+	if _, err := tmpFile.Write([]byte(bodyStr)); err != nil {
+		// This also returns an error, but the first is more significant
+		// so ignore this, it's only a temp-file that will be deleted eventually
+		_ = tmpFile.Close()
+
+		return nil, errors.Wrap(err, "Could not write to tempfile")
+	}
+
+	return tmpFile, nil
+}
+
 func (data Data) runAsCurl(ctx context.Context) (string, error) {
-	args := []string{"-sS"}
+	// TODO Put this in the global config
+	args := []string{"-sS", "-vvv"}
 
 	if data.Method != "" {
 		args = append(args, "-X", strings.ToUpper(data.Method))
@@ -28,6 +51,17 @@ func (data Data) runAsCurl(ctx context.Context) (string, error) {
 
 	for _, header := range data.Headers {
 		args = append(args, "-H", header)
+	}
+
+	if len(data.Body) > 0 {
+		tmpFile, err := data.getBodyAsTempFile()
+		if err != nil {
+			return "", err
+		}
+
+		defer os.Remove(tmpFile.Name())
+
+		args = append(args, "-d", "@"+tmpFile.Name())
 	}
 
 	args = append(args, data.Host.String())
@@ -46,10 +80,10 @@ func (data Data) runAsCurl(ctx context.Context) (string, error) {
 	}
 
 	return stdoutStr, nil
-
 }
 
 func (data Data) runAsHttpie(ctx context.Context) (string, error) {
+	// TOOO Put this in the global config
 	args := []string{"--ignore-stdin"}
 
 	if data.Method != "" {
@@ -60,6 +94,17 @@ func (data Data) runAsHttpie(ctx context.Context) (string, error) {
 
 	for _, header := range data.Headers {
 		args = append(args, header)
+	}
+
+	if len(data.Body) > 0 {
+		tmpFile, err := data.getBodyAsTempFile()
+		if err != nil {
+			return "", err
+		}
+
+		defer os.Remove(tmpFile.Name())
+
+		args = append(args, "@"+tmpFile.Name())
 	}
 
 	var stdout, stderr bytes.Buffer
