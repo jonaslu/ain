@@ -66,21 +66,18 @@ func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) 
 		return nil, fatals
 	}
 
+	sectionParsers := []func([]sourceMarker, *call.Data) *fatalMarker{
+		parseHostSection,
+		parseHeadersSection,
+		parseMethodSection,
+		parseBodySection,
+	}
+
 	callData := &call.Data{}
-	if hostFatalMarker := parseHostSection(shellCommandsTemplate, callData); hostFatalMarker != nil {
-		fatals = append(fatals, formatFatalMarker(hostFatalMarker, templateLines))
-	}
-
-	if headersFatalMarker := parseHeadersSection(shellCommandsTemplate, callData); headersFatalMarker != nil {
-		fatals = append(fatals, formatFatalMarker(headersFatalMarker, templateLines))
-	}
-
-	if methodFatalMarker := parseMethodSection(shellCommandsTemplate, callData); methodFatalMarker != nil {
-		fatals = append(fatals, formatFatalMarker(methodFatalMarker, templateLines))
-	}
-
-	if bodyFatalMarker := parseBodySection(shellCommandsTemplate, callData); bodyFatalMarker != nil {
-		fatals = append(fatals, formatFatalMarker(bodyFatalMarker, templateLines))
+	for _, sectionParser := range sectionParsers {
+		if callFatalMarker := sectionParser(shellCommandsTemplate, callData); callFatalMarker != nil {
+			fatals = append(fatals, formatFatalMarker(callFatalMarker, templateLines))
+		}
 	}
 
 	return callData, fatals
