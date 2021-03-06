@@ -13,12 +13,10 @@ import (
 )
 
 type Data struct {
-	Host       *url.URL
-	URL        string
-	Body       []string
-	Parameters []string
-	Method     string
-	Headers    []string
+	Host    *url.URL
+	Body    []string
+	Method  string
+	Headers []string
 }
 
 func (data Data) getBodyAsTempFile() (*os.File, error) {
