@@ -6,7 +6,6 @@ import (
 
 func parseMethodSection(template []sourceMarker, callData *call.Data) *fatalMarker {
 	captureResult, captureFatal := captureSection("Method", template, true)
-
 	if captureFatal != nil {
 		return captureFatal
 	}
@@ -16,10 +15,6 @@ func parseMethodSection(template []sourceMarker, callData *call.Data) *fatalMark
 	}
 
 	methodLines := captureResult.sectionLines
-
-	if len(methodLines) == 0 {
-		return newFatalMarker("Empty [Method] line", captureResult.sectionHeaderLine)
-	}
 
 	if len(methodLines) > 1 {
 		for _, hostLine := range methodLines {

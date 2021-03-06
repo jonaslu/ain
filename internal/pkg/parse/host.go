@@ -9,7 +9,6 @@ import (
 
 func parseHostSection(template []sourceMarker, callData *call.Data) *fatalMarker {
 	captureResult, captureErr := captureSection("Host", template, true)
-
 	if captureErr != nil {
 		return captureErr
 	}
@@ -19,10 +18,6 @@ func parseHostSection(template []sourceMarker, callData *call.Data) *fatalMarker
 	}
 
 	hostLines := captureResult.sectionLines
-
-	if len(hostLines) == 0 {
-		return newFatalMarker("Empty [Host] line", captureResult.sectionHeaderLine)
-	}
 
 	if len(hostLines) > 1 {
 		for _, hostLine := range hostLines {

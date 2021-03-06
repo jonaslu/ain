@@ -4,7 +4,6 @@ import "github.com/jonaslu/ain/internal/pkg/call"
 
 func parseHeadersSection(template []sourceMarker, callData *call.Data) *fatalMarker {
 	captureResult, captureFatal := captureSection("Headers", template, true)
-
 	if captureFatal != nil {
 		return captureFatal
 	}

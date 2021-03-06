@@ -43,6 +43,10 @@ func captureSection(sectionName string, template []sourceMarker, trim bool) (*ca
 		}
 	}
 
+	if sectionHeaderLine != emptyLine && len(sectionLines) == 0 {
+		return nil, newFatalMarker("Empty ["+sectionName+"] line", sectionHeaderLine)
+	}
+
 	captureResult := &captureResult{
 		sectionHeaderLine: sectionHeaderLine,
 		sectionLines:      sectionLines,
