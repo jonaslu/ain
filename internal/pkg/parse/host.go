@@ -17,19 +17,18 @@ func parseHostSection(template []sourceMarker, callData *call.Data) *fatalMarker
 		return newFatalMarker("No mandatory [Host] section found", emptyLine)
 	}
 
-	hostLines := captureResult.sectionLines
-
-	if len(hostLines) > 1 {
-		for _, hostLine := range hostLines {
-			return newFatalMarker("Found several lines under [Host]", hostLine)
-		}
+	var hostStr string
+	for _, hostLine := range captureResult.sectionLines {
+		hostStr = hostStr + hostLine.lineContents
 	}
 
-	hostLine := hostLines[len(hostLines)-1]
-	hostStr := hostLine.lineContents
 	host, err := url.Parse(hostStr)
 	if err != nil {
-		return newFatalMarker(fmt.Sprintf("Could not parse [Host] url: %v", captureErr), hostLine)
+		return newFatalMarker(
+			fmt.Sprintf("[Host] has illegal url: %s, error: %v",
+				hostStr,
+				err),
+			captureResult.sectionLines[0])
 	}
 
 	callData.Host = host
