@@ -7,7 +7,7 @@ import (
 )
 
 func parseBackendSection(template []sourceMarker, callData *call.Data) *fatalMarker {
-	captureResult, captureFatal := captureSection("Backend", template, false)
+	captureResult, captureFatal := captureSection("Backend", template, true)
 	if captureFatal != nil {
 		return captureFatal
 	}
