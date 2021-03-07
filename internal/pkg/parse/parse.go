@@ -71,6 +71,7 @@ func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) 
 		parseHeadersSection,
 		parseMethodSection,
 		parseBodySection,
+		parseBackendSection,
 	}
 
 	callData := &call.Data{}

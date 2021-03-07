@@ -46,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	backendOutput, err := call.CallBackend(ctx, callData, "httpie")
+	backendOutput, err := call.CallBackend(ctx, callData)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

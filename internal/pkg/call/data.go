@@ -3,6 +3,7 @@ package call
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -17,6 +18,8 @@ type Data struct {
 	Body    []string
 	Method  string
 	Headers []string
+
+	BackendFunc func(context.Context, *Data) (string, error)
 }
 
 func (data Data) getBodyAsTempFile() (*os.File, error) {
@@ -39,7 +42,7 @@ func (data Data) getBodyAsTempFile() (*os.File, error) {
 	return tmpFile, nil
 }
 
-func (data Data) runAsCurl(ctx context.Context) (string, error) {
+func runAsCurl(ctx context.Context, data *Data) (string, error) {
 	// TODO Put this in the global config
 	args := []string{"-sS", "-vvv"}
 
@@ -69,6 +72,8 @@ func (data Data) runAsCurl(ctx context.Context) (string, error) {
 	curlCmd.Stdout = &stdout
 	curlCmd.Stderr = &stderr
 
+	fmt.Println(curlCmd.String())
+
 	err := curlCmd.Run()
 	stdoutStr := string(stdout.Bytes())
 
@@ -80,7 +85,7 @@ func (data Data) runAsCurl(ctx context.Context) (string, error) {
 	return stdoutStr, nil
 }
 
-func (data Data) runAsHttpie(ctx context.Context) (string, error) {
+func runAsHttpie(ctx context.Context, data *Data) (string, error) {
 	// TOOO Put this in the global config
 	args := []string{"--ignore-stdin"}
 
@@ -109,6 +114,8 @@ func (data Data) runAsHttpie(ctx context.Context) (string, error) {
 	httpCmd := exec.CommandContext(ctx, "http", args...)
 	httpCmd.Stdout = &stdout
 	httpCmd.Stderr = &stderr
+
+	fmt.Println(httpCmd.String())
 
 	err := httpCmd.Run()
 	stdoutStr := string(stdout.Bytes())

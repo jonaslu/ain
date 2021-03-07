@@ -3,22 +3,25 @@ package call
 import (
 	"context"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // !! TODO !! Make this a global config
 const backendTimeoutSeconds = 10
 
-func CallBackend(ctx context.Context, callData *Data, backend string) (string, error) {
-	backendTimeoutContext, _ := context.WithTimeout(ctx, backendTimeoutSeconds*time.Second)
-
-	switch backend {
+func (callData *Data) SetBackend(backendName string) bool {
+	switch backendName {
 	case "curl":
-		return callData.runAsCurl(backendTimeoutContext)
+		callData.BackendFunc = runAsCurl
+		return true
 	case "httpie":
-		return callData.runAsHttpie(backendTimeoutContext)
+		callData.BackendFunc = runAsHttpie
+		return true
+	default:
+		return false
 	}
+}
 
-	return "", errors.Errorf("Unknown backend: %s", backend)
+func CallBackend(ctx context.Context, callData *Data) (string, error) {
+	backendTimeoutContext, _ := context.WithTimeout(ctx, backendTimeoutSeconds*time.Second)
+	return callData.BackendFunc(backendTimeoutContext, callData)
 }
