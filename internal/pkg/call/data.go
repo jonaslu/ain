@@ -19,7 +19,8 @@ type Data struct {
 	Method  string
 	Headers []string
 
-	BackendFunc func(context.Context, *Data) (string, error)
+	BackendFunc    func(context.Context, *Data) (string, error)
+	BackendOptions []string
 }
 
 func (data Data) getBodyAsTempFile() (*os.File, error) {
@@ -43,8 +44,7 @@ func (data Data) getBodyAsTempFile() (*os.File, error) {
 }
 
 func runAsCurl(ctx context.Context, data *Data) (string, error) {
-	// TODO Put this in the global config
-	args := []string{"-sS", "-vvv"}
+	args := data.BackendOptions
 
 	if data.Method != "" {
 		args = append(args, "-X", strings.ToUpper(data.Method))
@@ -86,8 +86,20 @@ func runAsCurl(ctx context.Context, data *Data) (string, error) {
 }
 
 func runAsHttpie(ctx context.Context, data *Data) (string, error) {
-	// TOOO Put this in the global config
-	args := []string{"--ignore-stdin"}
+	optsContainIgnoreStdinFunc := func() bool {
+		for _, arg := range data.BackendOptions {
+			if arg == "--ignore-stdin" {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	args := data.BackendOptions
+	if optsContainIgnoreStdin := optsContainIgnoreStdinFunc(); !optsContainIgnoreStdin {
+		args = append([]string{"--ignore-stdin"}, args...)
+	}
 
 	if data.Method != "" {
 		args = append(args, strings.ToUpper(data.Method))
