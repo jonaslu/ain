@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 
@@ -18,18 +19,24 @@ func printInternalErrorAndExit(err error) {
 }
 
 func main() {
+	var execute bool
+
+	flag.BoolVar(&execute, "execute", false, "Execute template directly, without editing")
+	flag.BoolVar(&execute, "x", false, "Execute template directly, without editing")
+	flag.Parse()
+
 	gotPipe, err := disk.IsConnectedToPipe()
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}
 
 	if !gotPipe {
-		if len(os.Args) < 2 {
+		if len(flag.Args()) < 1 {
 			printInternalErrorAndExit(errors.New("Missing file name\nUsage ain <template.ain> or connect it to a pipe"))
 		}
 	}
 
-	template, err := disk.ReadTemplate()
+	template, err := disk.ReadTemplate(execute)
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}

@@ -1,6 +1,7 @@
 package disk
 
 import (
+	"flag"
 	"io"
 	"io/ioutil"
 	"os"
@@ -72,7 +73,7 @@ func IsConnectedToPipe() (bool, error) {
 	return (fi.Mode() & os.ModeCharDevice) == 0, nil
 }
 
-func ReadTemplate() (string, error) {
+func ReadTemplate(execute bool) (string, error) {
 	fi, err := os.Stdin.Stat()
 	if err != nil {
 		return "", errors.Wrap(err, "could not stat stdin")
@@ -88,8 +89,19 @@ func ReadTemplate() (string, error) {
 
 		sourceTemplateFileName = string(fileNameBytes)
 	} else {
-		sourceTemplateFileName = os.Args[1]
+		sourceTemplateFileName = flag.Arg(0)
 	}
 
-	return readEditedTemplate(strings.TrimSpace(sourceTemplateFileName))
+	trimmedSourceTemplatFileName := strings.TrimSpace(sourceTemplateFileName)
+
+	if execute {
+		fileContents, err := ioutil.ReadFile(trimmedSourceTemplatFileName)
+		if err != nil {
+			return "", errors.Wrapf(err, "Could not read file with name: %s", trimmedSourceTemplatFileName)
+		}
+
+		return string(fileContents), nil
+	}
+
+	return readEditedTemplate(trimmedSourceTemplatFileName)
 }
