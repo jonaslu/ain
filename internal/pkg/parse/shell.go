@@ -46,8 +46,6 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 
 			shellCommandAndArgsStr := shellCommandAndArgsCapture[1]
 
-			fmt.Println(shellCommandAndArgsStr)
-
 			tokenizedCommandLine, err := utils.TokenizeLine(shellCommandAndArgsStr, false)
 			if err != nil {
 				fatals = append(fatals, newFatalMarker(err.Error(), templateLine))

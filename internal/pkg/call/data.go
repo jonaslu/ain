@@ -3,7 +3,6 @@ package call
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -72,8 +71,6 @@ func runAsCurl(ctx context.Context, data *Data) (string, error) {
 	curlCmd.Stdout = &stdout
 	curlCmd.Stderr = &stderr
 
-	fmt.Println(curlCmd.String())
-
 	err := curlCmd.Run()
 	stdoutStr := string(stdout.Bytes())
 
@@ -126,8 +123,6 @@ func runAsHttpie(ctx context.Context, data *Data) (string, error) {
 	httpCmd := exec.CommandContext(ctx, "http", args...)
 	httpCmd.Stdout = &stdout
 	httpCmd.Stderr = &stderr
-
-	fmt.Println(httpCmd.String())
 
 	err := httpCmd.Run()
 	stdoutStr := string(stdout.Bytes())
