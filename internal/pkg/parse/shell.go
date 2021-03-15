@@ -10,11 +10,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
-
-// !! TODO !! This should be a global config things
-const cmdTimeOutInSeconds = 10
 
 var subShellExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
 var subShellCommandRe = regexp.MustCompile(`\$\(([^)]*)\)`)
@@ -69,7 +67,7 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 	return shellCommands, fatals
 }
 
-func callShellCommands(ctx context.Context, shellCommands []shellCommandAndArgs) []shellCommandOutput {
+func callShellCommands(ctx context.Context, config call.Config, shellCommands []shellCommandAndArgs) []shellCommandOutput {
 	shellResults := make([]shellCommandOutput, len(shellCommands))
 
 	wg := sync.WaitGroup{}
@@ -78,7 +76,12 @@ func callShellCommands(ctx context.Context, shellCommands []shellCommandAndArgs)
 			defer wg.Done()
 
 			var stdout, stderr bytes.Buffer
-			timeoutCtx, _ := context.WithTimeout(ctx, cmdTimeOutInSeconds*time.Second)
+
+			timeoutCtx := ctx
+			if config.Timeout > -1 {
+				timeoutCtx, _ = context.WithTimeout(ctx, time.Duration(config.Timeout)*time.Second)
+			}
+
 			cmd := exec.CommandContext(timeoutCtx, shellCommand.cmd, shellCommand.args...)
 
 			cmd.Stdout = &stdout
@@ -86,7 +89,7 @@ func callShellCommands(ctx context.Context, shellCommands []shellCommandAndArgs)
 
 			err := cmd.Run()
 			if timeoutCtx.Err() != nil {
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Command: %s timed out after %d seconds ", cmd.String(), cmdTimeOutInSeconds)
+				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Command: %s timed out after %d seconds ", cmd.String(), config.Timeout)
 				return
 			}
 
@@ -139,13 +142,13 @@ func insertShellCommandOutput(shellResults []shellCommandOutput, templateLines [
 	return transformedTemplateLines, fatals
 }
 
-func transformShellCommands(ctx context.Context, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
+func transformShellCommands(ctx context.Context, config call.Config, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
 	shellCommands, fatals := captureShellCommandAndArgs(templateLines)
 	if len(fatals) > 0 {
 		return nil, fatals
 	}
 
-	shellResults := callShellCommands(ctx, shellCommands)
+	shellResults := callShellCommands(ctx, config, shellCommands)
 
 	return insertShellCommandOutput(shellResults, templateLines)
 }

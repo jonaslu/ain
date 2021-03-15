@@ -65,7 +65,7 @@ func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) 
 		return nil, fatals
 	}
 
-	shellCommandsTemplate, shellCommandFatals := transformShellCommands(ctx, envVarsTemplate)
+	shellCommandsTemplate, shellCommandFatals := transformShellCommands(ctx, callData.Config, envVarsTemplate)
 	if len(shellCommandFatals) > 0 {
 		for _, transformFatalMarker := range shellCommandFatals {
 			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
