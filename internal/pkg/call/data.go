@@ -12,6 +12,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Config struct {
+	Timeout int32
+}
+
 type Data struct {
 	Host    *url.URL
 	Body    []string
@@ -20,6 +24,8 @@ type Data struct {
 
 	BackendFunc    func(context.Context, *Data) (string, error)
 	BackendOptions []string
+
+	Config Config
 }
 
 func (data Data) getBodyAsTempFile() (*os.File, error) {
