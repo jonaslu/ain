@@ -1,7 +1,10 @@
 package parse
 
 import (
+	"fmt"
+
 	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
 func parseBackendOptionsSection(template []sourceMarker, callData *call.Data) *fatalMarker {
@@ -15,7 +18,12 @@ func parseBackendOptionsSection(template []sourceMarker, callData *call.Data) *f
 	}
 
 	for _, backendOptionLineContents := range captureResult.sectionLines {
-		callData.BackendOptions = append(callData.BackendOptions, backendOptionLineContents.lineContents)
+		tokenizedBackendOpts, err := utils.TokenizeLine(backendOptionLineContents.lineContents, true)
+		if err != nil {
+			return newFatalMarker(fmt.Sprintf("Could not parse backend-option: %s", err.Error()), backendOptionLineContents)
+		}
+
+		callData.BackendOptions = append(callData.BackendOptions, tokenizedBackendOpts...)
 	}
 
 	return nil
