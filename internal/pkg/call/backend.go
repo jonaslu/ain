@@ -5,9 +5,6 @@ import (
 	"time"
 )
 
-// !! TODO !! Make this a global config
-const backendTimeoutSeconds = 10
-
 func (callData *Data) SetBackend(backendName string) bool {
 	switch backendName {
 	case "curl":
@@ -22,6 +19,10 @@ func (callData *Data) SetBackend(backendName string) bool {
 }
 
 func CallBackend(ctx context.Context, callData *Data) (string, error) {
-	backendTimeoutContext, _ := context.WithTimeout(ctx, backendTimeoutSeconds*time.Second)
+	backendTimeoutContext := ctx
+	if callData.Config.Timeout > -1 {
+		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
+	}
+
 	return callData.BackendFunc(backendTimeoutContext, callData)
 }
