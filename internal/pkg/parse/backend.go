@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/call"
 )
@@ -24,11 +25,13 @@ func parseBackendSection(template []sourceMarker, callData *call.Data) *fatalMar
 		}
 	}
 
-	backendName := backendLines[0].lineContents
+	backendName := strings.ToLower(backendLines[0].lineContents)
 
-	if exists := callData.SetBackend(backendName); !exists {
+	if !call.ValidBackend(backendName) {
 		return newFatalMarker(fmt.Sprintf("Unknown backend: %s", backendName), backendLines[0])
 	}
+
+	callData.Backend = backendName
 
 	return nil
 }
