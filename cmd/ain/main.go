@@ -25,18 +25,16 @@ func main() {
 	flag.BoolVar(&execute, "x", false, "Execute template directly, without editing")
 	flag.Parse()
 
-	gotPipe, err := disk.IsConnectedToPipe()
+	localTemplateFileName, err := disk.GetLocalTemplateFileName()
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}
 
-	if !gotPipe {
-		if len(flag.Args()) < 1 {
-			printInternalErrorAndExit(errors.New("Missing file name\nUsage ain <template.ain> or connect it to a pipe"))
-		}
+	if localTemplateFileName == "" {
+		printInternalErrorAndExit(errors.New("Missing file name\nUsage ain <template.ain> or connect it to a pipe"))
 	}
 
-	template, err := disk.ReadTemplate(execute)
+	template, err := disk.ReadTemplate(localTemplateFileName, execute)
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}
@@ -44,6 +42,7 @@ func main() {
 	// !! TODO !! Hook into SIGINT etc and cancel this context if hit
 	ctx := context.Background()
 
+	// I need to know the file-name out here instead
 	callData, fatals := parse.ParseTemplate(ctx, template)
 	if len(fatals) > 0 {
 		for _, fatal := range fatals {

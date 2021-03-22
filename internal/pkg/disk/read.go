@@ -64,44 +64,40 @@ func readEditedTemplate(sourceTemplateFileName string) (string, error) {
 	return captureEditorOutput(tempFile)
 }
 
-func IsConnectedToPipe() (bool, error) {
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		return false, errors.Wrap(err, "could not stat stdin")
-	}
+func GetLocalTemplateFileName() (string, error) {
+	var localTemplateFileName string
 
-	return (fi.Mode() & os.ModeCharDevice) == 0, nil
-}
-
-func ReadTemplate(execute bool) (string, error) {
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		return "", errors.Wrap(err, "could not stat stdin")
-	}
-
-	var sourceTemplateFileName string
-	if (fi.Mode() & os.ModeCharDevice) == 0 {
-		// Connected to a pipe
-		fileNameBytes, err := ioutil.ReadAll(os.Stdin)
+	if len(flag.Args()) >= 1 {
+		localTemplateFileName = flag.Arg(0)
+	} else {
+		fi, err := os.Stdin.Stat()
 		if err != nil {
-			return "", errors.Wrap(err, "could not read stdin")
+			return "", errors.Wrap(err, "could not stat stdin")
 		}
 
-		sourceTemplateFileName = string(fileNameBytes)
-	} else {
-		sourceTemplateFileName = flag.Arg(0)
+		if (fi.Mode() & os.ModeCharDevice) == 0 {
+			// Connected to a pipe
+			fileNameBytes, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				return "", errors.Wrap(err, "could not read stdin")
+			}
+
+			localTemplateFileName = string(fileNameBytes)
+		}
 	}
 
-	trimmedSourceTemplatFileName := strings.TrimSpace(sourceTemplateFileName)
+	return strings.TrimSpace(localTemplateFileName), nil
+}
 
+func ReadTemplate(templateFileName string, execute bool) (string, error) {
 	if execute {
-		fileContents, err := ioutil.ReadFile(trimmedSourceTemplatFileName)
+		fileContents, err := ioutil.ReadFile(templateFileName)
 		if err != nil {
-			return "", errors.Wrapf(err, "Could not read file with name: %s", trimmedSourceTemplatFileName)
+			return "", errors.Wrapf(err, "Could not read file with name: %s", templateFileName)
 		}
 
 		return string(fileContents), nil
 	}
 
-	return readEditedTemplate(trimmedSourceTemplatFileName)
+	return readEditedTemplate(templateFileName)
 }
