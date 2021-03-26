@@ -1,8 +1,8 @@
 package parse
 
-import "github.com/jonaslu/ain/internal/pkg/call"
+import "github.com/jonaslu/ain/internal/pkg/data"
 
-func parseHeadersSection(template []sourceMarker, callData *call.Data) *fatalMarker {
+func parseHeadersSection(template []sourceMarker, callData *data.Data) *fatalMarker {
 	captureResult, captureFatal := captureSection("Headers", template, true)
 	if captureFatal != nil {
 		return captureFatal

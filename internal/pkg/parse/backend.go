@@ -5,9 +5,10 @@ import (
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
-func parseBackendSection(template []sourceMarker, callData *call.Data) *fatalMarker {
+func parseBackendSection(template []sourceMarker, callData *data.Data) *fatalMarker {
 	captureResult, captureFatal := captureSection("Backend", template, true)
 	if captureFatal != nil {
 		return captureFatal

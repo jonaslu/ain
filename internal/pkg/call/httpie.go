@@ -4,13 +4,15 @@ import (
 	"context"
 	"os/exec"
 	"strings"
+
+	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
 type httpie struct {
 	args []string
 }
 
-func newHttpieBackend(data *Data) (*httpie, error) {
+func newHttpieBackend(data *data.Data) (*httpie, error) {
 	optsContainIgnoreStdinFunc := func() bool {
 		for _, arg := range data.BackendOptions {
 			if arg == "--ignore-stdin" {
@@ -37,7 +39,7 @@ func newHttpieBackend(data *Data) (*httpie, error) {
 	}
 
 	if len(data.Body) > 0 {
-		tmpFile, err := data.getBodyAsTempFile()
+		tmpFile, err := data.GetBodyAsTempFile()
 		if err != nil {
 			return nil, err
 		}

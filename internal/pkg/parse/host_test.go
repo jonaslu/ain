@@ -4,11 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
 func TestParseHostEmptyHeader(t *testing.T) {
-	callData := &call.Data{}
+	callData := &data.Data{}
 
 	template, _ := trimTemplate(`
 [Host]`)
@@ -25,7 +25,7 @@ func TestParseHostEmptyHeader(t *testing.T) {
 }
 
 func TestParseHostEmptyTwoHeaders(t *testing.T) {
-	callData := &call.Data{}
+	callData := &data.Data{}
 
 	template, _ := trimTemplate(`
 [Host]
@@ -43,7 +43,7 @@ func TestParseHostEmptyTwoHeaders(t *testing.T) {
 }
 
 func TestParseHostMalformedUrl(t *testing.T) {
-	callData := &call.Data{}
+	callData := &data.Data{}
 
 	template, _ := trimTemplate(`
 [Host]
@@ -64,7 +64,7 @@ func TestParseHostMalformedUrl(t *testing.T) {
 }
 
 func TestParseHostHappyPath(t *testing.T) {
-	callData := &call.Data{}
+	callData := &data.Data{}
 
 	template, _ := trimTemplate(`
 [Host]

@@ -1,4 +1,4 @@
-package call
+package data
 
 import (
 	"io/ioutil"
@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (data Data) getBodyAsTempFile() (*os.File, error) {
+func (data Data) GetBodyAsTempFile() (*os.File, error) {
 	bodyStr := strings.Join(data.Body, "\n")
 
 	// TODO Make this configurable so it can be inspected

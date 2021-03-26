@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
@@ -67,7 +67,7 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 	return shellCommands, fatals
 }
 
-func callShellCommands(ctx context.Context, config call.Config, shellCommands []shellCommandAndArgs) []shellCommandOutput {
+func callShellCommands(ctx context.Context, config data.Config, shellCommands []shellCommandAndArgs) []shellCommandOutput {
 	shellResults := make([]shellCommandOutput, len(shellCommands))
 
 	wg := sync.WaitGroup{}
@@ -142,7 +142,7 @@ func insertShellCommandOutput(shellResults []shellCommandOutput, templateLines [
 	return transformedTemplateLines, fatals
 }
 
-func transformShellCommands(ctx context.Context, config call.Config, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
+func transformShellCommands(ctx context.Context, config data.Config, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
 	shellCommands, fatals := captureShellCommandAndArgs(templateLines)
 	if len(fatals) > 0 {
 		return nil, fatals

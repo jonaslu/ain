@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/pkg/errors"
 )
 
@@ -34,7 +34,7 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 	return true, int32(timeoutIntervalInt64), nil
 }
 
-func parseConfigSection(template []sourceMarker, callData *call.Data) *fatalMarker {
+func parseConfigSection(template []sourceMarker, callData *data.Data) *fatalMarker {
 	captureResult, captureErr := captureSection("Config", template, true)
 	if captureErr != nil {
 		return captureErr

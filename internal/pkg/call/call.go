@@ -4,16 +4,45 @@ import (
 	"context"
 	"time"
 
+	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/pkg/errors"
 )
 
-func CallBackend(ctx context.Context, callData *Data) (string, error) {
+type backend interface {
+	runAsCmd(context.Context) ([]byte, error)
+	// getAsString() string
+	// cleanUp()
+}
+
+func getBackend(callData *data.Data) (backend, error) {
+	switch callData.Backend {
+	case "httpie":
+		return newHttpieBackend(callData)
+	case "curl":
+		return newCurlBackend(callData)
+	}
+
+	return nil, errors.Errorf("Unknown backend: %s", callData.Backend)
+}
+
+func ValidBackend(backendName string) bool {
+	switch backendName {
+	case "httpie":
+		return true
+	case "curl":
+		return true
+	}
+
+	return false
+}
+
+func CallBackend(ctx context.Context, callData *data.Data) (string, error) {
 	backendTimeoutContext := ctx
 	if callData.Config.Timeout > -1 {
 		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
 	}
 
-	backend, err := callData.getBackend()
+	backend, err := getBackend(callData)
 	if err != nil {
 		return "", errors.Wrapf(err, "Could not instantiate backend: %s", callData.Backend)
 	}

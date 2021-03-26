@@ -3,11 +3,11 @@ package parse
 import (
 	"fmt"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func parseBackendOptionsSection(template []sourceMarker, callData *call.Data) *fatalMarker {
+func parseBackendOptionsSection(template []sourceMarker, callData *data.Data) *fatalMarker {
 	captureResult, captureFatal := captureSection("BackendOptions", template, true)
 	if captureFatal != nil {
 		return captureFatal

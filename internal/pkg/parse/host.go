@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
-func parseHostSection(template []sourceMarker, callData *call.Data) *fatalMarker {
+func parseHostSection(template []sourceMarker, callData *data.Data) *fatalMarker {
 	captureResult, captureErr := captureSection("Host", template, true)
 	if captureErr != nil {
 		return captureErr

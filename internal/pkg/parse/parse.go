@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
 type sourceMarker struct {
@@ -40,7 +40,7 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	return strippedLines, templateLines
 }
 
-func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) {
+func ParseTemplate(ctx context.Context, template string) (*data.Data, []string) {
 	var fatals []string
 
 	trimmedTemplate, templateLines := trimTemplate(template)
@@ -49,7 +49,7 @@ func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) 
 	}
 
 	// !! TODO !! If this gets worse, put it in  it's on initializer method
-	callData := &call.Data{}
+	callData := &data.Data{}
 	callData.Config.Timeout = -1
 
 	if configFatal := parseConfigSection(trimmedTemplate, callData); configFatal != nil {
@@ -74,7 +74,7 @@ func ParseTemplate(ctx context.Context, template string) (*call.Data, []string) 
 		return nil, fatals
 	}
 
-	sectionParsers := []func([]sourceMarker, *call.Data) *fatalMarker{
+	sectionParsers := []func([]sourceMarker, *data.Data) *fatalMarker{
 		parseHostSection,
 		parseHeadersSection,
 		parseMethodSection,

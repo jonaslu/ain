@@ -4,11 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
+	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
 func TestWarnDuplicateHeadersEntries(t *testing.T) {
-	callData := &call.Data{}
+	callData := &data.Data{}
 
 	template, _ := trimTemplate(`
 [Headers]
@@ -27,7 +27,7 @@ goat=cheese
 }
 
 func TestParseHeadersTrimmed(t *testing.T) {
-	callData := &call.Data{}
+	callData := &data.Data{}
 
 	template, _ := trimTemplate(`
 [Headers]

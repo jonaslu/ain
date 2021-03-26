@@ -4,13 +4,15 @@ import (
 	"context"
 	"os/exec"
 	"strings"
+
+	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
 type curl struct {
 	args []string
 }
 
-func newCurlBackend(data *Data) (*curl, error) {
+func newCurlBackend(data *data.Data) (*curl, error) {
 	args := data.BackendOptions
 
 	if data.Method != "" {
@@ -22,7 +24,7 @@ func newCurlBackend(data *Data) (*curl, error) {
 	}
 
 	if len(data.Body) > 0 {
-		tmpFile, err := data.getBodyAsTempFile()
+		tmpFile, err := data.GetBodyAsTempFile()
 		if err != nil {
 			return nil, err
 		}
