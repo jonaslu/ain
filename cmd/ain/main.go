@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jonaslu/ain/internal/assemble"
 	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/disk"
-	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
 func printInternalErrorAndExit(err error) {
@@ -25,30 +25,25 @@ func main() {
 	flag.BoolVar(&execute, "x", false, "Execute template directly, without editing")
 	flag.Parse()
 
-	localTemplateFileName, err := disk.GetLocalTemplateFileName()
+	localTemplateFileNames, err := disk.GetTemplateFilenames()
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}
 
-	if localTemplateFileName == "" {
+	if len(localTemplateFileNames) == 0 {
 		printInternalErrorAndExit(errors.New("Missing file name\nUsage ain <template.ain> or connect it to a pipe"))
-	}
-
-	template, err := disk.ReadTemplate(localTemplateFileName, execute)
-	if err != nil {
-		printInternalErrorAndExit(err)
 	}
 
 	// !! TODO !! Hook into SIGINT etc and cancel this context if hit
 	ctx := context.Background()
 
-	// I need to know the file-name out here instead
-	callData, fatals := parse.ParseTemplate(ctx, template)
-	if len(fatals) > 0 {
-		for _, fatal := range fatals {
-			fmt.Println(fatal)
-		}
+	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames, execute)
+	if err != nil {
+		printInternalErrorAndExit(err)
+	}
 
+	if fatal != "" {
+		fmt.Println(fatal)
 		os.Exit(1)
 	}
 

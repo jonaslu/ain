@@ -15,7 +15,7 @@ func parseBackendSection(template []sourceMarker, callData *data.Data) *fatalMar
 	}
 
 	if captureResult.sectionHeaderLine == emptyLine {
-		return newFatalMarker("No mandatory [Backend] section found", emptyLine)
+		return nil
 	}
 
 	backendLines := captureResult.sectionLines

@@ -1,12 +1,10 @@
 package disk
 
 import (
-	"flag"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -62,31 +60,6 @@ func readEditedTemplate(sourceTemplateFileName string) (string, error) {
 	}
 
 	return captureEditorOutput(tempFile)
-}
-
-func GetLocalTemplateFileName() (string, error) {
-	var localTemplateFileName string
-
-	if len(flag.Args()) >= 1 {
-		localTemplateFileName = flag.Arg(0)
-	} else {
-		fi, err := os.Stdin.Stat()
-		if err != nil {
-			return "", errors.Wrap(err, "could not stat stdin")
-		}
-
-		if (fi.Mode() & os.ModeCharDevice) == 0 {
-			// Connected to a pipe
-			fileNameBytes, err := ioutil.ReadAll(os.Stdin)
-			if err != nil {
-				return "", errors.Wrap(err, "could not read stdin")
-			}
-
-			localTemplateFileName = string(fileNameBytes)
-		}
-	}
-
-	return strings.TrimSpace(localTemplateFileName), nil
 }
 
 func ReadTemplate(templateFileName string, execute bool) (string, error) {

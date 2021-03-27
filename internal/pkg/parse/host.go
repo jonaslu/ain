@@ -14,7 +14,7 @@ func parseHostSection(template []sourceMarker, callData *data.Data) *fatalMarker
 	}
 
 	if captureResult.sectionHeaderLine == emptyLine {
-		return newFatalMarker("No mandatory [Host] section found", emptyLine)
+		return nil
 	}
 
 	var hostStr string
