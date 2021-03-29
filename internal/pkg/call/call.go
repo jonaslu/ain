@@ -14,7 +14,7 @@ type backend interface {
 	// cleanUp()
 }
 
-func getBackend(callData *data.Parse) (backend, error) {
+func getBackend(callData *data.Call) (backend, error) {
 	switch callData.Backend {
 	case "httpie":
 		return newHttpieBackend(callData)
@@ -36,7 +36,7 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, callData *data.Parse) (string, error) {
+func CallBackend(ctx context.Context, callData *data.Call) (string, error) {
 	backendTimeoutContext := ctx
 	if callData.Config.Timeout > -1 {
 		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)

@@ -12,7 +12,7 @@ type httpie struct {
 	args []string
 }
 
-func newHttpieBackend(data *data.Parse) (*httpie, error) {
+func newHttpieBackend(data *data.Call) (*httpie, error) {
 	optsContainIgnoreStdinFunc := func() bool {
 		for _, arg := range data.BackendOptions {
 			if arg == "--ignore-stdin" {

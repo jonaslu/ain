@@ -12,19 +12,19 @@ type curl struct {
 	args []string
 }
 
-func newCurlBackend(data *data.Parse) (*curl, error) {
-	args := data.BackendOptions
+func newCurlBackend(callData *data.Call) (*curl, error) {
+	args := callData.BackendOptions
 
-	if data.Method != "" {
-		args = append(args, "-X", strings.ToUpper(data.Method))
+	if callData.Method != "" {
+		args = append(args, "-X", strings.ToUpper(callData.Method))
 	}
 
-	for _, header := range data.Headers {
+	for _, header := range callData.Headers {
 		args = append(args, "-H", header)
 	}
 
-	if len(data.Body) > 0 {
-		tmpFile, err := data.GetBodyAsTempFile()
+	if len(callData.Body) > 0 {
+		tmpFile, err := callData.GetBodyAsTempFile()
 		if err != nil {
 			return nil, err
 		}
@@ -34,7 +34,7 @@ func newCurlBackend(data *data.Parse) (*curl, error) {
 		args = append(args, "-d", "@"+tmpFile.Name())
 	}
 
-	args = append(args, data.Host.String())
+	args = append(args, callData.Host.String())
 
 	return &curl{args: args}, nil
 }

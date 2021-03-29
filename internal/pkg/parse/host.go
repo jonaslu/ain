@@ -1,9 +1,6 @@
 package parse
 
 import (
-	"fmt"
-	"net/url"
-
 	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
@@ -17,21 +14,9 @@ func parseHostSection(template []sourceMarker, callData *data.Parse) *fatalMarke
 		return nil
 	}
 
-	var hostStr string
 	for _, hostLine := range captureResult.sectionLines {
-		hostStr = hostStr + hostLine.lineContents
+		callData.Host = append(callData.Host, hostLine.lineContents)
 	}
-
-	host, err := url.Parse(hostStr)
-	if err != nil {
-		return newFatalMarker(
-			fmt.Sprintf("[Host] has illegal url: %s, error: %v",
-				hostStr,
-				err),
-			captureResult.sectionLines[0])
-	}
-
-	callData.Host = host
 
 	return nil
 }

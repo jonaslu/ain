@@ -2,6 +2,8 @@ package assemble
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
@@ -10,9 +12,7 @@ import (
 )
 
 func mergeCallData(dest, merge *data.Parse) {
-	if merge.Host != nil {
-		dest.Host = merge.Host
-	}
+	dest.Host = append(dest.Host, merge.Host...)
 
 	if len(merge.Body) != 0 {
 		dest.Body = merge.Body
@@ -35,18 +35,38 @@ func mergeCallData(dest, merge *data.Parse) {
 	}
 }
 
-func validateCallData(data *data.Parse) []string {
+func getCallData(parse *data.Parse) (*data.Call, []string) {
+	callData := data.Call{}
 	fatals := []string{}
 
-	if data.Host == nil {
+	if len(parse.Host) == 0 {
 		fatals = append(fatals, "No mandatory [Host] section found")
+	} else {
+		hostStr := strings.Join(parse.Host, "")
+		host, err := url.Parse(hostStr)
+		if err != nil {
+			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", hostStr, err))
+		}
+
+		callData.Host = host
 	}
 
-	if data.Backend == "" {
+	if parse.Backend == "" {
 		fatals = append(fatals, "No mandatory [Backend] section found")
 	}
 
-	return fatals
+	if len(fatals) != 0 {
+		return nil, fatals
+	}
+
+	callData.Body = parse.Body
+	callData.Method = parse.Method
+	callData.Headers = parse.Headers
+	callData.Backend = parse.Backend
+	callData.BackendOptions = parse.BackendOptions
+	callData.Config = parse.Config
+
+	return &callData, fatals
 }
 
 func appendErrorMessages(errorMessage, filename string, fatals []string) string {
@@ -61,11 +81,11 @@ func appendErrorMessages(errorMessage, filename string, fatals []string) string 
 	return errorMessage + strings.Join(fatals, "\n") + "\n"
 }
 
-func Assemble(ctx context.Context, filenames []string, execute bool) (*data.Parse, string, error) {
+func Assemble(ctx context.Context, filenames []string, execute bool) (*data.Call, string, error) {
 	errors := ""
 
-	callData := &data.Parse{}
-	callData.Config.Timeout = -1
+	parseData := &data.Parse{}
+	parseData.Config.Timeout = -1
 
 	for _, filename := range filenames {
 		template, err := disk.ReadTemplate(filename, execute)
@@ -74,14 +94,15 @@ func Assemble(ctx context.Context, filenames []string, execute bool) (*data.Pars
 		}
 
 		fileCallData, fatals := parse.ParseTemplate(ctx, template)
-		mergeCallData(callData, fileCallData)
+		mergeCallData(parseData, fileCallData)
 
 		if len(fatals) > 0 {
 			errors = appendErrorMessages(errors, filename, fatals)
 		}
 	}
 
-	if validationErrors := validateCallData(callData); len(validationErrors) > 0 {
+	callData, validationErrors := getCallData(parseData)
+	if len(validationErrors) > 0 {
 		errors = appendErrorMessages(errors, "", validationErrors)
 	}
 
