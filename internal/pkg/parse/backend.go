@@ -8,7 +8,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
-func parseBackendSection(template []sourceMarker, callData *data.Data) *fatalMarker {
+func parseBackendSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
 	captureResult, captureFatal := captureSection("Backend", template, true)
 	if captureFatal != nil {
 		return captureFatal

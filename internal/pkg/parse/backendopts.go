@@ -7,7 +7,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func parseBackendOptionsSection(template []sourceMarker, callData *data.Data) *fatalMarker {
+func parseBackendOptionsSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
 	captureResult, captureFatal := captureSection("BackendOptions", template, true)
 	if captureFatal != nil {
 		return captureFatal

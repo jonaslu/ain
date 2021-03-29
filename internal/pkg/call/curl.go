@@ -12,7 +12,7 @@ type curl struct {
 	args []string
 }
 
-func newCurlBackend(data *data.Data) (*curl, error) {
+func newCurlBackend(data *data.Parse) (*curl, error) {
 	args := data.BackendOptions
 
 	if data.Method != "" {

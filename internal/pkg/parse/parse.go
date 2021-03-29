@@ -40,7 +40,7 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	return strippedLines, templateLines
 }
 
-func ParseTemplate(ctx context.Context, template string) (*data.Data, []string) {
+func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string) {
 	var fatals []string
 
 	trimmedTemplate, templateLines := trimTemplate(template)
@@ -49,7 +49,7 @@ func ParseTemplate(ctx context.Context, template string) (*data.Data, []string) 
 	}
 
 	// !! TODO !! If this gets worse, put it in  it's on initializer method
-	callData := &data.Data{}
+	callData := &data.Parse{}
 	callData.Config.Timeout = -1
 
 	if configFatal := parseConfigSection(trimmedTemplate, callData); configFatal != nil {
@@ -74,7 +74,7 @@ func ParseTemplate(ctx context.Context, template string) (*data.Data, []string) 
 		return nil, fatals
 	}
 
-	sectionParsers := []func([]sourceMarker, *data.Data) *fatalMarker{
+	sectionParsers := []func([]sourceMarker, *data.Parse) *fatalMarker{
 		parseHostSection,
 		parseHeadersSection,
 		parseMethodSection,

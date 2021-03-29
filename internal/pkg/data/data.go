@@ -8,7 +8,7 @@ type Config struct {
 	Timeout int32
 }
 
-type Data struct {
+type Parse struct {
 	Host    *url.URL
 	Body    []string
 	Method  string

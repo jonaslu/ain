@@ -9,7 +9,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
-func mergeCallData(dest, merge *data.Data) {
+func mergeCallData(dest, merge *data.Parse) {
 	if merge.Host != nil {
 		dest.Host = merge.Host
 	}
@@ -35,7 +35,7 @@ func mergeCallData(dest, merge *data.Data) {
 	}
 }
 
-func validateCallData(data *data.Data) []string {
+func validateCallData(data *data.Parse) []string {
 	fatals := []string{}
 
 	if data.Host == nil {
@@ -61,10 +61,10 @@ func appendErrorMessages(errorMessage, filename string, fatals []string) string 
 	return errorMessage + strings.Join(fatals, "\n") + "\n"
 }
 
-func Assemble(ctx context.Context, filenames []string, execute bool) (*data.Data, string, error) {
+func Assemble(ctx context.Context, filenames []string, execute bool) (*data.Parse, string, error) {
 	errors := ""
 
-	callData := &data.Data{}
+	callData := &data.Parse{}
 	callData.Config.Timeout = -1
 
 	for _, filename := range filenames {

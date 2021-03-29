@@ -34,7 +34,7 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 	return true, int32(timeoutIntervalInt64), nil
 }
 
-func parseConfigSection(template []sourceMarker, callData *data.Data) *fatalMarker {
+func parseConfigSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
 	captureResult, captureErr := captureSection("Config", template, true)
 	if captureErr != nil {
 		return captureErr
