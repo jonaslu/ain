@@ -13,17 +13,6 @@ var envVarValueRe = regexp.MustCompile(`\${([^}]*)}`)
 func transformEnvVars(templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
 	var fatals []*fatalMarker
 	var transformedTemplateLines []sourceMarker
-	// Scan template lines for ${VAR} - env variables
-	// and $(cmd)
-
-	// !! TODO !! I can run commands in parallell, if
-	// they are more than two and we have 2 or more cores
-
-	// Here I need to capture and remove Variables when
-	// in use
-
-	// Can also have a step where it dumps out the
-	// intermediary template with [Variables] removed
 
 	for _, templateLine := range templateLines {
 		lineContents := templateLine.lineContents

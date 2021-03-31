@@ -49,10 +49,10 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 	}
 
 	// !! TODO !! If this gets worse, put it in  it's on initializer method
-	callData := &data.Parse{}
-	callData.Config.Timeout = -1
+	parseData := &data.Parse{}
+	parseData.Config.Timeout = -1
 
-	if configFatal := parseConfigSection(trimmedTemplate, callData); configFatal != nil {
+	if configFatal := parseConfigSection(trimmedTemplate, parseData); configFatal != nil {
 		return nil, []string{formatFatalMarker(configFatal, templateLines)}
 	}
 
@@ -65,7 +65,7 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 		return nil, fatals
 	}
 
-	shellCommandsTemplate, shellCommandFatals := transformShellCommands(ctx, callData.Config, envVarsTemplate)
+	shellCommandsTemplate, shellCommandFatals := transformShellCommands(ctx, parseData.Config, envVarsTemplate)
 	if len(shellCommandFatals) > 0 {
 		for _, transformFatalMarker := range shellCommandFatals {
 			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
@@ -84,10 +84,10 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 	}
 
 	for _, sectionParser := range sectionParsers {
-		if callFatalMarker := sectionParser(shellCommandsTemplate, callData); callFatalMarker != nil {
+		if callFatalMarker := sectionParser(shellCommandsTemplate, parseData); callFatalMarker != nil {
 			fatals = append(fatals, formatFatalMarker(callFatalMarker, templateLines))
 		}
 	}
 
-	return callData, fatals
+	return parseData, fatals
 }
