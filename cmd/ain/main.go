@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/pkg/errors"
 
 	"github.com/jonaslu/ain/internal/assemble"
 	"github.com/jonaslu/ain/internal/pkg/call"
@@ -19,6 +20,10 @@ func printInternalErrorAndExit(err error) {
 }
 
 func main() {
+	if err := disk.ReadEnvFile(".env"); err != nil {
+		printInternalErrorAndExit(err)
+	}
+
 	var execute bool
 
 	flag.BoolVar(&execute, "execute", false, "Execute template directly, without editing")
