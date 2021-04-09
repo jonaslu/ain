@@ -94,20 +94,22 @@ func Assemble(ctx context.Context, filenames []string, execute bool) (*data.Call
 		}
 
 		fileCallData, fatals := parse.ParseTemplate(ctx, template)
-		mergeCallData(parseData, fileCallData)
-
 		if len(fatals) > 0 {
 			errors = appendErrorMessages(errors, filename, fatals)
 		}
+
+		if errors == "" {
+			mergeCallData(parseData, fileCallData)
+		}
+	}
+
+	if errors != "" {
+		return nil, errors, nil
 	}
 
 	callData, validationErrors := getCallData(parseData)
 	if len(validationErrors) > 0 {
 		errors = appendErrorMessages(errors, "", validationErrors)
-	}
-
-	if errors != "" {
-		return nil, errors, nil
 	}
 
 	return callData, errors, nil
