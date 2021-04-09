@@ -44,6 +44,7 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 	} else {
 		hostStr := strings.Join(parse.Host, "")
 		host, err := url.Parse(hostStr)
+
 		if err != nil {
 			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", hostStr, err))
 		}
@@ -53,10 +54,6 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 
 	if parse.Backend == "" {
 		fatals = append(fatals, "No mandatory [Backend] section found")
-	}
-
-	if len(fatals) != 0 {
-		return nil, fatals
 	}
 
 	callData.Body = parse.Body
