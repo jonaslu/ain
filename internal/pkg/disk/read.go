@@ -5,9 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/pkg/errors"
 )
+
+const EDIT_FILE_SUFFIX = "!"
 
 func captureEditorOutput(tempFile *os.File) (string, error) {
 	// !! TODO !! If editorCmd is not set - warn and default to vim
@@ -62,15 +65,16 @@ func readEditedTemplate(sourceTemplateFileName string) (string, error) {
 	return captureEditorOutput(tempFile)
 }
 
-func ReadTemplate(templateFileName string, execute bool) (string, error) {
-	if execute {
-		fileContents, err := ioutil.ReadFile(templateFileName)
-		if err != nil {
-			return "", errors.Wrapf(err, "Could not read file with name: %s", templateFileName)
-		}
-
-		return string(fileContents), nil
+func ReadTemplate(templateFileName string) (string, error) {
+	if strings.HasSuffix(templateFileName, EDIT_FILE_SUFFIX) {
+		return readEditedTemplate(strings.TrimSuffix(templateFileName, EDIT_FILE_SUFFIX))
 	}
 
-	return readEditedTemplate(templateFileName)
+	fileContents, err := ioutil.ReadFile(templateFileName)
+	if err != nil {
+		return "", errors.Wrapf(err, "Could not read file with name: %s", templateFileName)
+	}
+
+	return string(fileContents), nil
+
 }

@@ -78,14 +78,14 @@ func appendErrorMessages(errorMessage, filename string, fatals []string) string 
 	return errorMessage + strings.Join(fatals, "\n") + "\n"
 }
 
-func Assemble(ctx context.Context, filenames []string, execute bool) (*data.Call, string, error) {
+func Assemble(ctx context.Context, filenames []string) (*data.Call, string, error) {
 	errors := ""
 
 	parseData := &data.Parse{}
 	parseData.Config.Timeout = -1
 
 	for _, filename := range filenames {
-		template, err := disk.ReadTemplate(filename, execute)
+		template, err := disk.ReadTemplate(filename)
 		if err != nil {
 			return nil, "", err
 		}

@@ -24,10 +24,6 @@ func main() {
 		printInternalErrorAndExit(err)
 	}
 
-	var execute bool
-
-	flag.BoolVar(&execute, "execute", false, "Execute template directly, without editing")
-	flag.BoolVar(&execute, "x", false, "Execute template directly, without editing")
 	flag.Parse()
 
 	localTemplateFileNames, err := disk.GetTemplateFilenames()
@@ -42,7 +38,7 @@ func main() {
 	// !! TODO !! Hook into SIGINT etc and cancel this context if hit
 	ctx := context.Background()
 
-	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames, execute)
+	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames)
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}
