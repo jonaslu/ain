@@ -15,24 +15,26 @@ func GetTemplateFilenames() ([]string, error) {
 
 	if len(flag.Args()) >= 1 {
 		localTemplateFilenames = flag.Args()
-	} else {
-		fi, err := os.Stdin.Stat()
+	}
+
+	fi, err := os.Stdin.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not stat stdin")
+	}
+
+	if (fi.Mode() & os.ModeCharDevice) == 0 {
+		// Connected to a pipe
+		fileNameBytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not stat stdin")
+			return nil, errors.Wrap(err, "could not read stdin")
 		}
 
-		if (fi.Mode() & os.ModeCharDevice) == 0 {
-			// Connected to a pipe
-			fileNameBytes, err := ioutil.ReadAll(os.Stdin)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not read stdin")
-			}
-
-			localTemplateFilenames, err = utils.TokenizeLine(string(fileNameBytes), true)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not parse filenames from pipe")
-			}
+		localTemplateFilenamesViaPipe, err := utils.TokenizeLine(string(fileNameBytes), true)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not parse filenames from pipe")
 		}
+
+		localTemplateFilenames = append(localTemplateFilenames, localTemplateFilenamesViaPipe...)
 	}
 
 	trimmedLocalTemplateFilenames := []string{}
