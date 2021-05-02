@@ -11,9 +11,11 @@ const quoteEscapeRune = '\\'
 
 var quoteRunes = [...]rune{'"', '\''}
 
+// Thi func is copied from the go source-code. I wish it was an exported
+// method so I didn't have to. Here's the
+// link to it's licence: https://golang.org/LICENSE
 func isSpace(r rune) bool {
 	if r <= '\u00FF' {
-		// Obvious ASCII ones: \t through \r plus space. Plus two Latin-1 oddballs.
 		switch r {
 		case ' ', '\t', '\n', '\v', '\f', '\r':
 			return true
@@ -22,7 +24,6 @@ func isSpace(r rune) bool {
 		}
 		return false
 	}
-	// High-valued ones.
 	if '\u2000' <= r && r <= '\u200a' {
 		return true
 	}
