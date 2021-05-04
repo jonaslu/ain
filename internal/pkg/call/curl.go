@@ -2,6 +2,7 @@ package call
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -9,10 +10,12 @@ import (
 )
 
 type curl struct {
-	args []string
+	args        []string
+	tmpFileName string
 }
 
 func newCurlBackend(callData *data.Call) (*curl, error) {
+	returnValue := &curl{}
 	args := callData.BackendOptions
 
 	if callData.Method != "" {
@@ -29,17 +32,26 @@ func newCurlBackend(callData *data.Call) (*curl, error) {
 			return nil, err
 		}
 
-		// defer os.Remove(tmpFile.Name())
-
+		returnValue.tmpFileName = tmpFile.Name()
 		args = append(args, "-d", "@"+tmpFile.Name())
 	}
 
 	args = append(args, callData.Host.String())
 
-	return &curl{args: args}, nil
+	returnValue.args = args
+
+	return returnValue, nil
 }
 
 func (curl curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	curlCmd := exec.CommandContext(ctx, "curl", curl.args...)
 	return curlCmd.CombinedOutput()
+}
+
+func (curl curl) cleanUp() error {
+	if curl.tmpFileName != "" {
+		return os.Remove(curl.tmpFileName)
+	}
+
+	return nil
 }

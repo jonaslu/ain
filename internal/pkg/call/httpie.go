@@ -2,6 +2,7 @@ package call
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -9,10 +10,13 @@ import (
 )
 
 type httpie struct {
-	args []string
+	args        []string
+	tmpFileName string
 }
 
 func newHttpieBackend(data *data.Call) (*httpie, error) {
+	returnValue := &httpie{}
+
 	optsContainIgnoreStdinFunc := func() bool {
 		for _, arg := range data.BackendOptions {
 			if arg == "--ignore-stdin" {
@@ -44,15 +48,24 @@ func newHttpieBackend(data *data.Call) (*httpie, error) {
 			return nil, err
 		}
 
-		// defer os.Remove(tmpFile.Name())
-
+		returnValue.tmpFileName = tmpFile.Name()
 		args = append(args, "@"+tmpFile.Name())
 	}
 
-	return &httpie{args: args}, nil
+	returnValue.args = args
+
+	return returnValue, nil
 }
 
 func (httpie httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 	httpCmd := exec.CommandContext(ctx, "http", httpie.args...)
 	return httpCmd.CombinedOutput()
+}
+
+func (httpie httpie) cleanUp() error {
+	if httpie.tmpFileName != "" {
+		return os.Remove(httpie.tmpFileName)
+	}
+
+	return nil
 }

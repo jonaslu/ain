@@ -24,6 +24,8 @@ func main() {
 		printInternalErrorAndExit(err)
 	}
 
+	var leaveTmpFile bool
+	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
 	flag.Parse()
 
 	localTemplateFileNames, err := disk.GetTemplateFilenames()
@@ -36,6 +38,7 @@ func main() {
 	}
 
 	// !! TODO !! Hook into SIGINT etc and cancel this context if hit
+	// This needs to be set when running shells (from that point on)
 	ctx := context.Background()
 
 	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames)
@@ -48,7 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	backendOutput, err := call.CallBackend(ctx, callData)
+	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

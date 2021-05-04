@@ -11,7 +11,7 @@ import (
 type backend interface {
 	runAsCmd(context.Context) ([]byte, error)
 	// getAsString() string
-	// cleanUp()
+	cleanUp() error
 }
 
 func getBackend(callData *data.Call) (backend, error) {
@@ -36,7 +36,15 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, callData *data.Call) (string, error) {
+func cascadeErrorMessage(err1, err2 error) error {
+	if err2 != nil {
+		return errors.Errorf("Error:\n%v\nThe error caused an additional error:\n%v", err1, err2)
+	}
+
+	return err1
+}
+
+func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile bool) (string, error) {
 	backendTimeoutContext := ctx
 	if callData.Config.Timeout > -1 {
 		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
@@ -48,14 +56,22 @@ func CallBackend(ctx context.Context, callData *data.Call) (string, error) {
 	}
 
 	output, err := backend.runAsCmd(backendTimeoutContext)
+
+	var removeTmpFileErr error
+	if !leaveTmpFile || err != nil {
+		if err := backend.cleanUp(); err != nil {
+			removeTmpFileErr = errors.Wrap(err, "Could not remove file with [Body] contents")
+		}
+	}
+
 	if backendTimeoutContext.Err() == context.DeadlineExceeded {
 		// !! TODO !! Have string representation of the cmd in the error
-		return "", errors.Wrapf(err, "Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout)
+		return "", cascadeErrorMessage(errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout), removeTmpFileErr)
 	}
 
 	if err != nil {
-		errors.Wrapf(err, "Error running: %s", callData.Backend)
+		return "", cascadeErrorMessage(errors.Wrapf(err, "Error running: %s\nOutput: %s", callData.Backend, string(output)), removeTmpFileErr)
 	}
 
-	return string(output), nil
+	return string(output), removeTmpFileErr
 }
