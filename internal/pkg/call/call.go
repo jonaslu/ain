@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
+	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -36,14 +37,6 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func cascadeErrorMessage(err1, err2 error) error {
-	if err2 != nil {
-		return errors.Errorf("Error:\n%v\nThe error caused an additional error:\n%v", err1, err2)
-	}
-
-	return err1
-}
-
 func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile bool) (string, error) {
 	backendTimeoutContext := ctx
 	if callData.Config.Timeout > -1 {
@@ -66,11 +59,11 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile bool) (s
 
 	if backendTimeoutContext.Err() == context.DeadlineExceeded {
 		// !! TODO !! Have string representation of the cmd in the error
-		return "", cascadeErrorMessage(errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout), removeTmpFileErr)
+		return "", utils.CascadeErrorMessage(errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout), removeTmpFileErr)
 	}
 
 	if err != nil {
-		return "", cascadeErrorMessage(errors.Wrapf(err, "Error running: %s\nOutput: %s", callData.Backend, string(output)), removeTmpFileErr)
+		return "", utils.CascadeErrorMessage(errors.Wrapf(err, "Error running: %s\nOutput: %s", callData.Backend, string(output)), removeTmpFileErr)
 	}
 
 	return string(output), removeTmpFileErr

@@ -96,3 +96,11 @@ func TokenizeLine(commandLine string, removeQuotes bool) ([]string, error) {
 
 	return tokenizedLines, nil
 }
+
+func CascadeErrorMessage(err1, err2 error) error {
+	if err2 != nil {
+		return errors.Errorf("Error:\n%v\nThe error caused an additional error:\n%v", err1, err2)
+	}
+
+	return err1
+}
