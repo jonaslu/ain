@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +45,7 @@ func captureEditorOutput(tempFile *os.File) (string, error) {
 	return string(tempFileContents), nil
 }
 
-func readEditedTemplate(sourceTemplateFileName string) (string, error) {
+func readEditedTemplate(sourceTemplateFileName string) (str string, err error) {
 	sourceTemplate, err := os.Open(sourceTemplateFileName)
 	if err != nil {
 		return "", errors.Wrap(err, "cannot open source template file")
@@ -55,7 +56,18 @@ func readEditedTemplate(sourceTemplateFileName string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "cannot create tempfile")
 	}
-	defer tempFile.Close()
+
+	defer func() {
+		if removeErr := os.Remove(tempFile.Name()); removeErr != nil {
+			wrappedRemoveErr := errors.Wrapf(removeErr, "Could not remove $EDITOR tempfile, please delete it manually: %s", tempFile.Name())
+
+			if err != nil {
+				err = utils.CascadeErrorMessage(err, wrappedRemoveErr)
+			} else {
+				err = wrappedRemoveErr
+			}
+		}
+	}()
 
 	writtenLen, err := io.Copy(tempFile, sourceTemplate)
 	if writtenLen == 0 {
