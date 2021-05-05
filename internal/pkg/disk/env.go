@@ -7,10 +7,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ReadEnvFile(path string) error {
+func ReadEnvFile(path string, errorOnMissingFile bool) error {
 	file, err := os.Open(path)
 
 	if os.IsNotExist(err) {
+		if errorOnMissingFile {
+			return errors.Errorf("cannot open .env-file on path: %s", path)
+		}
+
 		return nil
 	}
 

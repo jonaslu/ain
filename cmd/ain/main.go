@@ -20,13 +20,16 @@ func printInternalErrorAndExit(err error) {
 }
 
 func main() {
-	if err := disk.ReadEnvFile(".env"); err != nil {
+	var leaveTmpFile bool
+	var envFile string
+
+	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
+	flag.StringVar(&envFile, "e", ".env", "Path to .env file")
+	flag.Parse()
+
+	if err := disk.ReadEnvFile(envFile, envFile != ".env"); err != nil {
 		printInternalErrorAndExit(err)
 	}
-
-	var leaveTmpFile bool
-	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
-	flag.Parse()
 
 	localTemplateFileNames, err := disk.GetTemplateFilenames()
 	if err != nil {
