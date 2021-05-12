@@ -17,18 +17,19 @@ type httpie struct {
 func newHttpieBackend(data *data.Call) (*httpie, error) {
 	returnValue := &httpie{}
 
-	optsContainIgnoreStdinFunc := func() bool {
-		for _, arg := range data.BackendOptions {
-			if arg == "--ignore-stdin" {
-				return true
+	var args []string
+	var foundIgnoreStdin bool
+	for _, backendOptions := range data.BackendOptions {
+		for _, backendOption := range backendOptions {
+			if backendOption == "--ignore-stdin" {
+				foundIgnoreStdin = true
 			}
-		}
 
-		return false
+			args = append(args, backendOption)
+		}
 	}
 
-	args := data.BackendOptions
-	if optsContainIgnoreStdin := optsContainIgnoreStdinFunc(); !optsContainIgnoreStdin {
+	if !foundIgnoreStdin {
 		args = append([]string{"--ignore-stdin"}, args...)
 	}
 

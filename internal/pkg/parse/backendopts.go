@@ -23,7 +23,7 @@ func parseBackendOptionsSection(template []sourceMarker, callData *data.Parse) *
 			return newFatalMarker(fmt.Sprintf("Could not parse backend-option: %s", err.Error()), backendOptionLineContents)
 		}
 
-		callData.BackendOptions = append(callData.BackendOptions, tokenizedBackendOpts...)
+		callData.BackendOptions = append(callData.BackendOptions, tokenizedBackendOpts)
 	}
 
 	return nil

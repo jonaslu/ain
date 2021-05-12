@@ -15,7 +15,7 @@ type Parse struct {
 	Headers []string
 
 	Backend        string
-	BackendOptions []string
+	BackendOptions [][]string
 
 	Config Config
 }
@@ -27,7 +27,7 @@ type Call struct {
 	Headers []string
 
 	Backend        string
-	BackendOptions []string
+	BackendOptions [][]string
 
 	Config Config
 }
