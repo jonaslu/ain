@@ -104,3 +104,7 @@ func CascadeErrorMessage(err1, err2 error) error {
 
 	return err1
 }
+
+func EscapeForShell(unsafeString string) string {
+	return "'" + strings.ReplaceAll(unsafeString, `'`, `'"'"'`) + "'"
+}
