@@ -44,7 +44,7 @@ func newHttpieBackend(data *data.Call) (*httpie, error) {
 	}
 
 	if len(data.Body) > 0 {
-		tmpFile, err := data.GetBodyAsTempFile()
+		tmpFile, err := data.GetBodyAsTempFile("")
 		if err != nil {
 			return nil, err
 		}
