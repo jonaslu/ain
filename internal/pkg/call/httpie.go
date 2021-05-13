@@ -63,6 +63,10 @@ func (httpie httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 	return httpCmd.CombinedOutput()
 }
 
+func (httpie httpie) getAsString() (string, error) {
+	return "httpie", nil
+}
+
 func (httpie httpie) cleanUp() error {
 	if httpie.tmpFileName != "" {
 		return os.Remove(httpie.tmpFileName)

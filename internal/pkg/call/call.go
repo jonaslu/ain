@@ -11,7 +11,7 @@ import (
 
 type backend interface {
 	runAsCmd(context.Context) ([]byte, error)
-	// getAsString() string
+	getAsString() (string, error)
 	cleanUp() error
 }
 
@@ -37,7 +37,7 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile bool) (string, error) {
+func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCommand bool) (string, error) {
 	backendTimeoutContext := ctx
 	if callData.Config.Timeout > -1 {
 		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
@@ -46,6 +46,10 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile bool) (s
 	backend, err := getBackend(callData)
 	if err != nil {
 		return "", errors.Wrapf(err, "Could not instantiate backend: %s", callData.Backend)
+	}
+
+	if printCommand {
+		return backend.getAsString()
 	}
 
 	output, err := backend.runAsCmd(backendTimeoutContext)

@@ -20,10 +20,11 @@ func printInternalErrorAndExit(err error) {
 }
 
 func main() {
-	var leaveTmpFile bool
+	var leaveTmpFile, printCommand bool
 	var envFile string
 
 	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
+	flag.BoolVar(&printCommand, "p", false, "print command to the terminal (do not execute it")
 	flag.StringVar(&envFile, "e", ".env", "Path to .env file")
 	flag.Parse()
 
@@ -54,7 +55,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile)
+	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile, printCommand)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

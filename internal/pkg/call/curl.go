@@ -76,6 +76,10 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	return curlCmd.CombinedOutput()
 }
 
+func (curl *curl) getAsString() (string, error) {
+	return "curl", nil
+}
+
 func (curl *curl) cleanUp() error {
 	if curl.tmpFileName != "" {
 		return os.Remove(curl.tmpFileName)
