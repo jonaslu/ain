@@ -108,3 +108,20 @@ func CascadeErrorMessage(err1, err2 error) error {
 func EscapeForShell(unsafeString string) string {
 	return "'" + strings.ReplaceAll(unsafeString, `'`, `'"'"'`) + "'"
 }
+
+func PrettyPrintStringsForShell(args [][]string) string {
+	output := ""
+
+	for i, arg := range args {
+		if len(arg) == 0 {
+			continue
+		}
+
+		output = output + strings.Join(arg, " ")
+		if i+1 < len(args) {
+			output = output + " \\\n  "
+		}
+	}
+
+	return output
+}

@@ -2,13 +2,13 @@ package call
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
+	"github.com/pkg/errors"
 )
 
 type curl struct {
@@ -88,7 +88,37 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 }
 
 func (curl *curl) getAsString() (string, error) {
-	return "curl", nil
+	args := [][]string{}
+
+	for _, optionLine := range curl.callData.BackendOptions {
+		lineArguments := []string{}
+		for _, option := range optionLine {
+			lineArguments = append(lineArguments, utils.EscapeForShell(option))
+		}
+		args = append(args, lineArguments)
+	}
+
+	args = append(args, curl.getMethodArgument(true))
+	args = append(args, curl.getHeaderArguments(true)...)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", errors.Wrap(err, "could get current working dir, cannot store any body-file")
+	}
+
+	bodyArgs, err := curl.getBodyArgument(cwd)
+	if err != nil {
+		return "", err
+	}
+
+	args = append(args, bodyArgs)
+	args = append(args, []string{
+		utils.EscapeForShell(curl.callData.Host.String()),
+	})
+
+	output := "curl " + utils.PrettyPrintStringsForShell(args)
+
+	return output, nil
 }
 
 func (curl *curl) cleanUp() error {
