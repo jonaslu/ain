@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
+	"github.com/jonaslu/ain/internal/pkg/utils"
+	"github.com/pkg/errors"
 )
 
 type httpie struct {
@@ -40,8 +42,8 @@ func (httpie *httpie) getMethodArgument() string {
 	return strings.ToUpper(httpie.callData.Method)
 }
 
-func (httpie *httpie) getBodyArgument() (string, error) {
-	tmpFile, err := httpie.callData.GetBodyAsTempFile("")
+func (httpie *httpie) getBodyArgument(tmpDir string) (string, error) {
+	tmpFile, err := httpie.callData.GetBodyAsTempFile(tmpDir)
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +66,8 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, httpie.callData.Headers...)
 
 	if len(httpie.callData.Body) > 0 {
-		bodyArg, err := httpie.getBodyArgument()
+
+		bodyArg, err := httpie.getBodyArgument("")
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +80,42 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 }
 
 func (httpie *httpie) getAsString() (string, error) {
-	return "httpie", nil
+	args := [][]string{}
+	for _, optionLine := range httpie.callData.BackendOptions {
+		lineArguments := []string{}
+		for _, option := range optionLine {
+			lineArguments = append(lineArguments, utils.EscapeForShell(option))
+		}
+		args = append(args, lineArguments)
+	}
+
+	if httpie.callData.Method != "" {
+		args = append(args, []string{utils.EscapeForShell(httpie.getMethodArgument())})
+	}
+
+	args = append(args, []string{utils.EscapeForShell(httpie.callData.Host.String())})
+
+	for _, header := range httpie.callData.Headers {
+		args = append(args, []string{utils.EscapeForShell(header)})
+	}
+
+	if len(httpie.callData.Body) > 0 {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return "", errors.Wrap(err, "could get current working dir, cannot store any body-file")
+		}
+
+		bodyArg, err := httpie.getBodyArgument(cwd)
+		if err != nil {
+			return "", err
+		}
+
+		args = append(args, []string{bodyArg})
+	}
+
+	output := "http " + utils.PrettyPrintStringsForShell(args)
+
+	return output, nil
 }
 
 func (httpie *httpie) cleanUp() error {
