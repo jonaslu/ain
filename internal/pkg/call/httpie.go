@@ -10,64 +10,77 @@ import (
 )
 
 type httpie struct {
-	args        []string
+	callData    *data.Call
 	tmpFileName string
 }
 
-func newHttpieBackend(data *data.Call) (*httpie, error) {
-	returnValue := &httpie{}
-
-	var args []string
+func prependIgnoreStdin(callData *data.Call) {
 	var foundIgnoreStdin bool
-	for _, backendOptions := range data.BackendOptions {
-		for _, backendOption := range backendOptions {
+
+	for _, backendOptionLine := range callData.BackendOptions {
+		for _, backendOption := range backendOptionLine {
 			if backendOption == "--ignore-stdin" {
 				foundIgnoreStdin = true
+				break
 			}
-
-			args = append(args, backendOption)
 		}
 	}
 
 	if !foundIgnoreStdin {
-		args = append([]string{"--ignore-stdin"}, args...)
+		callData.BackendOptions = append([][]string{{"--ignore-stdin"}}, callData.BackendOptions...)
+	}
+}
+
+func newHttpieBackend(callData *data.Call) (*httpie, error) {
+	prependIgnoreStdin(callData)
+	return &httpie{callData: callData}, nil
+}
+
+func (httpie *httpie) getMethodArgument() string {
+	return strings.ToUpper(httpie.callData.Method)
+}
+
+func (httpie *httpie) getBodyArgument() (string, error) {
+	tmpFile, err := httpie.callData.GetBodyAsTempFile("")
+	if err != nil {
+		return "", err
 	}
 
-	if data.Method != "" {
-		args = append(args, strings.ToUpper(data.Method))
+	httpie.tmpFileName = tmpFile.Name()
+	return "@" + tmpFile.Name(), nil
+}
+
+func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
+	args := []string{}
+	for _, backendOpt := range httpie.callData.BackendOptions {
+		args = append(args, backendOpt...)
 	}
 
-	args = append(args, data.Host.String())
-
-	for _, header := range data.Headers {
-		args = append(args, header)
+	if httpie.callData.Method != "" {
+		args = append(args, httpie.getMethodArgument())
 	}
 
-	if len(data.Body) > 0 {
-		tmpFile, err := data.GetBodyAsTempFile("")
+	args = append(args, httpie.callData.Host.String())
+	args = append(args, httpie.callData.Headers...)
+
+	if len(httpie.callData.Body) > 0 {
+		bodyArg, err := httpie.getBodyArgument()
 		if err != nil {
 			return nil, err
 		}
 
-		returnValue.tmpFileName = tmpFile.Name()
-		args = append(args, "@"+tmpFile.Name())
+		args = append(args, bodyArg)
 	}
 
-	returnValue.args = args
-
-	return returnValue, nil
-}
-
-func (httpie httpie) runAsCmd(ctx context.Context) ([]byte, error) {
-	httpCmd := exec.CommandContext(ctx, "http", httpie.args...)
+	httpCmd := exec.CommandContext(ctx, "http", args...)
 	return httpCmd.CombinedOutput()
 }
 
-func (httpie httpie) getAsString() (string, error) {
+func (httpie *httpie) getAsString() (string, error) {
 	return "httpie", nil
 }
 
-func (httpie httpie) cleanUp() error {
+func (httpie *httpie) cleanUp() error {
 	if httpie.tmpFileName != "" {
 		return os.Remove(httpie.tmpFileName)
 	}
