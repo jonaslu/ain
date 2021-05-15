@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 )
@@ -32,7 +33,10 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	for sourceIndex, line := range templateLines {
 		isCommentOrWhitespaceLine, _ := regexp.MatchString("^\\s*#|^\\s*$", line)
 		if !isCommentOrWhitespaceLine {
-			sourceMarker := sourceMarker{lineContents: strings.TrimSpace(line), sourceLineIndex: sourceIndex}
+			sourceMarker := sourceMarker{
+				lineContents:    strings.TrimRightFunc(line, func(r rune) bool { return unicode.IsSpace(r) }),
+				sourceLineIndex: sourceIndex,
+			}
 			strippedLines = append(strippedLines, sourceMarker)
 		}
 	}

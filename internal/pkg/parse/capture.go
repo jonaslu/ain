@@ -17,8 +17,9 @@ func captureSection(sectionName string, template []sourceMarker, trim bool) (*ca
 
 	for _, templateLine := range template {
 		lineContents := templateLine.lineContents
+		trimmedLineContents := strings.TrimSpace(templateLine.lineContents)
 
-		if lineContents == "["+sectionName+"]" {
+		if trimmedLineContents == "["+sectionName+"]" {
 			if sectionHeaderLine != emptyLine {
 				// !! TODO !! Capture all the places and make fatals accept several source-markers?
 				return nil, newFatalMarker(fmt.Sprintf("Several [%s] sections found on line %d and %d", sectionName, sectionHeaderLine.sourceLineIndex, templateLine.sourceLineIndex), emptyLine)
@@ -29,14 +30,16 @@ func captureSection(sectionName string, template []sourceMarker, trim bool) (*ca
 			continue
 		}
 
-		if strings.HasPrefix(lineContents, "[") {
+		if strings.HasPrefix(trimmedLineContents, "[") {
 			capturing = false
 			continue
 		}
 
 		if capturing {
 			if trim {
-				templateLine.lineContents = strings.TrimSpace(templateLine.lineContents)
+				templateLine.lineContents = trimmedLineContents
+			} else {
+				templateLine.lineContents = lineContents
 			}
 
 			sectionLines = append(sectionLines, templateLine)
