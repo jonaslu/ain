@@ -2,6 +2,7 @@ package utils
 
 import (
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -10,29 +11,6 @@ import (
 const quoteEscapeRune = '\\'
 
 var quoteRunes = [...]rune{'"', '\''}
-
-// Thi func is copied from the go source-code. I wish it was an exported
-// method so I didn't have to. Here's the
-// link to it's licence: https://golang.org/LICENSE
-func isSpace(r rune) bool {
-	if r <= '\u00FF' {
-		switch r {
-		case ' ', '\t', '\n', '\v', '\f', '\r':
-			return true
-		case '\u0085', '\u00A0':
-			return true
-		}
-		return false
-	}
-	if '\u2000' <= r && r <= '\u200a' {
-		return true
-	}
-	switch r {
-	case '\u1680', '\u2028', '\u2029', '\u202f', '\u205f', '\u3000':
-		return true
-	}
-	return false
-}
 
 // TODO Do I need the removeQuotes or should I revert it?
 func TokenizeLine(commandLine string, removeQuotes bool) ([]string, error) {
@@ -49,7 +27,7 @@ func TokenizeLine(commandLine string, removeQuotes bool) ([]string, error) {
 		var headRune rune
 		headRune, width = utf8.DecodeRune(commandLineBytes[head:])
 
-		if startWordMarker == -1 && isSpace(headRune) {
+		if startWordMarker == -1 && unicode.IsSpace(headRune) {
 			continue
 		}
 
@@ -77,7 +55,7 @@ func TokenizeLine(commandLine string, removeQuotes bool) ([]string, error) {
 					startWordMarker = -1
 					lastQuoteRune = 0
 				}
-			} else if isSpace(headRune) {
+			} else if unicode.IsSpace(headRune) {
 				tokenizedLines = append(tokenizedLines, string(commandLineBytes[startWordMarker:head]))
 				startWordMarker = -1
 			}
