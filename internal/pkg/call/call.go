@@ -2,12 +2,22 @@ package call
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
 )
+
+type BackedErr struct {
+	Err      error
+	ExitCode int
+}
+
+func (err *BackedErr) Error() string {
+	return fmt.Sprintf("Error: %v, exit code: %d\n", err.Err, err.ExitCode)
+}
 
 type backend interface {
 	runAsCmd(context.Context) ([]byte, error)

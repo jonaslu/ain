@@ -83,8 +83,15 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, curl.callData.Host.String())
 
 	curlCmd := exec.CommandContext(ctx, "curl", args...)
+	output, err := curlCmd.CombinedOutput()
+	if err != nil {
+		return output, &BackedErr{
+			Err:      err,
+			ExitCode: curlCmd.ProcessState.ExitCode(),
+		}
+	}
 
-	return curlCmd.CombinedOutput()
+	return output, nil
 }
 
 func (curl *curl) getAsString() (string, error) {

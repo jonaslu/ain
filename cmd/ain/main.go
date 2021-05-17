@@ -57,8 +57,12 @@ func main() {
 
 	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile, printCommand)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Fprint(os.Stderr, err)
+
+		var backendErr *call.BackedErr
+		if errors.As(err, &backendErr) {
+			os.Exit(backendErr.ExitCode)
+		}
 	}
 
 	fmt.Fprint(os.Stdout, backendOutput)
