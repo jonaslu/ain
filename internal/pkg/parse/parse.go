@@ -19,6 +19,8 @@ func newSourceMarker(lineContents string, sourceLineIndex int) sourceMarker {
 }
 
 var emptyLine sourceMarker = newSourceMarker("emptyLine", -1)
+var removeTrailingCommendRegExp = regexp.MustCompile("#.*$")
+var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
 
 func trimTemplate(template string) ([]sourceMarker, []string) {
 	strippedLines := []sourceMarker{}
@@ -31,10 +33,12 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	}
 
 	for sourceIndex, line := range templateLines {
-		isCommentOrWhitespaceLine, _ := regexp.MatchString("^\\s*#|^\\s*$", line)
+		isCommentOrWhitespaceLine := isCommentOrWhitespaceRegExp.MatchString(line)
 		if !isCommentOrWhitespaceLine {
+			trailingCommentsRemoved := removeTrailingCommendRegExp.ReplaceAllString(line, "")
+
 			sourceMarker := sourceMarker{
-				lineContents:    strings.TrimRightFunc(line, func(r rune) bool { return unicode.IsSpace(r) }),
+				lineContents:    strings.TrimRightFunc(trailingCommentsRemoved, func(r rune) bool { return unicode.IsSpace(r) }),
 				sourceLineIndex: sourceIndex,
 			}
 			strippedLines = append(strippedLines, sourceMarker)
