@@ -76,7 +76,15 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 	}
 
 	httpCmd := exec.CommandContext(ctx, "http", args...)
-	return httpCmd.CombinedOutput()
+	output, err := httpCmd.CombinedOutput()
+	if err != nil {
+		return output, &BackedErr{
+			Err:      err,
+			ExitCode: httpCmd.ProcessState.ExitCode(),
+		}
+	}
+
+	return output, nil
 }
 
 func (httpie *httpie) getAsString() (string, error) {
