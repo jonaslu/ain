@@ -67,7 +67,7 @@ func main() {
 			return
 		}
 
-		fmt.Println(fatal)
+		fmt.Fprintln(os.Stderr, fatal)
 		os.Exit(1)
 	}
 
