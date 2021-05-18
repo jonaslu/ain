@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/pkg/errors"
 
@@ -41,22 +43,40 @@ func main() {
 		printInternalErrorAndExit(errors.New("Missing file name\nUsage ain <template.ain> or connect it to a pipe"))
 	}
 
-	// !! TODO !! Hook into SIGINT etc and cancel this context if hit
-	// This needs to be set when running shells (from that point on)
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		cancel()
+	}()
 
 	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames)
 	if err != nil {
+		if ctx.Err() == context.Canceled {
+			return
+		}
+
 		printInternalErrorAndExit(err)
 	}
 
 	if fatal != "" {
+		if ctx.Err() == context.Canceled {
+			return
+		}
+
 		fmt.Println(fatal)
 		os.Exit(1)
 	}
 
 	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile, printCommand)
 	if err != nil {
+		if ctx.Err() == context.Canceled {
+			return
+		}
+
 		fmt.Fprint(os.Stderr, err)
 
 		var backendErr *call.BackedErr
