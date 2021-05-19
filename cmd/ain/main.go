@@ -21,6 +21,16 @@ func printInternalErrorAndExit(err error) {
 	os.Exit(1)
 }
 
+func checkSignalRaisedAndExit(ctx context.Context, signalRaised os.Signal) {
+	if ctx.Err() == context.Canceled {
+		if sigValue, ok := signalRaised.(syscall.Signal); ok {
+			os.Exit(128 + int(sigValue))
+		}
+
+		os.Exit(1)
+	}
+}
+
 func main() {
 	var leaveTmpFile, printCommand bool
 	var envFile string
@@ -45,27 +55,25 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	var signalRaised os.Signal
 
 	go func() {
-		<-sigs
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+		signalRaised = <-sigs
 		cancel()
 	}()
 
 	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames)
 	if err != nil {
-		if ctx.Err() == context.Canceled {
-			return
-		}
+		checkSignalRaisedAndExit(ctx, signalRaised)
 
 		printInternalErrorAndExit(err)
 	}
 
 	if fatal != "" {
-		if ctx.Err() == context.Canceled {
-			return
-		}
+		checkSignalRaisedAndExit(ctx, signalRaised)
 
 		fmt.Fprintln(os.Stderr, fatal)
 		os.Exit(1)
@@ -73,9 +81,7 @@ func main() {
 
 	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile, printCommand)
 	if err != nil {
-		if ctx.Err() == context.Canceled {
-			return
-		}
+		checkSignalRaisedAndExit(ctx, signalRaised)
 
 		fmt.Fprint(os.Stderr, err)
 
