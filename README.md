@@ -18,6 +18,9 @@ Content-Type: application/json
 
 [Backend]
 curl
+
+[BackendOptions]
+-sS
 ```
 
 Then add another file for specific url:
