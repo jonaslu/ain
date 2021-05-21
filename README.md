@@ -1,9 +1,6 @@
 # What problem does ain solve?
 It's an API client for the terminal. Scripts and pipes welcome!
-
-# GIF
-<Screen recording of cat:ing a .env, global.ain, then a local.ain
-then running it. Then fzf with ain and some more fancy stuff>.
+![Show and tell](/assets/show-and-tell.gif?raw=true)
 
 # Quick start
 Ain uses sections in square brackets to specify what API to call.
