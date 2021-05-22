@@ -93,10 +93,10 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 				return
 			}
 
-			stdoutStr := string(stdout.Bytes())
+			stdoutStr := stdout.String()
 
 			if err != nil {
-				stderrStr := string(stdout.Bytes())
+				stderrStr := stderr.String()
 				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error: %v running command: %s. Command output: %s %s", err, cmd.String(), stderrStr, stdoutStr)
 				return
 			}
@@ -106,7 +106,7 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 				return
 			}
 
-			shellResults[resultIndex].output = string(stdout.Bytes())
+			shellResults[resultIndex].output = stdoutStr
 		}(i, shellCommand)
 
 		wg.Add(1)
