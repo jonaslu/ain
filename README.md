@@ -222,3 +222,9 @@ Piping it into bash is equivalent to running the command without `-p`.
 ```
 ain -p base.ain create-blog-post.ain | bash
 ```
+
+# Ain in a bigger context
+But wait! There's more!
+
+With ain being terminal friendly there are few neat tricks in the wiki you
+might want to check out: [the wiki](https://github.com/jonaslu/ain/wiki)
