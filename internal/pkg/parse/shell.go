@@ -44,7 +44,7 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 
 			shellCommandAndArgsStr := shellCommandAndArgsCapture[1]
 
-			tokenizedCommandLine, err := utils.TokenizeLine(shellCommandAndArgsStr, false)
+			tokenizedCommandLine, err := utils.TokenizeLine(shellCommandAndArgsStr, true)
 			if err != nil {
 				fatals = append(fatals, newFatalMarker(err.Error(), templateLine))
 				continue
@@ -83,7 +83,6 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 			}
 
 			cmd := exec.CommandContext(timeoutCtx, shellCommand.cmd, shellCommand.args...)
-
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
 
