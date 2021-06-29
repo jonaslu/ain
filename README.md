@@ -5,8 +5,7 @@ It's an API client for the terminal. Scripts and pipes welcome!
 # Quick start
 Ain uses sections in square brackets to specify what API to call.
 
-Start by putting things common to a service in a file (let's call
-it base.ain):
+Start by putting things common to a service in a file (let's call it base.ain):
 
 ```
 $> cat base.ain
@@ -23,7 +22,7 @@ curl
 -sS
 ```
 
-Then add another file for specific url:
+Then add another file for a specific URL:
 ```
 $> cat create-blog-post.ain
 [Host]
@@ -36,13 +35,15 @@ $> cat create-blog-post.ain
 }
 ```
 
-Run ain to combine them into a single call and print the result:
+Run ain to combine them into a single API call and print the result:
 ```
 $> ain base.ain create-blog-post.ain
 {
   "status": "ok"
 }
 ```
+
+See all options: `ain -h`
 
 # Installation
 `go get -u github.com/jonaslu/ain`
@@ -53,15 +54,15 @@ Go (version 1.11 or higher).
 You need curl and or httpie installed on your machine and available on your $PATH (command.Exec needs to find the binary).
 
 # Important concepts
-* Templates: Files containing what, how and where to make the http-call. By convention has the file-ending `.ain`.
+* Templates: Files containing what, how and where to make the API call. By convention has the file-ending `.ain`.
 * Sections: Headings in a template file.
 * Environment variables: Enables variables in a template file.
 * Subshells: Enables using the results of a script in a template file.
-* Backends: The thing that makes the http-call (curl or httipe).
+* Backends: The thing that makes the API call (curl or httipe).
 * Fatals: Error in parsing the template files (it's your fault).
 
 # Templates
-Ain reads what to call from template-files. Here's a full example:
+Ain reads sections from template-files. Here's a full example:
 ```
 [Host]
 http://localhost:${PORT}/api/blog/post
@@ -89,76 +90,61 @@ curl
 -sS # Comments are ignored.
 # This too.
 ```
-The template files can be named anything but some unique ending-convention such as .ain is encouraged. Then you can search for templates across the entire filesystem and then pipe them into ain.
+The template files can be named anything but some unique ending-convention such as .ain is recommended so you can [fing](https://man7.org/linux/man-pages/man1/find.1.html) them easily.
 
 Ain understands seven [Sections] (the things in square brackets). Each of the sections are described in details [below](#supported-sections).
 
-Ain reads template file-names from the command line or via a pipe. Sections either combine or overwrite across all the given template files. This enables you to have one common base template file with global settings, and then one or more template files that specify things that differ between API-calls (such as URL-path or query parameters).
-
-An example would be setting the [Headers], [Backend] and [BackendOptions] in a base template file and then specifying the specific [Host], [Method] and [Body] in several template files, one for each API-endpoint.
+Sections either combine or overwrite across all the template files given to ain.
 
 Anything after a pound sign (#) is a comment and will be ignored.
 
 # Running ain
 `ain [options] <template-files...>[!]`
 
-Ain accepts options and one or more template files. Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your $EDITOR (or vim if not set) so you can edit the file. The edit is not stored back into the template file and used only for this API-call.
+Ain accepts one or more template-files as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [Headers], [Backend] and [BackendOptions] in a base template file and then specifying the specific [Host], [Method] and [Body] in several template files, one for each API-endpoint.
 
-If ain is connected to a pipe it will try to read template file names off that pipe. This enables you to use [find](https://man7.org/linux/man-pages/man1/find.1.html) and a selector such as [fzf](https://github.com/junegunn/fzf)> to keep track of the template-files: `find . -name *.ain | fzf -m | ain`
+Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your $EDITOR (or vim if not set) so you can edit the file. The edit is not stored back into the template file and used only this invocation.
 
-Template file names specified on the command line are read before any names from a pipe. This means that in the `echo create-blog-post.ain | ain base.ain` is the same as `ain base.ain create-blog-post.ain`.
+If ain is connected to a pipe it will try to read template file names off that pipe. This enables you to use [find](https://man7.org/linux/man-pages/man1/find.1.html) and a selector such as [fzf](https://github.com/junegunn/fzf) to keep track of the template-files: `find . -name *.ain | fzf -m | ain`
+
+Template file names specified on the command line are read before any names from a pipe. This means that `echo create-blog-post.ain | ain base.ain` is the same as `ain base.ain create-blog-post.ain`.
 
 # Supported sections
 
-
 ## [Host]
-Contains the URL to call. This section appends the lines one template file to the next.
+Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g base.ain) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g login.ain): `/api/auth/login`
 
-This neat little feature allows you to specify a base-url in one file
-(e g base.ain) as such:
-`http://localhost:3000`
-
-And in the next template file specify the endpoint (e g login.ain): `/api/auth/login`
-
-And you could have query parameters in yet another template file (e g pwd-login.ain):
+You could have query parameters in yet another template file (e g user-leviathan-login.ain):
 ```
 ?user=leviathan
 &password=dearMother
 ```
 
-This way base-urls can be re-used.
-
-This section is mandatory.
+The [Host] section is mandatory and appends across template files.
 
 ## [Headers]
-What headers to include in the call.
+Headers to include in the API call.
 
 The [Headers] section appends across template files so you can share common headers (e g Authorization: <JWT> and Content-Type: application/json)
 
 ## [Method]
-What http-method to use in the call (GET, POST, PATCH). If omitted defalts to whatever the backend defaults to when not specified (GET in both curl and httpie).
+What http-method to use in the API call (e g GET, POST, PATCH). If omitted defalts to whatever the backend defaults to when not specified (GET in both curl and httpie).
 
 The [Method] section is overridden by latter template files.
 
 ## [Body]
-If the API call needs a body (POST, PATCH) the content of this section is passed as a file to the backend.
+If the API call needs a body (POST, PATCH) the content of this section is passed as a file to the backend because formatting may be important (e g yaml). In the template file this section can be pretty-printed for easier eye-balling (e g json).
 
-The reason for always using a file is that formatting may be important (e g yaml). In the template file this section can be pretty-printed (e g json).
-
-The file passed to the backendn is removed after the call unless you pass the `-l` flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell if you'd like them elsewhere.
+The file passed to the backend is removed after the API call unless you pass the `-l` flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting $TMPFILE if you'd like them elsewhere.
 
 The [Body] sections is overridden by latter template files.
 
 ## [Config]
-This section contains config for ain (any backend-specific config is
-passed via the [BackendOptions] section).
+This section contains config for ain (any backend-specific config is passed via the [BackendOptions] section).
 
-Currently the only option supported is Timeout=<timeout in seconds>
+Currently the only option supported is `Timeout=<timeout in seconds>`
 
-The timeout is enforced during the whole execution of ain
-(both running subshells and the backend-call).
-
-If omitted defaults to no timeout.
+The timeout is enforced during the whole execution of ain (both running subshells and the actual API call). If omitted defaults to no timeout.
 
 The [Cnnfig] sections is overridden by latter template files.
 
@@ -176,30 +162,27 @@ backend-command invocation (curl or httpie).
 The [BackendOptions] section appends across template files.
 
 # Environment variables
-Ain supports variables in the templates via environment variables.
-Anything inside ${} is replaced with the value found in the environment.
+Anything inside ${} in a template is replaced with the value found in the environment.
 
-Ain also reads any .env files in the folder from where it's run. You
-can pass a custom .env file via the `-e` flag.
+Ain also reads any .env files in the folder from where it's run. You can pass a custom .env file via the `-e` flag.
 
-This enables you to specify things that vary across calls either
-permanently in the .env file or one-shot via the command-line. Example:
+This enables you to specify things that vary across API calls either permanently in the .env file or one-shot via the command-line. Example:
 `PORT=5000 ain base.ain create-blog-post.ain`
 
 # Subshells
-Anything inside a $() is replaced with the result from running that shell-command
-and capturing it's output (STDIN).
+Anything inside a $() is replaced with the result from running that shell-command and capturing it's output (STDIN).
 
-This enables you to put things such as getting JWT tokens into a separate
-script and share that across templates.
+An example is getting JWT tokens into a separate script and share that across templates.
 
-More complex scripting can be done in-line with the xargs `bash -c` hack<ink>. Example:
+More complex scripting can be done in-line with the xargs `bash -c` (hack)[https://en.wikipedia.org/wiki/Xargs#Shell_trick:_any_number]. Example:
 ```
 [Headers]
 Authorization: Bearer $(bash -c "./get-login.sh | jq -r '.token'")
+
+Ain expects the first word in a subshell to be an executable on your $PATH and the rest arguments (hence the need for quotes to bash -c as this is passed as one argument).
 ```
 # Fatals
-Ain separates fatals from errors. Errors are things internal to ain (it's not your fault) such as not finding the backend-binary.
+Ain has two types of errors: fatals and errors. Errors are things internal to ain (it's not your fault) such as not finding the backend-binary.
 
 Fatals are errors in the template (it's your fault). Ain will try to parse as much of the templates as possible aggregating fatals before reporting back to you. Fatals include the template file name where the fatal occurred, line-number and a small context of the template:
 ```
@@ -212,8 +195,7 @@ Fatal error Cannot find value for variable PORT on line 2:
 ```
 
 # Sharing is caring
-Ain can print out the command instead of running it via the `-p` flag. This enables you to
-inspect how the curl or httpie call would look like or to share the command:
+Ain can print out the command instead of running it via the `-p` flag. This enables you to inspect how the curl or httpie API call would look like or share the command:
 ```
 ain -p base.ain create-blog-post.ain > share-me.sh
 ```
@@ -226,5 +208,4 @@ ain -p base.ain create-blog-post.ain | bash
 # Ain in a bigger context
 But wait! There's more!
 
-With ain being terminal friendly there are few neat tricks in the wiki you
-might want to check out: [the wiki](https://github.com/jonaslu/ain/wiki)
+With ain being terminal friendly there are few neat tricks in the [wiki](https://github.com/jonaslu/ain/wiki)
