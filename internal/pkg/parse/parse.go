@@ -25,7 +25,7 @@ var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
 func trimTemplate(template string) ([]sourceMarker, []string) {
 	strippedLines := []sourceMarker{}
 
-	templateLines := strings.Split(template, "\n")
+	templateLines := strings.Split(strings.ReplaceAll(template, "\r\n", "\n"), "\n")
 	lastRowIndex := len(templateLines) - 1
 
 	if lastRowIndex > 0 && templateLines[lastRowIndex] == "" {
