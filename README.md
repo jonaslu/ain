@@ -205,6 +205,11 @@ Piping it into bash is equivalent to running the command without `-p`.
 ain -p base.ain create-blog-post.ain | bash
 ```
 
+A note on line-endings. Ain uses line-feed (\n) when printing it's output. If you're on windows and storing ain:s result to a file, this
+may cause trouble. Instead of trying to guess what line ending we're on (WSL, docker, cygwin etc makes this a wild goose chase), you'll have to manually convert them if the receiving progrogram complains.
+
+Instructions here: https://stackoverflow.com/a/19914445/1574968
+
 # Ain in a bigger context
 But wait! There's more!
 
