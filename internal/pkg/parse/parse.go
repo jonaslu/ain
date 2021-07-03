@@ -56,14 +56,6 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 		return nil, []string{"Cannot process empty template"}
 	}
 
-	// !! TODO !! If this gets worse, put it in  it's on initializer method
-	parseData := &data.Parse{}
-	parseData.Config.Timeout = -1
-
-	if configFatal := parseConfigSection(trimmedTemplate, parseData); configFatal != nil {
-		return nil, []string{formatFatalMarker(configFatal, templateLines)}
-	}
-
 	envVarsTemplate, envVarsFatals := transformEnvVars(trimmedTemplate)
 	if len(envVarsFatals) > 0 {
 		for _, transformFatalMarker := range envVarsFatals {
@@ -71,6 +63,14 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 		}
 
 		return nil, fatals
+	}
+
+	// !! TODO !! If this gets worse, put it in  it's on initializer method
+	parseData := &data.Parse{}
+	parseData.Config.Timeout = -1
+
+	if configFatal := parseConfigSection(envVarsTemplate, parseData); configFatal != nil {
+		return nil, []string{formatFatalMarker(configFatal, templateLines)}
 	}
 
 	shellCommandsTemplate, shellCommandFatals := transformShellCommands(ctx, parseData.Config, envVarsTemplate)
