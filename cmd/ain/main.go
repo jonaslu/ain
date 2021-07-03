@@ -36,7 +36,7 @@ func main() {
 	var envFile string
 
 	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
-	flag.BoolVar(&printCommand, "p", false, "print command to the terminal (do not execute it")
+	flag.BoolVar(&printCommand, "p", false, "Print command to the terminal instead of executing")
 	flag.StringVar(&envFile, "e", ".env", "Path to .env file")
 	flag.Parse()
 
