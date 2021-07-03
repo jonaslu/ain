@@ -135,7 +135,10 @@ func insertShellCommandOutput(shellResults []shellCommandOutput, templateLines [
 			lineContents = strings.Replace(lineContents, subShellCallWithParens, result.output, 1)
 		}
 
-		transformedTemplateLines = append(transformedTemplateLines, newSourceMarker(lineContents, templateLine.sourceLineIndex))
+		multilineOutput := strings.Split(strings.ReplaceAll(lineContents, "\r\n", "\n"), "\n")
+		for _, lineOutput := range multilineOutput {
+			transformedTemplateLines = append(transformedTemplateLines, newSourceMarker(lineOutput, templateLine.sourceLineIndex))
+		}
 	}
 
 	return transformedTemplateLines, fatals

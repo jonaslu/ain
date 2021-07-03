@@ -169,8 +169,10 @@ Ain also reads any .env files in the folder from where it's run. You can pass a 
 This enables you to specify things that vary across API calls either permanently in the .env file or one-shot via the command-line. Example:
 `PORT=5000 ain base.ain create-blog-post.ain`
 
+Environment-variables are expanded first and can be included
+in any subshell-expansion as command-names or arguments to scripts.
 # Subshells
-Anything inside a $() is replaced with the result from running that shell-command and capturing it's output (STDIN).
+Anything inside a $() is replaced with the result from running that shell-command and capturing it's output (STDIN). The shell-command can return multiple rows which will be inserted as separate rows in the template (e g returning two headers).
 
 An example is getting JWT tokens into a separate script and share that across templates.
 
@@ -180,6 +182,8 @@ More complex scripting can be done in-line with the xargs `bash -c` (hack)[https
 Authorization: Bearer $(bash -c "./get-login.sh | jq -r '.token'")
 
 Ain expects the first word in a subshell to be an executable on your $PATH and the rest arguments (hence the need for quotes to bash -c as this is passed as one argument).
+
+Subshells are expanded after any environment-variables so if the script returns an environment-variable name it won't be expanded into any value.
 ```
 # Fatals
 Ain has two types of errors: fatals and errors. Errors are things internal to ain (it's not your fault) such as not finding the backend-binary.
