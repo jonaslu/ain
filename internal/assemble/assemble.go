@@ -66,20 +66,25 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 	return &callData, fatals
 }
 
-func appendErrorMessages(errorMessage, filename string, fatals []string) string {
-	if errorMessage != "" {
-		errorMessage = errorMessage + "\n"
+func appendFatalMessages(fatalMessage, filename string, fatals []string) string {
+	if fatalMessage != "" {
+		fatalMessage = fatalMessage + "\n"
 	}
 
 	if filename != "" {
-		errorMessage = errorMessage + `Error in file: ` + filename + "\n"
+		fatalMessage = fatalMessage + "Fatal error"
+		if len(fatals) > 1 {
+			fatalMessage = fatalMessage + "s"
+		}
+
+		fatalMessage = fatalMessage + " in file: " + filename + "\n"
 	}
 
-	return errorMessage + strings.Join(fatals, "\n") + "\n"
+	return fatalMessage + strings.Join(fatals, "\n") + "\n"
 }
 
 func Assemble(ctx context.Context, filenames []string) (*data.Call, string, error) {
-	errors := ""
+	fatals := ""
 
 	parseData := &data.Parse{}
 	parseData.Config.Timeout = -1
@@ -90,24 +95,24 @@ func Assemble(ctx context.Context, filenames []string) (*data.Call, string, erro
 			return nil, "", err
 		}
 
-		fileCallData, fatals := parse.ParseTemplate(ctx, template)
-		if len(fatals) > 0 {
-			errors = appendErrorMessages(errors, filename, fatals)
+		fileCallData, fileFatals := parse.ParseTemplate(ctx, template)
+		if len(fileFatals) > 0 {
+			fatals = appendFatalMessages(fatals, filename, fileFatals)
 		}
 
-		if errors == "" {
+		if fatals == "" {
 			mergeCallData(parseData, fileCallData)
 		}
 	}
 
-	if errors != "" {
-		return nil, errors, nil
+	if fatals != "" {
+		return nil, fatals, nil
 	}
 
-	callData, validationErrors := getCallData(parseData)
-	if len(validationErrors) > 0 {
-		errors = appendErrorMessages(errors, "", validationErrors)
+	callData, validationFatals := getCallData(parseData)
+	if len(validationFatals) > 0 {
+		fatals = appendFatalMessages(fatals, "", validationFatals)
 	}
 
-	return callData, errors, nil
+	return callData, fatals, nil
 }

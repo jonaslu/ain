@@ -17,7 +17,7 @@ func newFatalMarker(message string, fatalLine sourceMarker) *fatalMarker {
 // Knows how to print errors and possibly an empty template into a string
 func formatFatalMarker(fatalMarker *fatalMarker, templateLines []string) string {
 	if fatalMarker.fatalLine == emptyLine {
-		return "Fatal error " + fatalMarker.message
+		return fatalMarker.message
 	}
 
 	var templateContext []string
@@ -35,7 +35,7 @@ func formatFatalMarker(fatalMarker *fatalMarker, templateLines []string) string 
 		templateContext = append(templateContext, strconv.Itoa(lineAfter+1)+"   "+templateLines[lineAfter])
 	}
 
-	message := "Fatal error " + fatalMarker.message + " on line " + strconv.Itoa(fatalMarker.fatalLine.sourceLineIndex+1) + ":\n"
+	message := fatalMarker.message + " on line " + strconv.Itoa(fatalMarker.fatalLine.sourceLineIndex+1) + ":\n"
 	message = message + strings.Join(templateContext, "\n")
 
 	return message
