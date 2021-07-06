@@ -144,7 +144,8 @@ This section contains config for ain (any backend-specific config is passed via 
 
 Currently the only option supported is `Timeout=<timeout in seconds>`
 
-The timeout is enforced during the whole execution of ain (both running subshells and the actual API call). If omitted defaults to no timeout.
+The timeout is enforced during the whole execution of ain (both running subshells and the actual API call). If omitted defaults to no timeout. Note that this is the only section where subshells have
+no effect, since the timeout needs to be known before the subshells are invoked.
 
 The [Cnnfig] sections is overridden by latter template files.
 
