@@ -219,3 +219,6 @@ Instructions here: https://stackoverflow.com/a/19914445/1574968
 But wait! There's more!
 
 With ain being terminal friendly there are few neat tricks in the [wiki](https://github.com/jonaslu/ain/wiki)
+
+# Dependencies
+Ain depends on [envparse](https://github.com/hashicorp/go-envparse).
