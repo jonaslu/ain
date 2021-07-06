@@ -192,8 +192,8 @@ Ain has two types of errors: fatals and errors. Errors are things internal to ai
 Fatals are errors in the template (it's your fault). Ain will try to parse as much of the templates as possible aggregating fatals before reporting back to you. Fatals include the template file name where the fatal occurred, line-number and a small context of the template:
 ```
 $ ain templates/example.ain
-Error in file: templates/example.ain
-Fatal error Cannot find value for variable PORT on line 2:
+Fatal error in file: templates/example.ain
+Cannot find value for variable PORT on line 2:
 1   [Host]
 2 > http://localhost:${PORT}
 3
