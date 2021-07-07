@@ -49,7 +49,7 @@ See all options: `ain -h`
 `go get -u github.com/jonaslu/ain`
 
 # Pre-requisites
-Go (version 1.11 or higher).
+Go (version 1.13 or higher).
 
 You need curl and or httpie installed on your machine and available on your $PATH (command.Exec needs to find the binary).
 
