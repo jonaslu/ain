@@ -170,8 +170,10 @@ Ain also reads any .env files in the folder from where it's run. You can pass a 
 This enables you to specify things that vary across API calls either permanently in the .env file or one-shot via the command-line. Example:
 `PORT=5000 ain base.ain create-blog-post.ain`
 
-Environment-variables are expanded first and can be included
-in any subshell-expansion as command-names or arguments to scripts.
+Environment-variables are expanded first and can be included in any subshell-expansion as command-names or arguments to scripts.
+
+Ain uses [envparse](https://github.com/hashicorp/go-envparse) for, well, parsing environment variables, so anything it can do, so can you!
+
 # Subshells
 Anything inside a $() is replaced with the result from running that shell-command and capturing it's output (STDIN). The shell-command can return multiple rows which will be inserted as separate rows in the template (e g returning two headers).
 
@@ -219,6 +221,3 @@ Instructions here: https://stackoverflow.com/a/19914445/1574968
 But wait! There's more!
 
 With ain being terminal friendly there are few neat tricks in the [wiki](https://github.com/jonaslu/ain/wiki)
-
-# Dependencies
-Ain depends on [envparse](https://github.com/hashicorp/go-envparse).
