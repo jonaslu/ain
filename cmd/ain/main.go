@@ -32,13 +32,19 @@ func checkSignalRaisedAndExit(ctx context.Context, signalRaised os.Signal) {
 }
 
 func main() {
-	var leaveTmpFile, printCommand bool
+	var leaveTmpFile, printCommand, showVersion bool
 	var envFile string
 
 	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
 	flag.BoolVar(&printCommand, "p", false, "Print command to the terminal instead of executing")
 	flag.StringVar(&envFile, "e", ".env", "Path to .env file")
+	flag.BoolVar(&showVersion, "v", false, "Show version and exit")
 	flag.Parse()
+
+	if showVersion {
+		fmt.Println("Ain version: 1.0")
+		os.Exit(0)
+	}
 
 	if err := disk.ReadEnvFile(envFile, envFile != ".env"); err != nil {
 		printInternalErrorAndExit(err)
