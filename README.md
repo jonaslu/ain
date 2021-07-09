@@ -28,6 +28,9 @@ $> cat create-blog-post.ain
 [Host]
 /api/blog/create
 
+[Method]
+POST
+
 [Body]
 {
   "title": "Million dollar idea",
@@ -76,8 +79,8 @@ POST
 
 [Body]
 {
-  "title": "New million-dollar idea",
-  "content": "A social networking platform. With music."
+  "title": "Reaping death",
+  "content": "There is a place beyond the dreamworlds past the womb of night."
 }
 
 [Config]
