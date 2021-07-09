@@ -73,12 +73,22 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 
 	if backendTimeoutContext.Err() == context.DeadlineExceeded {
 		// !! TODO !! Have string representation of the cmd in the error
-		return "", utils.CascadeErrorMessage(errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout), removeTmpFileErr)
+		return "", utils.CascadeErrorMessage(
+			errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout),
+			removeTmpFileErr,
+		)
 	}
 
 	if err != nil {
-		return "", utils.CascadeErrorMessage(errors.Wrapf(err, "Error running: %s\nOutput: %s", callData.Backend, string(output)), removeTmpFileErr)
+		return "", utils.CascadeErrorMessage(
+			errors.Wrapf(err, "Error running: %s\nOutput: %s", callData.Backend, string(output)),
+			removeTmpFileErr,
+		)
 	}
 
-	return string(output), removeTmpFileErr
+	if removeTmpFileErr != nil {
+		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\nOutput: %s", callData.Backend, string(output))
+	}
+
+	return string(output), nil
 }

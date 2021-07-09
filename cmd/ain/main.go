@@ -89,6 +89,8 @@ func main() {
 		if errors.As(err, &backendErr) {
 			os.Exit(backendErr.ExitCode)
 		}
+
+		os.Exit(1)
 	}
 
 	fmt.Fprint(os.Stdout, backendOutput)
