@@ -14,64 +14,64 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-var subShellExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
-var subShellCommandRe = regexp.MustCompile(`\$\(([^)]*)\)`)
+var executableExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
+var executableRe = regexp.MustCompile(`\$\(([^)]*)\)`)
 
-type shellCommandAndArgs struct {
-	cmd  string
-	args []string
+type executableAndArgs struct {
+	executable string
+	args       []string
 }
 
-type shellCommandOutput struct {
+type executableOutput struct {
 	output       string
 	fatalMessage string
 }
 
-func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAndArgs, []*fatalMarker) {
+func captureExecutableAndArgs(templateLines []sourceMarker) ([]executableAndArgs, []*fatalMarker) {
 	var fatals []*fatalMarker
-	shellCommands := []shellCommandAndArgs{}
+	executables := []executableAndArgs{}
 
 	for _, templateLine := range templateLines {
 		lineContents := templateLine.lineContents
 
-		for _, subShellCallWithParens := range subShellExpressionRe.FindAllString(lineContents, -1) {
-			shellCommandAndArgsCapture := subShellCommandRe.FindStringSubmatch(subShellCallWithParens)
+		for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
+			executableAndArgsCapture := executableRe.FindStringSubmatch(executableWithParens)
 
-			if len(shellCommandAndArgsCapture) != 2 {
+			if len(executableAndArgsCapture) != 2 {
 				fatals = append(fatals, newFatalMarker("Malformed executable", templateLine))
 				continue
 			}
 
-			shellCommandAndArgsStr := shellCommandAndArgsCapture[1]
-			if shellCommandAndArgsStr == "" {
+			executableAndArgsStr := executableAndArgsCapture[1]
+			if executableAndArgsStr == "" {
 				fatals = append(fatals, newFatalMarker("Empty executable", templateLine))
 				continue
 			}
 
-			tokenizedCommandLine, err := utils.TokenizeLine(shellCommandAndArgsStr, true)
+			tokenizedExecutableLine, err := utils.TokenizeLine(executableAndArgsStr, true)
 			if err != nil {
 				fatals = append(fatals, newFatalMarker(err.Error(), templateLine))
 				continue
 			}
 
-			command := tokenizedCommandLine[0]
+			executable := tokenizedExecutableLine[0]
 
-			shellCommands = append(shellCommands, shellCommandAndArgs{
-				cmd:  command,
-				args: tokenizedCommandLine[1:],
+			executables = append(executables, executableAndArgs{
+				executable: executable,
+				args:       tokenizedExecutableLine[1:],
 			})
 		}
 	}
 
-	return shellCommands, fatals
+	return executables, fatals
 }
 
-func callShellCommands(ctx context.Context, config data.Config, shellCommands []shellCommandAndArgs) []shellCommandOutput {
-	shellResults := make([]shellCommandOutput, len(shellCommands))
+func callExecutables(ctx context.Context, config data.Config, executables []executableAndArgs) []executableOutput {
+	executableResults := make([]executableOutput, len(executables))
 
 	wg := sync.WaitGroup{}
-	for i, shellCommand := range shellCommands {
-		go func(resultIndex int, shellCommand shellCommandAndArgs) {
+	for i, executable := range executables {
+		go func(resultIndex int, executable executableAndArgs) {
 			defer wg.Done()
 
 			var stdout, stderr bytes.Buffer
@@ -81,13 +81,13 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 				timeoutCtx, _ = context.WithTimeout(ctx, time.Duration(config.Timeout)*time.Second)
 			}
 
-			cmd := exec.CommandContext(timeoutCtx, shellCommand.cmd, shellCommand.args...)
+			cmd := exec.CommandContext(timeoutCtx, executable.executable, executable.args...)
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
 
 			err := cmd.Run()
 			if timeoutCtx.Err() != nil {
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s timed out after %d seconds ", cmd.String(), config.Timeout)
+				executableResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s timed out after %d seconds ", cmd.String(), config.Timeout)
 				return
 			}
 
@@ -96,51 +96,51 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 			if err != nil {
 				stderrStr := stderr.String()
 
-				commandOutput := ""
+				executableOutput := ""
 				if stdoutStr != "" || stderrStr != "" {
-					commandOutput = "\n" + strings.TrimSpace(strings.Join([]string{
+					executableOutput = "\n" + strings.TrimSpace(strings.Join([]string{
 						strings.TrimSpace(stdoutStr),
 						strings.TrimSpace(stderrStr),
 					}, " "))
 				}
 
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s error: %v%s", cmd.String(), err, commandOutput)
+				executableResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s error: %v%s", cmd.String(), err, executableOutput)
 				return
 			}
 
 			if stdoutStr == "" {
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s\nCommand produced no stdout output", cmd.String())
+				executableResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s\nCommand produced no stdout output", cmd.String())
 				return
 			}
 
-			shellResults[resultIndex].output = stdoutStr
-		}(i, shellCommand)
+			executableResults[resultIndex].output = stdoutStr
+		}(i, executable)
 
 		wg.Add(1)
 	}
 
 	wg.Wait()
 
-	return shellResults
+	return executableResults
 }
 
-func insertShellCommandOutput(shellResults []shellCommandOutput, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
+func insertExecutableOutput(executableResults []executableOutput, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
 	var transformedTemplateLines []sourceMarker
 	var fatals []*fatalMarker
 
-	subShellIndex := 0
+	executableIndex := 0
 	for _, templateLine := range templateLines {
 		lineContents := templateLine.lineContents
 
-		for _, subShellCallWithParens := range subShellExpressionRe.FindAllString(lineContents, -1) {
-			result := shellResults[subShellIndex]
-			subShellIndex++
+		for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
+			result := executableResults[executableIndex]
+			executableIndex++
 			if result.fatalMessage != "" {
 				fatals = append(fatals, newFatalMarker(result.fatalMessage, templateLine))
 				continue
 			}
 
-			lineContents = strings.Replace(lineContents, subShellCallWithParens, result.output, 1)
+			lineContents = strings.Replace(lineContents, executableWithParens, result.output, 1)
 		}
 
 		multilineOutput := strings.Split(strings.ReplaceAll(lineContents, "\r\n", "\n"), "\n")
@@ -152,13 +152,13 @@ func insertShellCommandOutput(shellResults []shellCommandOutput, templateLines [
 	return transformedTemplateLines, fatals
 }
 
-func transformShellCommands(ctx context.Context, config data.Config, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
-	shellCommands, fatals := captureShellCommandAndArgs(templateLines)
+func transformExecutables(ctx context.Context, config data.Config, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
+	executables, fatals := captureExecutableAndArgs(templateLines)
 	if len(fatals) > 0 {
 		return nil, fatals
 	}
 
-	shellResults := callShellCommands(ctx, config, shellCommands)
+	executableResults := callExecutables(ctx, config, executables)
 
-	return insertShellCommandOutput(shellResults, templateLines)
+	return insertExecutableOutput(executableResults, templateLines)
 }

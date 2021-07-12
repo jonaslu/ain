@@ -73,7 +73,7 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 		return nil, []string{formatFatalMarker(configFatal, templateLines)}
 	}
 
-	shellCommandsTemplate, shellCommandFatals := transformShellCommands(ctx, parseData.Config, envVarsTemplate)
+	shellCommandsTemplate, shellCommandFatals := transformExecutables(ctx, parseData.Config, envVarsTemplate)
 	if len(shellCommandFatals) > 0 {
 		for _, transformFatalMarker := range shellCommandFatals {
 			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
