@@ -60,7 +60,7 @@ You need curl and or httpie installed on your machine and available on your $PAT
 * Templates: Files containing what, how and where to make the API call. By convention has the file-ending `.ain`.
 * Sections: Headings in a template file.
 * Environment variables: Enables variables in a template file.
-* Subshells: Enables using the results of a script in a template file.
+* Executables: Enables using the results of another command in a template file.
 * Backends: The thing that makes the API call (curl or httipe).
 * Fatals: Error in parsing the template files (it's your fault).
 
@@ -104,9 +104,9 @@ Anything after a pound sign (#) is a comment and will be ignored.
 # Running ain
 `ain [options] <template-files...>[!]`
 
-Ain accepts one or more template-files as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [Headers], [Backend] and [BackendOptions] in a base template file and then specifying the specific [Host], [Method] and [Body] in several template files, one for each API-endpoint.
+Ain accepts one or more template-files as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [Headers], [Backend] and [BackendOptions] in a base template file and then specifying the specific [Host], [Method] and [Body] in several template files, one for each API-endpoint. You can even use an `alias` for things you will always set.
 
-Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your $EDITOR (or vim if not set) so you can edit the file. The edit is not stored back into the template file and used only this invocation.
+Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$EDITOR` (or vim if not set) so you can edit the file. The edit is not stored back into the template file and used only this invocation.
 
 If ain is connected to a pipe it will try to read template file names off that pipe. This enables you to use [find](https://man7.org/linux/man-pages/man1/find.1.html) and a selector such as [fzf](https://github.com/junegunn/fzf) to keep track of the template-files: `find . -name *.ain | fzf -m | ain`
 
@@ -138,7 +138,7 @@ The [Method] section is overridden by latter template files.
 ## [Body]
 If the API call needs a body (POST, PATCH) the content of this section is passed as a file to the backend because formatting may be important (e g yaml). In the template file this section can be pretty-printed for easier eye-balling (e g json).
 
-The file passed to the backend is removed after the API call unless you pass the `-l` flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting $TMPFILE if you'd like them elsewhere.
+The file passed to the backend is removed after the API call unless you pass the `-l` flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPFILE` if you'd like them elsewhere.
 
 The [Body] sections is overridden by latter template files.
 
@@ -147,8 +147,8 @@ This section contains config for ain (any backend-specific config is passed via 
 
 Currently the only option supported is `Timeout=<timeout in seconds>`
 
-The timeout is enforced during the whole execution of ain (both running subshells and the actual API call). If omitted defaults to no timeout. Note that this is the only section where subshells have
-no effect, since the timeout needs to be known before the subshells are invoked.
+The timeout is enforced during the whole execution of ain (both running executables and the actual API call). If omitted defaults to no timeout. Note that this is the only section where executables have
+no effect, since the timeout needs to be known before the executables are invoked.
 
 The [Cnnfig] sections is overridden by latter template files.
 
@@ -166,19 +166,19 @@ backend-command invocation (curl or httpie).
 The [BackendOptions] section appends across template files.
 
 # Environment variables
-Anything inside ${} in a template is replaced with the value found in the environment.
+Anything inside `${}` in a template is replaced with the value found in the environment.
 
 Ain also reads any .env files in the folder from where it's run. You can pass a custom .env file via the `-e` flag.
 
 This enables you to specify things that vary across API calls either permanently in the .env file or one-shot via the command-line. Example:
 `PORT=5000 ain base.ain create-blog-post.ain`
 
-Environment-variables are expanded first and can be included in any subshell-expansion as command-names or arguments to scripts.
+Environment-variables are expanded first and can be used with any executable. Example `$(cat ${ENV}/token.json)`.
 
 Ain uses [envparse](https://github.com/hashicorp/go-envparse) for, well, parsing environment variables, so anything it can do, so can you!
 
-# Subshells
-Anything inside a $() is replaced with the result from running that shell-command and capturing it's output (STDIN). The shell-command can return multiple rows which will be inserted as separate rows in the template (e g returning two headers).
+# Executables
+Anything inside a `$()` is replaced with the result from running that command and capturing it's output (STDIN). The command can return multiple rows which will be inserted as separate rows in the template (e g returning two headers).
 
 An example is getting JWT tokens into a separate script and share that across templates.
 
@@ -187,10 +187,11 @@ More complex scripting can be done in-line with the xargs `bash -c` (hack)[https
 [Headers]
 Authorization: Bearer $(bash -c "./get-login.sh | jq -r '.token'")
 
-Ain expects the first word in a subshell to be an executable on your $PATH and the rest arguments (hence the need for quotes to bash -c as this is passed as one argument).
+Ain expects the first word in an executable to be on your $PATH and the rest to be arguments (hence the need for quotes to bash -c as this is passed as one argument).
 
-Subshells are expanded after any environment-variables so if the script returns an environment-variable name it won't be expanded into any value.
+Executables are captured and replaced in the template after any environment-variables so if the script returns an environment-variable name it won't be expanded into any value.
 ```
+
 # Fatals
 Ain has two types of errors: fatals and errors. Errors are things internal to ain (it's not your fault) such as not finding the backend-binary.
 
