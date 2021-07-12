@@ -38,13 +38,13 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 			shellCommandAndArgsCapture := subShellCommandRe.FindStringSubmatch(subShellCallWithParens)
 
 			if len(shellCommandAndArgsCapture) != 2 {
-				fatals = append(fatals, newFatalMarker("Malformed shell command", templateLine))
+				fatals = append(fatals, newFatalMarker("Malformed executable", templateLine))
 				continue
 			}
 
 			shellCommandAndArgsStr := shellCommandAndArgsCapture[1]
 			if shellCommandAndArgsStr == "" {
-				fatals = append(fatals, newFatalMarker("Empty shell command", templateLine))
+				fatals = append(fatals, newFatalMarker("Empty executable", templateLine))
 				continue
 			}
 
@@ -87,7 +87,7 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 
 			err := cmd.Run()
 			if timeoutCtx.Err() != nil {
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Command: %s timed out after %d seconds ", cmd.String(), config.Timeout)
+				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s timed out after %d seconds ", cmd.String(), config.Timeout)
 				return
 			}
 
@@ -95,12 +95,12 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 
 			if err != nil {
 				stderrStr := stderr.String()
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error: %v running command: %s. Command output: %s %s", err, cmd.String(), stderrStr, stdoutStr)
+				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error: %v running executable: %s. Command output: %s %s", err, cmd.String(), stderrStr, stdoutStr)
 				return
 			}
 
 			if stdoutStr == "" {
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error running command: %s. Command produced no stdout output", cmd.String())
+				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error running executable: %s. Command produced no stdout output", cmd.String())
 				return
 			}
 
