@@ -95,12 +95,21 @@ func callShellCommands(ctx context.Context, config data.Config, shellCommands []
 
 			if err != nil {
 				stderrStr := stderr.String()
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error: %v running executable: %s. Command output: %s %s", err, cmd.String(), stderrStr, stdoutStr)
+
+				commandOutput := ""
+				if stdoutStr != "" || stderrStr != "" {
+					commandOutput = "\n" + strings.TrimSpace(strings.Join([]string{
+						strings.TrimSpace(stdoutStr),
+						strings.TrimSpace(stderrStr),
+					}, " "))
+				}
+
+				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s error: %v%s", cmd.String(), err, commandOutput)
 				return
 			}
 
 			if stdoutStr == "" {
-				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Error running executable: %s. Command produced no stdout output", cmd.String())
+				shellResults[resultIndex].fatalMessage = fmt.Sprintf("Executable: %s\nCommand produced no stdout output", cmd.String())
 				return
 			}
 
