@@ -68,7 +68,7 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 
 func appendFatalMessages(fatalMessage, filename string, fatals []string) string {
 	if fatalMessage != "" {
-		fatalMessage = fatalMessage + "\n"
+		fatalMessage = fatalMessage + "\n\n"
 	}
 
 	if filename != "" {
@@ -80,7 +80,7 @@ func appendFatalMessages(fatalMessage, filename string, fatals []string) string 
 		fatalMessage = fatalMessage + " in file: " + filename + "\n"
 	}
 
-	return fatalMessage + strings.Join(fatals, "\n") + "\n"
+	return fatalMessage + strings.Join(fatals, "\n")
 }
 
 func Assemble(ctx context.Context, filenames []string) (*data.Call, string, error) {
