@@ -43,6 +43,10 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 			}
 
 			shellCommandAndArgsStr := shellCommandAndArgsCapture[1]
+			if shellCommandAndArgsStr == "" {
+				fatals = append(fatals, newFatalMarker("Empty shell command", templateLine))
+				continue
+			}
 
 			tokenizedCommandLine, err := utils.TokenizeLine(shellCommandAndArgsStr, true)
 			if err != nil {
@@ -51,11 +55,6 @@ func captureShellCommandAndArgs(templateLines []sourceMarker) ([]shellCommandAnd
 			}
 
 			command := tokenizedCommandLine[0]
-
-			if command == "" {
-				fatals = append(fatals, newFatalMarker("Empty shell command", templateLine))
-				continue
-			}
 
 			shellCommands = append(shellCommands, shellCommandAndArgs{
 				cmd:  command,
