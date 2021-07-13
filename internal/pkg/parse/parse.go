@@ -73,9 +73,9 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 		return nil, []string{formatFatalMarker(configFatal, templateLines)}
 	}
 
-	shellCommandsTemplate, shellCommandFatals := transformExecutables(ctx, parseData.Config, envVarsTemplate)
-	if len(shellCommandFatals) > 0 {
-		for _, transformFatalMarker := range shellCommandFatals {
+	executablesTemplate, executableFatals := transformExecutables(ctx, parseData.Config, envVarsTemplate)
+	if len(executableFatals) > 0 {
+		for _, transformFatalMarker := range executableFatals {
 			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
 		}
 
@@ -92,7 +92,7 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 	}
 
 	for _, sectionParser := range sectionParsers {
-		if callFatalMarker := sectionParser(shellCommandsTemplate, parseData); callFatalMarker != nil {
+		if callFatalMarker := sectionParser(executablesTemplate, parseData); callFatalMarker != nil {
 			fatals = append(fatals, formatFatalMarker(callFatalMarker, templateLines))
 		}
 	}
