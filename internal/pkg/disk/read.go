@@ -14,8 +14,10 @@ import (
 const EDIT_FILE_SUFFIX = "!"
 
 func captureEditorOutput(tempFile *os.File) (string, error) {
-	// !! TODO !! If editorCmd is not set - warn and default to vim
 	editorCmd := os.Getenv("EDITOR")
+	if editorCmd == "" {
+		editorCmd = "vim"
+	}
 
 	cmd := exec.Command(editorCmd, tempFile.Name())
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
