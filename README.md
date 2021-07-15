@@ -93,7 +93,7 @@ curl
 -sS # Comments are ignored.
 # This too.
 ```
-The template files can be named anything but some unique ending-convention such as .ain is recommended so you can [fing](https://man7.org/linux/man-pages/man1/find.1.html) them easily.
+The template files can be named anything but some unique ending-convention such as .ain is recommended so you can [find](https://man7.org/linux/man-pages/man1/find.1.html) them easily.
 
 Ain understands seven [Sections] (the things in square brackets). Each of the sections are described in details [below](#supported-sections).
 
@@ -107,6 +107,8 @@ Anything after a pound sign (#) is a comment and will be ignored.
 Ain accepts one or more template-files as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [Headers], [Backend] and [BackendOptions] in a base template file and then specifying the specific [Host], [Method] and [Body] in several template files, one for each API-endpoint. You can even use an `alias` for things you will always set.
 
 Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$EDITOR` (or vim if not set) so you can edit the file. The edit is not stored back into the template file and used only this invocation.
+
+Note that the `$EDITOR` cannot fork (as vscode does) because ain waits for the `$EDITOR` command to finish. Any terminal editor such as vim, emacs, nano etc will be fine.
 
 If ain is connected to a pipe it will try to read template file names off that pipe. This enables you to use [find](https://man7.org/linux/man-pages/man1/find.1.html) and a selector such as [fzf](https://github.com/junegunn/fzf) to keep track of the template-files: `find . -name *.ain | fzf -m | ain`
 
