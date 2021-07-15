@@ -23,10 +23,9 @@ func GetTemplateFilenames() ([]string, error) {
 	}
 
 	if (fi.Mode() & os.ModeCharDevice) == 0 {
-		// Connected to a pipe
 		fileNameBytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not read stdin")
+			return nil, errors.Wrap(err, "could not read pipe stdin")
 		}
 
 		localTemplateFilenamesViaPipe, err := utils.TokenizeLine(string(fileNameBytes), true)
