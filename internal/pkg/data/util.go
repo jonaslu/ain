@@ -11,7 +11,6 @@ import (
 func (data Call) GetBodyAsTempFile(tmpDir string) (*os.File, error) {
 	bodyStr := strings.Join(data.Body, "\n")
 
-	// TODO Make this configurable so it can be inspected
 	tmpFile, err := ioutil.TempFile(tmpDir, "ain-body")
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not create tempfile")
