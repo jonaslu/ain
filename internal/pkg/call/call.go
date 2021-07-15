@@ -3,6 +3,7 @@ package call
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
@@ -81,13 +82,13 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 
 	if err != nil {
 		return "", utils.CascadeErrorMessage(
-			errors.Wrapf(err, "Error running: %s\nOutput: %s", callData.Backend, string(output)),
+			errors.Wrapf(err, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output))),
 			removeTmpFileErr,
 		)
 	}
 
 	if removeTmpFileErr != nil {
-		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\nOutput: %s", callData.Backend, string(output))
+		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output)))
 	}
 
 	return string(output), nil

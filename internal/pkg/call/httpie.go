@@ -77,6 +77,7 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 
 	httpCmd := exec.CommandContext(ctx, "http", args...)
 	output, err := httpCmd.CombinedOutput()
+
 	if err != nil {
 		return output, &BackedErr{
 			Err:      err,
@@ -110,7 +111,7 @@ func (httpie *httpie) getAsString() (string, error) {
 	if len(httpie.callData.Body) > 0 {
 		cwd, err := os.Getwd()
 		if err != nil {
-			return "", errors.Wrap(err, "could get current working dir, cannot store any body-file")
+			return "", errors.Wrap(err, "could not get current working dir, cannot store any body-file")
 		}
 
 		bodyArg, err := httpie.getBodyArgument(cwd)
