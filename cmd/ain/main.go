@@ -16,7 +16,7 @@ import (
 )
 
 func printInternalErrorAndExit(err error) {
-	formattedError := fmt.Errorf("An error occurred: %v", err.Error())
+	formattedError := fmt.Errorf("Error: %v", err.Error())
 	fmt.Fprintln(os.Stderr, formattedError.Error())
 	os.Exit(1)
 }
@@ -56,7 +56,7 @@ func main() {
 	}
 
 	if len(localTemplateFileNames) == 0 {
-		printInternalErrorAndExit(errors.New("Missing file name\nUsage ain <template.ain> or connect it to a pipe"))
+		printInternalErrorAndExit(errors.New("Missing template name\nUsage ain <template.ain> or connect it to a pipe"))
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
