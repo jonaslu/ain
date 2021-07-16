@@ -29,7 +29,7 @@ func parseBackendSection(template []sourceMarker, callData *data.Parse) *fatalMa
 	backendName := strings.ToLower(backendLines[0].lineContents)
 
 	if !call.ValidBackend(backendName) {
-		return newFatalMarker(fmt.Sprintf("Unknown backend: %s", backendName), backendLines[0])
+		return newFatalMarker(fmt.Sprintf("Unknown backend %s", backendName), backendLines[0])
 	}
 
 	callData.Backend = backendName
