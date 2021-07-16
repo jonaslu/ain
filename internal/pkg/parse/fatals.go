@@ -14,7 +14,6 @@ func newFatalMarker(message string, fatalLine sourceMarker) *fatalMarker {
 	return &fatalMarker{message: message, fatalLine: fatalLine}
 }
 
-// Knows how to print errors and possibly an empty template into a string
 func formatFatalMarker(fatalMarker *fatalMarker, templateLines []string) string {
 	if fatalMarker.fatalLine == emptyLine {
 		return fatalMarker.message
