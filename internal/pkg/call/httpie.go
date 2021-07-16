@@ -111,7 +111,7 @@ func (httpie *httpie) getAsString() (string, error) {
 	if len(httpie.callData.Body) > 0 {
 		cwd, err := os.Getwd()
 		if err != nil {
-			return "", errors.Wrap(err, "could not get current working dir, cannot store any body-file")
+			return "", errors.Wrap(err, "Could not get current working dir, cannot store body temp-file")
 		}
 
 		bodyArg, err := httpie.getBodyArgument(cwd)

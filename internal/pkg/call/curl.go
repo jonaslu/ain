@@ -110,7 +110,7 @@ func (curl *curl) getAsString() (string, error) {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return "", errors.Wrap(err, "could not get current working dir, cannot store any body-file")
+		return "", errors.Wrap(err, "Could not get current working dir, cannot store any body temp-file")
 	}
 
 	bodyArgs, err := curl.getBodyArgument(cwd)
