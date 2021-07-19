@@ -32,17 +32,26 @@ func checkSignalRaisedAndExit(ctx context.Context, signalRaised os.Signal) {
 }
 
 func main() {
-	var leaveTmpFile, printCommand, showVersion bool
+	var leaveTmpFile, printCommand, showVersion, generateEmptyTemplate bool
 	var envFile string
 
 	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
 	flag.BoolVar(&printCommand, "p", false, "Print command to the terminal instead of executing")
 	flag.StringVar(&envFile, "e", ".env", "Path to .env file")
 	flag.BoolVar(&showVersion, "v", false, "Show version and exit")
+	flag.BoolVar(&generateEmptyTemplate, "b", false, "Generate basic template files(s)")
 	flag.Parse()
 
 	if showVersion {
 		fmt.Println("Ain version: 1.0")
+		os.Exit(0)
+	}
+
+	if generateEmptyTemplate {
+		if err := disk.GenerateEmptyTemplates(); err != nil {
+			printInternalErrorAndExit(err)
+		}
+
 		os.Exit(0)
 	}
 
