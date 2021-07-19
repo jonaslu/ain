@@ -2,7 +2,30 @@
 It's an API client for the terminal. Scripts and pipes welcome!
 ![Show and tell](/assets/show-and-tell.gif?raw=true)
 
+
+# Pre-requisites
+Go (version 1.13 or higher).
+
+You need curl and or httpie installed on your machine and available on your $PATH (command.Exec needs to find the binary).
+
+# Installation
+`go get -u github.com/jonaslu/ain`
+
 # Quick start
+Ain comes with a built in basic template that you can use as a starting point.
+
+Run:
+```
+ain -e basic_template.ain
+```
+
+The basic template calls GET on localhost using curl.
+Run the generated template by specifying a PORT environment variable:
+```
+PORT=8080 ain basic_template.ain
+```
+
+# Longer start
 Ain uses sections in square brackets to specify what API to call.
 
 Start by putting things common to a service in a file (let's call it base.ain):
@@ -47,14 +70,6 @@ $> ain base.ain create-blog-post.ain
 ```
 
 See all options: `ain -h`
-
-# Installation
-`go get -u github.com/jonaslu/ain`
-
-# Pre-requisites
-Go (version 1.13 or higher).
-
-You need curl and or httpie installed on your machine and available on your $PATH (command.Exec needs to find the binary).
 
 # Important concepts
 * Templates: Files containing what, how and where to make the API call. By convention has the file-ending `.ain`.
@@ -115,6 +130,17 @@ If ain is connected to a pipe it will try to read template file names off that p
 Template file names specified on the command line are read before any names from a pipe. This means that `echo create-blog-post.ain | ain base.ain` is the same as `ain base.ain create-blog-post.ain`.
 
 # Supported sections
+Sections are case-insensitive and whitespace ignored but by convention uses CamelCase and are left indented. A section cannot be defined twice in a file. A section ends where the next begins or the file ends.
+
+In the unlikely event that the contents of a section must contain the exact same text as a valid section (one of the seven below) on one line you can escape that text with a `\` and it will be passed as text.
+
+E g:
+```
+[Body]
+All of this will be passed as the body!
+\[Body]
+Including the text above.
+```
 
 ## [Host]
 Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g base.ain) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g login.ain): `/api/auth/login`
@@ -124,6 +150,8 @@ You could have query parameters in yet another template file (e g user-leviathan
 ?user=leviathan
 &password=dearMother
 ```
+
+Ain performs no validation on the url (as backends differ on what a valid url looks like). If your call does not go through use `ain -p` as mentioned in [troubleshooting](#troubleshooting) and input that directly into the backend to see what it thinks it means.
 
 The [Host] section is mandatory and appends across template files.
 
@@ -222,6 +250,9 @@ A note on line-endings. Ain uses line-feed (\n) when printing it's output. If yo
 may cause trouble. Instead of trying to guess what line ending we're on (WSL, docker, cygwin etc makes this a wild goose chase), you'll have to manually convert them if the receiving progrogram complains.
 
 Instructions here: https://stackoverflow.com/a/19914445/1574968
+
+# Troubleshooting
+If the templates are valid but the backend-call fails, `ain -p` can show you what the command ain runs looks like.
 
 # Ain in a bigger context
 But wait! There's more!
