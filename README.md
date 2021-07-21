@@ -1,12 +1,23 @@
-# What problem does ain solve?
-It's an API client for the terminal. Scripts and pipes welcome!
+<a><img src="assets/logo.svg" height=200 style="margin-bottom: 20px"></a>
+
+# Introduction
+Ain is a terminal API client. It's an alternative to postman, paw or insomnium.
+
 ![Show and tell](/assets/show-and-tell.gif?raw=true)
 
+* Flexible organization of API:s using files and folders.
+* Use shell-scripts and executables for common tasks.
+* Put things that change in environment variables or .env-files.
+* Share the resulting curl or httpie command.
+* Pipe the API output for further processing.
+* Tries hard to be helpful when there are errors.
+
+Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format.
 
 # Pre-requisites
-Go (version 1.13 or higher).
-
 You need curl and or httpie installed on your machine and available on your $PATH (command.Exec needs to find the binary).
+
+Go (version 1.13 or higher) if you want to use `go get` or build it yourself.
 
 # Installation
 `go get -u github.com/jonaslu/ain`
