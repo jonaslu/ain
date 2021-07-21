@@ -1,7 +1,7 @@
-<a><img src="assets/logo.svg" height=200 style="margin-bottom: 20px"></a>
+<img src="assets/logo.svg" height=200 style="margin-bottom: 20px">
 
 # Introduction
-Ain is a terminal API client. It's an alternative to postman, paw or insomnium.
+Ain is a terminal API client. It's an alternative to postman, paw or insomnia.
 
 ![Show and tell](/assets/show-and-tell.gif?raw=true)
 
@@ -12,10 +12,10 @@ Ain is a terminal API client. It's an alternative to postman, paw or insomnium.
 * Pipe the API output for further processing.
 * Tries hard to be helpful when there are errors.
 
-Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format.
+Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses curl or httpie to make thea actual calls.
 
 # Pre-requisites
-You need curl and or httpie installed on your machine and available on your $PATH (command.Exec needs to find the binary).
+You need curl or httpie installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl` or `http`. If there's any output you're good to go.
 
 Go (version 1.13 or higher) if you want to use `go get` or build it yourself.
 
@@ -87,7 +87,7 @@ See all options: `ain -h`
 * Sections: Headings in a template file.
 * Environment variables: Enables variables in a template file.
 * Executables: Enables using the results of another command in a template file.
-* Backends: The thing that makes the API call (curl or httipe).
+* Backends: The thing that makes the API call ([curl](https://curl.se/) or [httpie](https://httpie.io/)).
 * Fatals: Error in parsing the template files (it's your fault).
 
 # Templates
@@ -227,11 +227,11 @@ More complex scripting can be done in-line with the xargs `bash -c` (hack)[https
 ```
 [Headers]
 Authorization: Bearer $(bash -c "./get-login.sh | jq -r '.token'")
+```
 
 Ain expects the first word in an executable to be on your $PATH and the rest to be arguments (hence the need for quotes to bash -c as this is passed as one argument).
 
 Executables are captured and replaced in the template after any environment-variables so if the script returns an environment-variable name it won't be expanded into any value.
-```
 
 # Fatals
 Ain has two types of errors: fatals and errors. Errors are things internal to ain (it's not your fault) such as not finding the backend-binary.
