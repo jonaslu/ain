@@ -87,7 +87,7 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 
 			err := cmd.Run()
 			if timeoutCtx.Err() != nil {
-				executableResults[resultIndex].fatalMessage = fmt.Sprintf("Executable %s timed out after %d seconds ", cmd.String(), config.Timeout)
+				executableResults[resultIndex].fatalMessage = fmt.Sprintf("Executable %s timed out after %d seconds", cmd.String(), config.Timeout)
 				return
 			}
 
