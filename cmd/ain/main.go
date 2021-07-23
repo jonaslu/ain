@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -14,6 +15,9 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
+
+var version = "1.0.0"
+var gitSha = "develop"
 
 func printInternalErrorAndExit(err error) {
 	formattedError := fmt.Errorf("Error: %v", err.Error())
@@ -43,7 +47,7 @@ func main() {
 	flag.Parse()
 
 	if showVersion {
-		fmt.Println("Ain version: 1.0")
+		fmt.Printf("Ain %s (%s) %s/%s\n", version, gitSha, runtime.GOOS, runtime.GOARCH)
 		os.Exit(0)
 	}
 
