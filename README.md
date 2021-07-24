@@ -20,7 +20,11 @@ You need curl or httpie installed and available on your `$PATH`. The easiest way
 Go (version 1.13 or higher) if you want to use `go get` or build it yourself.
 
 # Installation
+If you have go installed on your machine:
 `go get -u github.com/jonaslu/ain/cmd/ain`
+
+If you want to download pre-built binaries:
+[https://github.com/jonaslu/ain/releases](https://github.com/jonaslu/ain/releases)
 
 # Quick start
 Ain comes with a built in basic template that you can use as a starting point.
