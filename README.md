@@ -12,7 +12,7 @@ Ain is a terminal API client. It's an alternative to postman, paw or insomnia.
 * Pipe the API output for further processing.
 * Tries hard to be helpful when there are errors.
 
-Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses curl or httpie to make thea actual calls.
+Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses curl or httpie to make the actual calls.
 
 # Pre-requisites
 You need curl or httpie installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl` or `http`. If there's any output you're good to go.
@@ -176,7 +176,7 @@ Headers to include in the API call.
 The [Headers] section appends across template files so you can share common headers (e g Authorization: <JWT> and Content-Type: application/json)
 
 ## [Method]
-What http-method to use in the API call (e g GET, POST, PATCH). If omitted defalts to whatever the backend defaults to when not specified (GET in both curl and httpie).
+What http-method to use in the API call (e g GET, POST, PATCH). If omitted the backend default is used (GET in both curl and httpie).
 
 The [Method] section is overridden by latter template files.
 
