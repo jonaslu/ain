@@ -20,10 +20,22 @@ You need curl or httpie installed and available on your `$PATH`. The easiest way
 Go (version 1.13 or higher) if you want to use `go get` or build it yourself.
 
 # Installation
-If you have go installed on your machine:
-`go get -u github.com/jonaslu/ain/cmd/ain`
 
-If you want to download pre-built binaries:
+## If you have go installed
+Using go get:
+```
+go get -u github.com/jonaslu/ain/cmd/ain
+```
+
+## Via homebrew
+Using the package-manager [homebrew](brew.sh)
+```
+brew tap jonaslu/tools
+brew install ain
+```
+
+## Download binaries yourself
+Install it so it's available on your `$PATH`:
 [https://github.com/jonaslu/ain/releases](https://github.com/jonaslu/ain/releases)
 
 # Quick start

@@ -27,6 +27,16 @@ archives:
       - LICENSE*
       - assets/*
     wrap_in_directory: true
+brews:
+  - tap:
+      owner: jonaslu
+      name: homebrew-tools
+    commit_author:
+      name: Jonas Lundberg
+      email: jonasl@iamjonas.me
+    homepage: "https://github.com/jonaslu/ain"
+    description: "Ain is a terminal API client. It's an alternative to postman, paw or insomnia."
+    license: MIT
 release:
   draft: true
 checksum:
