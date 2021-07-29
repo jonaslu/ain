@@ -37,6 +37,13 @@ brews:
     homepage: "https://github.com/jonaslu/ain"
     description: "Ain is a terminal API client. It's an alternative to postman, paw or insomnia."
     license: MIT
+scoop:
+  bucket:
+    owner: jonaslu
+    name: scoop-tools
+  homepage: "https://github.com/jonaslu/ain"
+  description: "Ain is a terminal API client. It's an alternative to postman, paw or insomnia."
+  license: MIT
 release:
   draft: true
 checksum:
