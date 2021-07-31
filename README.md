@@ -24,14 +24,21 @@ Go (version 1.13 or higher) if you want to use `go get` or build it yourself.
 ## If you have go installed
 Using go get:
 ```
-go get -u github.com/jonaslu/ain/cmd/ain
+go install github.com/jonaslu/ain/cmd/ain@latest
 ```
 
 ## Via homebrew
-Using the package-manager [homebrew](brew.sh)
+Using the package-manager [homebrew](https://brew.sh)
 ```
 brew tap jonaslu/tools
 brew install ain
+```
+
+## Via scoop
+Using the windows package-manager [scoop](https://scoop.sh)
+```
+scoop bucket add jonaslu_tools https://github.com/jonaslu/scoop-tools.git
+scoop install ain
 ```
 
 ## Download binaries yourself
