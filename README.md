@@ -1,7 +1,7 @@
 <img src="assets/logo.svg" height=200 style="margin-bottom: 20px">
 
 # Introduction
-Ain is a terminal API client. It's an alternative to postman, paw or insomnia.
+Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomnia.
 
 ![Show and tell](/assets/show-and-tell.gif?raw=true)
 
