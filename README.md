@@ -17,12 +17,12 @@ Ain was built to enable scripting of input and further processing of output via 
 # Pre-requisites
 You need curl or httpie installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl` or `http`. If there's any output you're good to go.
 
-Go (version 1.13 or higher) if you want to use `go get` or build it yourself.
+Go (version 1.13 or higher) if you want to use `go install` or build it yourself.
 
 # Installation
 
 ## If you have go installed
-Using go get:
+Using go install:
 ```
 go install github.com/jonaslu/ain/cmd/ain@latest
 ```
