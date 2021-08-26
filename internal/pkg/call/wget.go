@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
@@ -16,18 +17,16 @@ type wget struct {
 	tmpFileName string
 }
 
+var outputToStdoutRegexp = regexp.MustCompile(`-\w*O\s*-`)
+
 func prependOutputToStdin(callData *data.Call) {
 	var foundOutputToStdin bool
 
 	for _, backendOptionLine := range callData.BackendOptions {
-		for _, backendOption := range backendOptionLine {
-			// !! TODO !!
-			// Use a regex here since there can be spaces between -O and -
-			// -\a*O\s*-
-			if backendOption == "-O-" {
-				foundOutputToStdin = true
-				break
-			}
+		backendOptions := strings.Join(backendOptionLine, " ")
+		if outputToStdoutRegexp.MatchString(backendOptions) {
+			foundOutputToStdin = true
+			break
 		}
 	}
 
