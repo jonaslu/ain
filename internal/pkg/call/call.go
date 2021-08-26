@@ -32,6 +32,8 @@ func getBackend(callData *data.Call) (backend, error) {
 		return newHttpieBackend(callData)
 	case "curl":
 		return newCurlBackend(callData)
+	case "wget":
+		return newWgetBackend(callData)
 	}
 
 	return nil, errors.Errorf("Unknown backend: %s", callData.Backend)
@@ -42,6 +44,8 @@ func ValidBackend(backendName string) bool {
 	case "httpie":
 		return true
 	case "curl":
+		return true
+	case "wget":
 		return true
 	}
 
