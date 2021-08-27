@@ -8,21 +8,23 @@ Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomn
 * Flexible organization of API:s using files and folders.
 * Use shell-scripts and executables for common tasks.
 * Put things that change in environment variables or .env-files.
-* Share the resulting curl or httpie command.
+* Share the resulting ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) command-line.
 * Pipe the API output for further processing.
 * Tries hard to be helpful when there are errors.
 
-Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses curl or httpie to make the actual calls.
+Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) to make the actual calls.
 
 # Pre-requisites
-You need curl or httpie installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl` or `http`. If there's any output you're good to go.
+You need ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl`, `wget` or `http` (add the suffix .exe to those commands if you're on windows). If there's any output from the command itself you're good to go.
 
-Go (version 1.13 or higher) if you want to use `go install` or build it yourself.
+On linux or mac one of the three above is very likely to be installed on your box already. The others are available in your package manager or [homebrew](https://brew.sh).
+
+If you're on windows curl.exe is already installed if it's windows 10 build 17063 or higher. Otherwise you can get the binaries via [scoop](https://scoop.sh), [chocolatey](https://chocolatey.org/) or download them yourself. Ain uses curl.exe and cannot use the curl cmd-let powershell builtin.
 
 # Installation
 
 ## If you have go installed
-Using go install:
+You need go 1.13 or higher. Using `go install`:
 ```
 go install github.com/jonaslu/ain/cmd/ain@latest
 ```
@@ -110,7 +112,7 @@ See all options: `ain -h`
 * Sections: Headings in a template file.
 * Environment variables: Enables variables in a template file.
 * Executables: Enables using the results of another command in a template file.
-* Backends: The thing that makes the API call ([curl](https://curl.se/) or [httpie](https://httpie.io/)).
+* Backends: The thing that makes the API call ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)).
 * Fatals: Error in parsing the template files (it's your fault).
 
 # Templates
@@ -195,7 +197,7 @@ Headers to include in the API call.
 The [Headers] section appends across template files so you can share common headers (e g Authorization: <JWT> and Content-Type: application/json)
 
 ## [Method]
-What http-method to use in the API call (e g GET, POST, PATCH). If omitted the backend default is used (GET in both curl and httpie).
+What http-method to use in the API call (e g GET, POST, PATCH). If omitted the backend default is used (GET in both curl, wget and httpie).
 
 The [Method] section is overridden by latter template files.
 
@@ -219,7 +221,7 @@ The [Cnnfig] sections is overridden by latter template files.
 ## [Backend]
 The [Backend] specifies what command should be used to run the actual API call.
 
-Valid options are [curl](https://curl.se/) or [httpie](https://httpie.io/).
+Valid options are ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)).
 
 The [Backend] section is mandatory and is overridden by latter template files.
 
@@ -270,7 +272,7 @@ Cannot find value for variable PORT on line 2:
 ```
 
 # Sharing is caring
-Ain can print out the command instead of running it via the `-p` flag. This enables you to inspect how the curl or httpie API call would look like or share the command:
+Ain can print out the command instead of running it via the `-p` flag. This enables you to inspect how the curl, wget or httpie API call would look like or share the command:
 ```
 ain -p base.ain create-blog-post.ain > share-me.sh
 ```
