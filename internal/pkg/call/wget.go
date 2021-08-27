@@ -129,7 +129,9 @@ func (wget *wget) getAsString() (string, error) {
 		args = append(args, lineArguments)
 	}
 
-	args = append(args, []string{wget.getMethodArgument(true)})
+	if wget.callData.Method != "" {
+		args = append(args, []string{wget.getMethodArgument(true)})
+	}
 
 	for _, header := range wget.getHeaderArguments(true) {
 		args = append(args, []string{header})
@@ -148,6 +150,7 @@ func (wget *wget) getAsString() (string, error) {
 
 		args = append(args, []string{bodyArg})
 	}
+
 	args = append(args, []string{
 		utils.EscapeForShell(wget.callData.Host.String()),
 	})
