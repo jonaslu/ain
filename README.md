@@ -8,14 +8,14 @@ Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomn
 * Flexible organization of API:s using files and folders.
 * Use shell-scripts and executables for common tasks.
 * Put things that change in environment variables or .env-files.
-* Share the resulting ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) command-line.
+* Share the resulting [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) command-line.
 * Pipe the API output for further processing.
 * Tries hard to be helpful when there are errors.
 
-Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) to make the actual calls.
+Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) to make the actual calls.
 
 # Pre-requisites
-You need ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl`, `wget` or `http` (add the suffix .exe to those commands if you're on windows). If there's any output from the command itself you're good to go.
+You need [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl`, `wget` or `http` (add the suffix .exe to those commands if you're on windows). If there's any output from the command itself you're good to go.
 
 On linux or mac one of the three above is very likely to be installed on your box already. The others are available in your package manager or [homebrew](https://brew.sh).
 
@@ -221,7 +221,7 @@ The [Cnnfig] sections is overridden by latter template files.
 ## [Backend]
 The [Backend] specifies what command should be used to run the actual API call.
 
-Valid options are ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)).
+Valid options are [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/).
 
 The [Backend] section is mandatory and is overridden by latter template files.
 
