@@ -244,7 +244,7 @@ Environment-variables are expanded first and can be used with any executable. Ex
 Ain uses [envparse](https://github.com/hashicorp/go-envparse) for, well, parsing environment variables, so anything it can do, so can you!
 
 # Executables
-Anything inside a `$()` is replaced with the result from running that command and capturing it's output (STDIN). The command can return multiple rows which will be inserted as separate rows in the template (e g returning two headers).
+Anything inside a `$()` is replaced with the result from running that command and capturing it's output (STDIN). The command can return multiple rows which will be inserted as separate rows in the template (e g returning two headers). Any empty lines from the executable output are removed before they're inserted into the template.
 
 An example is getting JWT tokens into a separate script and share that across templates.
 
