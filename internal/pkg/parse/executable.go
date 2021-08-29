@@ -17,6 +17,8 @@ import (
 var executableExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
 var executableRe = regexp.MustCompile(`\$\(([^)]*)\)`)
 
+var emptyOutputLineRe = regexp.MustCompile(`^\s*$`)
+
 type executableAndArgs struct {
 	executable string
 	args       []string
@@ -145,6 +147,10 @@ func insertExecutableOutput(executableResults []executableOutput, templateLines 
 
 		multilineOutput := strings.Split(strings.ReplaceAll(lineContents, "\r\n", "\n"), "\n")
 		for _, lineOutput := range multilineOutput {
+			if emptyOutputLineRe.MatchString(lineOutput) {
+				continue
+			}
+
 			transformedTemplateLines = append(transformedTemplateLines, newSourceMarker(lineOutput, templateLine.sourceLineIndex))
 		}
 	}
