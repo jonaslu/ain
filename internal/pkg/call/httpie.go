@@ -33,7 +33,7 @@ func prependIgnoreStdin(callData *data.Call) {
 	}
 }
 
-func newHttpieBackend(callData *data.Call) (*httpie, error) {
+func newHttpieBackend(callData *data.Call) (backend, error) {
 	prependIgnoreStdin(callData)
 	return &httpie{callData: callData}, nil
 }
@@ -66,8 +66,8 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, httpie.callData.Headers...)
 
 	if len(httpie.callData.Body) > 0 {
-
 		bodyArg, err := httpie.getBodyArgument("")
+
 		if err != nil {
 			return nil, err
 		}

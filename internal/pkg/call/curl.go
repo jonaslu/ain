@@ -16,7 +16,7 @@ type curl struct {
 	tmpFileName string
 }
 
-func newCurlBackend(callData *data.Call) (*curl, error) {
+func newCurlBackend(callData *data.Call) (backend, error) {
 	returnValue := &curl{callData: callData}
 	return returnValue, nil
 }

@@ -35,7 +35,7 @@ func prependOutputToStdin(callData *data.Call) {
 	}
 }
 
-func newWgetBackend(callData *data.Call) (*wget, error) {
+func newWgetBackend(callData *data.Call) (backend, error) {
 	prependOutputToStdin(callData)
 	returnValue := &wget{callData: callData}
 	return returnValue, nil
