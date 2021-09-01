@@ -35,10 +35,9 @@ func prependOutputToStdin(callData *data.Call) {
 	}
 }
 
-func newWgetBackend(callData *data.Call) (backend, error) {
+func newWgetBackend(callData *data.Call) backend {
 	prependOutputToStdin(callData)
-	returnValue := &wget{callData: callData}
-	return returnValue, nil
+	return &wget{callData: callData}
 }
 
 func (wget *wget) getHeaderArguments(escape bool) []string {

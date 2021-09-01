@@ -33,9 +33,9 @@ func prependIgnoreStdin(callData *data.Call) {
 	}
 }
 
-func newHttpieBackend(callData *data.Call) (backend, error) {
+func newHttpieBackend(callData *data.Call) backend {
 	prependIgnoreStdin(callData)
-	return &httpie{callData: callData}, nil
+	return &httpie{callData: callData}
 }
 
 func (httpie *httpie) getMethodArgument() string {

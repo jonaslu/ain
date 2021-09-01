@@ -16,7 +16,7 @@ type BackedErr struct {
 	ExitCode int
 }
 
-var validBackends = map[string]func(*data.Call) (backend, error){
+var validBackends = map[string]func(*data.Call) backend{
 	"curl":   newCurlBackend,
 	"httpie": newHttpieBackend,
 	"wget":   newWgetBackend,
@@ -34,7 +34,7 @@ type backend interface {
 
 func getBackend(callData *data.Call) (backend, error) {
 	if backend, exists := validBackends[callData.Backend]; exists {
-		return backend(callData)
+		return backend(callData), nil
 	}
 
 	return nil, errors.Errorf("Unknown backend: %s", callData.Backend)
