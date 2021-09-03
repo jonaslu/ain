@@ -14,6 +14,7 @@ import (
 type httpie struct {
 	callData    *data.Call
 	tmpFileName string
+	binaryName  string
 }
 
 func prependIgnoreStdin(callData *data.Call) {
@@ -33,9 +34,12 @@ func prependIgnoreStdin(callData *data.Call) {
 	}
 }
 
-func newHttpieBackend(callData *data.Call) backend {
+func newHttpieBackend(callData *data.Call, binaryName string) backend {
 	prependIgnoreStdin(callData)
-	return &httpie{callData: callData}
+	return &httpie{
+		callData:   callData,
+		binaryName: binaryName,
+	}
 }
 
 func (httpie *httpie) getMethodArgument() string {
@@ -75,7 +79,7 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 		args = append(args, bodyArg)
 	}
 
-	httpCmd := exec.CommandContext(ctx, "http", args...)
+	httpCmd := exec.CommandContext(ctx, httpie.binaryName, args...)
 	output, err := httpCmd.CombinedOutput()
 
 	if err != nil {
@@ -122,7 +126,7 @@ func (httpie *httpie) getAsString() (string, error) {
 		args = append(args, []string{bodyArg})
 	}
 
-	output := "http " + utils.PrettyPrintStringsForShell(args)
+	output := httpie.binaryName + " " + utils.PrettyPrintStringsForShell(args)
 
 	return output, nil
 }

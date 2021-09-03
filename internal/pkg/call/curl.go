@@ -14,10 +14,14 @@ import (
 type curl struct {
 	callData    *data.Call
 	tmpFileName string
+	binaryName  string
 }
 
-func newCurlBackend(callData *data.Call) backend {
-	return &curl{callData: callData}
+func newCurlBackend(callData *data.Call, binaryName string) backend {
+	return &curl{
+		callData:   callData,
+		binaryName: binaryName,
+	}
 }
 
 func (curl *curl) getHeaderArguments(escape bool) [][]string {
@@ -81,7 +85,7 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, bodyArgs...)
 	args = append(args, curl.callData.Host.String())
 
-	curlCmd := exec.CommandContext(ctx, "curl", args...)
+	curlCmd := exec.CommandContext(ctx, curl.binaryName, args...)
 	output, err := curlCmd.CombinedOutput()
 	if err != nil {
 		return output, &BackedErr{

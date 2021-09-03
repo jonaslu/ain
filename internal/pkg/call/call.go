@@ -16,10 +16,24 @@ type BackedErr struct {
 	ExitCode int
 }
 
-var validBackends = map[string]func(*data.Call) backend{
-	"curl":   newCurlBackend,
-	"httpie": newHttpieBackend,
-	"wget":   newWgetBackend,
+type backendConstructor struct {
+	binaryName  string
+	constructor func(*data.Call, string) backend
+}
+
+var validBackends = map[string]backendConstructor{
+	"curl": {
+		binaryName:  "curl",
+		constructor: newCurlBackend,
+	},
+	"httpie": {
+		binaryName:  "http",
+		constructor: newHttpieBackend,
+	},
+	"wget": {
+		binaryName:  "wget",
+		constructor: newWgetBackend,
+	},
 }
 
 func (err *BackedErr) Error() string {
@@ -33,8 +47,8 @@ type backend interface {
 }
 
 func getBackend(callData *data.Call) (backend, error) {
-	if backend, exists := validBackends[callData.Backend]; exists {
-		return backend(callData), nil
+	if backendConstructor, exists := validBackends[callData.Backend]; exists {
+		return backendConstructor.constructor(callData, backendConstructor.binaryName), nil
 	}
 
 	return nil, errors.Errorf("Unknown backend: %s", callData.Backend)

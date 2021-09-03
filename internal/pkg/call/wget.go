@@ -15,6 +15,7 @@ import (
 type wget struct {
 	callData    *data.Call
 	tmpFileName string
+	binaryName  string
 }
 
 var outputToStdoutRegexp = regexp.MustCompile(`-\w*O\s*-`)
@@ -35,9 +36,12 @@ func prependOutputToStdin(callData *data.Call) {
 	}
 }
 
-func newWgetBackend(callData *data.Call) backend {
+func newWgetBackend(callData *data.Call, binaryName string) backend {
 	prependOutputToStdin(callData)
-	return &wget{callData: callData}
+	return &wget{
+		callData:   callData,
+		binaryName: binaryName,
+	}
 }
 
 func (wget *wget) getHeaderArguments(escape bool) []string {
@@ -105,7 +109,7 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 
 	args = append(args, wget.callData.Host.String())
 
-	wgetCmd := exec.CommandContext(ctx, "wget", args...)
+	wgetCmd := exec.CommandContext(ctx, wget.binaryName, args...)
 	output, err := wgetCmd.CombinedOutput()
 	if err != nil {
 		return output, &BackedErr{
@@ -154,7 +158,7 @@ func (wget *wget) getAsString() (string, error) {
 		utils.EscapeForShell(wget.callData.Host.String()),
 	})
 
-	output := "wget " + utils.PrettyPrintStringsForShell(args)
+	output := wget.binaryName + " " + utils.PrettyPrintStringsForShell(args)
 
 	return output, nil
 }
