@@ -15,7 +15,9 @@ Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomn
 Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) to make the actual calls.
 
 # Pre-requisites
-You need [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) installed and available on your `$PATH`. The easiest way to test this is to open up a shell and type `curl`, `wget` or `http` (add the suffix .exe to those commands if you're on windows). If there's any output from the command itself you're good to go.
+You need [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) installed and available on your `$PATH`. The easiest way to test this is to run `ain -b`. This will generate a template and tell you what backends you have available on your system in the [Backend] section.
+
+You can also check it manually if you're bent that way by open up a shell and type `curl`, `wget` or `http` (add the suffix .exe to those commands if you're on windows). If there's any output from the command itself you're good to go.
 
 On linux or mac one of the three above is very likely to be installed on your box already. The others are available in your package manager or [homebrew](https://brew.sh).
 
@@ -48,14 +50,17 @@ Install it so it's available on your `$PATH`:
 [https://github.com/jonaslu/ain/releases](https://github.com/jonaslu/ain/releases)
 
 # Quick start
-Ain comes with a built in basic template that you can use as a starting point.
+Ain comes with a built in basic template that you can use as a starting point. Ain also checks what backends (that's [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) are available on your system and inserts them into the [Backend] section of the generated template.
 
 Run:
 ```
-ain -e basic_template.ain
+ain -b basic_template.ain
 ```
 
-The basic template calls GET on localhost using curl.
+This will output a starter-template to the file basic_template.
+The basic template uses a common scenario of calling GET on localhost
+with the Content-Type: application/json.
+
 Run the generated template by specifying a PORT environment variable:
 ```
 PORT=8080 ain basic_template.ain
