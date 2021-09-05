@@ -4,11 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
+	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/pkg/errors"
 )
 
-var basicTemplate = `[Host]
+var backendPrioOrder = []string{"curl", "httpie", "wget"}
+
+var starterTemplate = `[Host]
 http://localhost:${PORT}
 
 [Headers]
@@ -26,16 +31,44 @@ Content-Type: application/json
 Timeout=3
 
 [Backend]
-curl
-# httpie
+{{Backends}}
 
 [BackendOptions]
--sS
+{{BackendOptions}}
 
 # Short help:
 # Comments start with hash-sign (#) and are ignored.
 # ${VARIABLES} are replaced with the .env-file or environment variable value
 # $(executables.sh) are replaced with the output of that executable`
+
+func getUsefulBackendOptions(backendBinary string) string {
+	switch backendBinary {
+	case "curl":
+		return "-sS # Makes curl suppress its progress bar in a pipe"
+	case "wget":
+		return "-q # Makes wget suppress its progress output"
+	}
+
+	return ""
+}
+
+func getPresentBackendBinaries() ([]string, []string) {
+	presentBackends := []string{}
+	usefulBackendOptions := []string{}
+
+	for _, backendTemplateName := range backendPrioOrder {
+		backendConstructor := call.ValidBackends[backendTemplateName]
+		if _, err := exec.LookPath(backendConstructor.BinaryName); err == nil {
+			presentBackends = append(presentBackends, backendTemplateName)
+
+			if backendOptions := getUsefulBackendOptions(backendConstructor.BinaryName); backendOptions != "" {
+				usefulBackendOptions = append(usefulBackendOptions, getUsefulBackendOptions(backendConstructor.BinaryName))
+			}
+		}
+	}
+
+	return presentBackends, usefulBackendOptions
+}
 
 func GenerateEmptyTemplates() error {
 	var templateFileNames []string
@@ -44,9 +77,32 @@ func GenerateEmptyTemplates() error {
 		templateFileNames = flag.Args()
 	}
 
+	presentBackends, usefulBackendOptions := getPresentBackendBinaries()
+	if len(presentBackends) == 0 {
+		presentBackends = []string{`# No backend binaries found, please install at least one.
+# See here for more help: https://github.com/jonaslu/ain#pre-requisites`}
+	} else {
+		for i := 1; i < len(presentBackends); i++ {
+			presentBackends[i] = "# " + presentBackends[i]
+		}
+
+		for i := 1; i < len(usefulBackendOptions); i++ {
+			usefulBackendOptions[i] = "# " + usefulBackendOptions[i]
+		}
+	}
+
+	// text/template is too complicated for this, we're replacing strings until it feels too heavy
+	starterTemplate = strings.ReplaceAll(starterTemplate, "{{Backends}}", strings.Join(presentBackends, "\n"))
+
+	if len(usefulBackendOptions) > 0 {
+		starterTemplate = strings.ReplaceAll(starterTemplate, "{{BackendOptions}}", strings.Join(usefulBackendOptions, "\n"))
+	} else {
+		starterTemplate = strings.ReplaceAll(starterTemplate, "[BackendOptions]\n", "")
+		starterTemplate = strings.ReplaceAll(starterTemplate, "{{BackendOptions}}\n\n", "")
+	}
+
 	if len(templateFileNames) == 0 {
-		// Write to STDOUT
-		_, err := fmt.Fprintln(os.Stdout, basicTemplate)
+		_, err := fmt.Fprintln(os.Stdout, starterTemplate)
 		return err
 	}
 
@@ -57,7 +113,7 @@ func GenerateEmptyTemplates() error {
 			return errors.Errorf("Cannot write basic template. File already exists %s", filename)
 		}
 
-		err = os.WriteFile(filename, []byte(basicTemplate), 0644)
+		err = os.WriteFile(filename, []byte(starterTemplate), 0644)
 
 		if err != nil {
 			return errors.Wrapf(err, "Could not write basic template to file %s", filename)
