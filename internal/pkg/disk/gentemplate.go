@@ -47,7 +47,7 @@ func getUsefulBackendOptions(backendBinary string) string {
 		return "-sS # Makes curl suppress its progress bar in a pipe"
 	case "wget":
 		return "-q # Makes wget suppress its progress output"
-	case "httpie":
+	case "http":
 		return "-b # Makes httpie output only the body and not the headers"
 	}
 
