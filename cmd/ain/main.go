@@ -48,7 +48,7 @@ func main() {
 
 	if showVersion {
 		fmt.Printf("Ain %s (%s) %s/%s\n", version, gitSha, runtime.GOOS, runtime.GOARCH)
-		os.Exit(0)
+		return
 	}
 
 	if generateEmptyTemplate {
@@ -56,7 +56,7 @@ func main() {
 			printInternalErrorAndExit(err)
 		}
 
-		os.Exit(0)
+		return
 	}
 
 	if err := disk.ReadEnvFile(envFile, envFile != ".env"); err != nil {
