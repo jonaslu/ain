@@ -30,7 +30,7 @@ func mergeCallData(dest, merge *data.Parse) {
 
 	dest.BackendOptions = append(dest.BackendOptions, merge.BackendOptions...)
 
-	if merge.Config.Timeout != -1 {
+	if merge.Config.Timeout != data.TimeoutNotSet {
 		dest.Config.Timeout = merge.Config.Timeout
 	}
 }
@@ -87,7 +87,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.Call, string, erro
 	fatals := ""
 
 	parseData := &data.Parse{}
-	parseData.Config.Timeout = -1
+	parseData.Config.Timeout = data.TimeoutNotSet
 
 	for _, filename := range filenames {
 		template, err := disk.ReadTemplate(filename)

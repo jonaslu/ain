@@ -64,7 +64,7 @@ func ValidBackend(backendName string) bool {
 
 func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCommand bool) (string, error) {
 	backendTimeoutContext := ctx
-	if callData.Config.Timeout > -1 {
+	if callData.Config.Timeout != data.TimeoutNotSet {
 		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
 	}
 

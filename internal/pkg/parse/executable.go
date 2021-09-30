@@ -79,7 +79,7 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 			var stdout, stderr bytes.Buffer
 
 			timeoutCtx := ctx
-			if config.Timeout > -1 {
+			if config.Timeout != data.TimeoutNotSet {
 				timeoutCtx, _ = context.WithTimeout(ctx, time.Duration(config.Timeout)*time.Second)
 			}
 

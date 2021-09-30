@@ -4,6 +4,8 @@ import (
 	"net/url"
 )
 
+const TimeoutNotSet = -1
+
 type Config struct {
 	Timeout int32
 }

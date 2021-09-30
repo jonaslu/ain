@@ -67,7 +67,7 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 
 	// !! TODO !! If this gets worse, put it in  it's on initializer method
 	parseData := &data.Parse{}
-	parseData.Config.Timeout = -1
+	parseData.Config.Timeout = data.TimeoutNotSet
 
 	if configFatal := parseConfigSection(envVarsTemplate, parseData); configFatal != nil {
 		return nil, []string{formatFatalMarker(configFatal, templateLines)}
