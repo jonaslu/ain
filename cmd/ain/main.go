@@ -69,7 +69,7 @@ func main() {
 	}
 
 	if len(localTemplateFileNames) == 0 {
-		printInternalErrorAndExit(errors.New("Missing template name\nUsage ain <template.ain> or connect it to a pipe"))
+		printInternalErrorAndExit(errors.New("Missing template file name(s)"))
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
