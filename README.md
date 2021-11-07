@@ -221,7 +221,7 @@ Currently the only option supported is `Timeout=<timeout in seconds>`
 The timeout is enforced during the whole execution of ain (both running executables and the actual API call). If omitted defaults to no timeout. Note that this is the only section where executables have
 no effect, since the timeout needs to be known before the executables are invoked.
 
-The [Cnnfig] sections is overridden by latter template files.
+The [Config] sections is overridden by latter template files.
 
 ## [Backend]
 The [Backend] specifies what command should be used to run the actual API call.
