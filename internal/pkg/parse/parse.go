@@ -84,6 +84,7 @@ func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string)
 
 	sectionParsers := []func([]sourceMarker, *data.Parse) *fatalMarker{
 		parseHostSection,
+		parseQuerySection,
 		parseHeadersSection,
 		parseMethodSection,
 		parseBodySection,

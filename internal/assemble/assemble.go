@@ -14,6 +14,8 @@ import (
 func mergeCallData(dest, merge *data.Parse) {
 	dest.Host = append(dest.Host, merge.Host...)
 
+	dest.Query = append(dest.Query, merge.Query...)
+
 	if len(merge.Body) != 0 {
 		dest.Body = merge.Body
 	}
@@ -47,6 +49,14 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 
 		if err != nil {
 			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", hostStr, err))
+		}
+
+		if len(parse.Query) > 0 {
+			if host.RawQuery != "" {
+				host.RawQuery = host.RawQuery + "&"
+			}
+
+			host.RawQuery = host.RawQuery + strings.Join(parse.Query, "&")
 		}
 
 		callData.Host = host

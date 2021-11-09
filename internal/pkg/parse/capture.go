@@ -11,7 +11,7 @@ type captureResult struct {
 	sectionLines      []sourceMarker
 }
 
-const knownSectionHeaders = "host|headers|method|body|config|backend|backendoptions"
+const knownSectionHeaders = "host|query|headers|method|body|config|backend|backendoptions"
 
 var knownSectionsRe = regexp.MustCompile(`^\[(` + knownSectionHeaders + `)\]$`)
 var unescapeKnownSectionsRe = regexp.MustCompile(`^\\\[(` + knownSectionHeaders + `)\]$`)

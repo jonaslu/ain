@@ -12,6 +12,7 @@ type Config struct {
 
 type Parse struct {
 	Host    []string
+	Query   []string
 	Body    []string
 	Method  string
 	Headers []string
