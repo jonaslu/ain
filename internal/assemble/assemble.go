@@ -11,6 +11,8 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
+const defaultQueryDelim = "&"
+
 func mergeCallData(dest, merge *data.Parse) {
 	dest.Host = append(dest.Host, merge.Host...)
 
@@ -35,6 +37,10 @@ func mergeCallData(dest, merge *data.Parse) {
 	if merge.Config.Timeout != data.TimeoutNotSet {
 		dest.Config.Timeout = merge.Config.Timeout
 	}
+
+	if merge.Config.QueryDelim != nil {
+		dest.Config.QueryDelim = merge.Config.QueryDelim
+	}
 }
 
 func getCallData(parse *data.Parse) (*data.Call, []string) {
@@ -52,11 +58,16 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 		}
 
 		if len(parse.Query) > 0 {
-			if host.RawQuery != "" {
-				host.RawQuery = host.RawQuery + "&"
+			queryDelim := defaultQueryDelim
+			if parse.Config.QueryDelim != nil {
+				queryDelim = *parse.Config.QueryDelim
 			}
 
-			host.RawQuery = host.RawQuery + strings.Join(parse.Query, "&")
+			if host.RawQuery != "" {
+				host.RawQuery = host.RawQuery + queryDelim
+			}
+
+			host.RawQuery = host.RawQuery + strings.Join(parse.Query, queryDelim)
 		}
 
 		callData.Host = host

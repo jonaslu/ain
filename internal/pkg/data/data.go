@@ -7,7 +7,8 @@ import (
 const TimeoutNotSet = -1
 
 type Config struct {
-	Timeout int32
+	Timeout    int32
+	QueryDelim *string
 }
 
 type Parse struct {
