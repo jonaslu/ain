@@ -17,7 +17,7 @@ Ain was built to enable scripting of input and further processing of output via 
 # Pre-requisites
 You need [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) installed and available on your `$PATH`. The easiest way to test this is to run `ain -b`. This will generate a template and tell you what backends you have available on your system in the [Backend] section.
 
-You can also check it manually if you're bent that way by open up a shell and type `curl`, `wget` or `http` (add the suffix .exe to those commands if you're on windows). If there's any output from the command itself you're good to go.
+You can also check manually what backends you have installed by opening up a shell and type `curl`, `wget` or `http` (add the suffix .exe to those commands if you're on windows). If there's any output from the command itself you're good to go.
 
 On linux or mac one of the three above is very likely to be installed on your box already. The others are available in your package manager or [homebrew](https://brew.sh).
 
@@ -207,7 +207,7 @@ What http-method to use in the API call (e g GET, POST, PATCH). If omitted the b
 The [Method] section is overridden by latter template files.
 
 ## [Body]
-If the API call needs a body (POST, PATCH) the content of this section is passed as a file to the backend because formatting may be important (e g yaml). In the template file this section can be pretty-printed for easier eye-balling (e g json).
+If the API call needs a body (as in the POST or PATCH http methods) the content of this section is passed as a file to the backend. Ain uses files because formatting may be important (e g yaml). In the template file this section can be pretty-printed for easier eye-balling (e g json).
 
 The file passed to the backend is removed after the API call unless you pass the `-l` flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPFILE` if you'd like them elsewhere.
 
@@ -218,8 +218,7 @@ This section contains config for ain (any backend-specific config is passed via 
 
 Currently the only option supported is `Timeout=<timeout in seconds>`
 
-The timeout is enforced during the whole execution of ain (both running executables and the actual API call). If omitted defaults to no timeout. Note that this is the only section where executables have
-no effect, since the timeout needs to be known before the executables are invoked.
+The timeout is enforced during the whole execution of ain (both running executables and the actual API call). If omitted defaults to no timeout. Note that this is the only section where executables have no effect, since the timeout needs to be known before the executables are invoked.
 
 The [Config] sections is overridden by latter template files.
 
@@ -231,8 +230,16 @@ Valid options are [curl](https://curl.se/), [wget](https://www.gnu.org/software/
 The [Backend] section is mandatory and is overridden by latter template files.
 
 ## [BackendOptions]
-Any options meant for the backends. These are appended straight to the
-backend-command invocation (curl or httpie).
+Backend specific options that are passed on to the backend command invocation.
+
+Example:
+```
+[Backend]
+curl
+
+[BackendOptions]
+-sS   # Makes curl disable it's progress bar in a pipe
+```
 
 The [BackendOptions] section appends across template files.
 
@@ -246,14 +253,14 @@ This enables you to specify things that vary across API calls either permanently
 
 Environment-variables are expanded first and can be used with any executable. Example `$(cat ${ENV}/token.json)`.
 
-Ain uses [envparse](https://github.com/hashicorp/go-envparse) for, well, parsing environment variables, so anything it can do, so can you!
+Ain uses [envparse](https://github.com/hashicorp/go-envparse) for parsing environment variables.
 
 # Executables
 Anything inside a `$()` is replaced with the result from running that command and capturing it's output (STDIN). The command can return multiple rows which will be inserted as separate rows in the template (e g returning two headers). Any empty lines from the executable output are removed before they're inserted into the template.
 
 An example is getting JWT tokens into a separate script and share that across templates.
 
-More complex scripting can be done in-line with the xargs `bash -c` (hack)[https://en.wikipedia.org/wiki/Xargs#Shell_trick:_any_number]. Example:
+More complex scripting can be done in-line with the xargs `bash -c` [hack](https://en.wikipedia.org/wiki/Xargs#Shell_trick:_any_number). Example:
 ```
 [Headers]
 Authorization: Bearer $(bash -c "./get-login.sh | jq -r '.token'")
