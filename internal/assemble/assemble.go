@@ -11,8 +11,6 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
-const defaultQueryDelim = "&"
-
 func mergeCallData(dest, merge *data.Parse) {
 	dest.Host = append(dest.Host, merge.Host...)
 
@@ -57,18 +55,7 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", hostStr, err))
 		}
 
-		if len(parse.Query) > 0 {
-			queryDelim := defaultQueryDelim
-			if parse.Config.QueryDelim != nil {
-				queryDelim = *parse.Config.QueryDelim
-			}
-
-			if host.RawQuery != "" {
-				host.RawQuery = host.RawQuery + queryDelim
-			}
-
-			host.RawQuery = host.RawQuery + strings.Join(parse.Query, queryDelim)
-		}
+		addQueryString(host, parse)
 
 		callData.Host = host
 	}
