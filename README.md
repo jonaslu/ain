@@ -8,6 +8,7 @@ Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomn
 * Flexible organization of API:s using files and folders.
 * Use shell-scripts and executables for common tasks.
 * Put things that change in environment variables or .env-files.
+* Handles url-encoding.
 * Share the resulting [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) command-line.
 * Pipe the API output for further processing.
 * Tries hard to be helpful when there are errors.
@@ -57,9 +58,9 @@ Run:
 ain -b basic_template.ain
 ```
 
-This will output a starter-template to the file basic_template.
-The basic template uses a common scenario of calling GET on localhost
-with the Content-Type: application/json.
+The command above will output a starter-template to the file `basic_template.ain`.
+The basic template contains a common scenario of calling GET on localhost
+with the `Content-Type: application/json`.
 
 Run the generated template by specifying a PORT environment variable:
 ```
@@ -126,6 +127,9 @@ Ain reads sections from template-files. Here's a full example:
 [Host]
 http://localhost:${PORT}/api/blog/post
 
+[Query]
+id=2e79870c-6504-4ac6-a2b7-01da7a6532f1
+
 [Headers]
 Authorization: Bearer $(./get-jwt-token.sh)
 Content-Type: application/json
@@ -151,7 +155,7 @@ curl
 ```
 The template files can be named anything but some unique ending-convention such as .ain is recommended so you can [find](https://man7.org/linux/man-pages/man1/find.1.html) them easily.
 
-Ain understands seven [Sections] (the things in square brackets). Each of the sections are described in details [below](#supported-sections).
+Ain understands eight [Sections] (the things in square brackets). Each of the sections are described in details [below](#supported-sections).
 
 Sections either combine or overwrite across all the template files given to ain.
 
@@ -160,13 +164,16 @@ Anything after a pound sign (#) is a comment and will be ignored.
 # Running ain
 `ain [options] <template-files...>[!]`
 
-Ain accepts one or more template-files as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [Headers], [Backend] and [BackendOptions] in a base template file and then specifying the specific [Host], [Method] and [Body] in several template files, one for each API-endpoint. You can even use an `alias` for things you will always set.
+Ain accepts one or more template-files as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [[Headers]](#Headers), [[Backend]](#backend) and [[BackendOptions]](#BackendOptions) in a base template file and then specifying the specific [[Host]](#Host), [[Method]](#Method) and [[Body]](#Body) in several template files, one for each API-endpoint. You can even use an `alias` for things you will always set.
 
-Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$EDITOR` (or vim if not set) so you can edit the file. The edit is not stored back into the template file and used only this invocation.
+Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$EDITOR` (or vim if not set) so you can edit the template file. Any changes are not stored back into the template file and used only this invocation.
 
 Note that the `$EDITOR` cannot fork (as vscode does) because ain waits for the `$EDITOR` command to finish. Any terminal editor such as vim, emacs, nano etc will be fine.
 
-If ain is connected to a pipe it will try to read template file names off that pipe. This enables you to use [find](https://man7.org/linux/man-pages/man1/find.1.html) and a selector such as [fzf](https://github.com/junegunn/fzf) to keep track of the template-files: `find . -name *.ain | fzf -m | ain`
+If ain is connected to a pipe it will try to read template file names off that pipe. This enables you to use [find](https://man7.org/linux/man-pages/man1/find.1.html) and a selector such as [fzf](https://github.com/junegunn/fzf) to keep track of the template-files:
+```
+$> find . -name *.ain | fzf -m | ain
+```
 
 Template file names specified on the command line are read before any names from a pipe. This means that `echo create-blog-post.ain | ain base.ain` is the same as `ain base.ain create-blog-post.ain`.
 
@@ -184,22 +191,61 @@ Including the text above.
 ```
 
 ## [Host]
-Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g base.ain) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g login.ain): `/api/auth/login`
+Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g `base.ain`) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g `login.ain`): `/api/auth/login`
 
-You could have query parameters in yet another template file (e g user-leviathan-login.ain):
-```
-?user=leviathan
-&password=dearMother
-```
+You can have query parameters in the url or you can use the [[Query]](#Query) section below.
+Any query-parameters added in the [[Query]](#Query) section are appended last to the URL.
+The whole URL is properly [url-encoding](#url-encoding) before passed to the backend.
 
 Ain performs no validation on the url (as backends differ on what a valid url looks like). If your call does not go through use `ain -p` as mentioned in [troubleshooting](#troubleshooting) and input that directly into the backend to see what it thinks it means.
 
 The [Host] section is mandatory and appends across template files.
 
+## [Query]
+All lines in the [Query] section is appended to the URL after the complete URL has been assembled. This means that you can specify query-parameters that apply to many endpoints in one file instead of having to include the same parameter in all endpoints.
+
+An example is if an `API_KEY=<secret>` query-parameter applies to several endpoints. You can define this query-parameter in a base-file and simply have the specific endpoint URL and possible extra query-parameters in their own file.
+
+Example - `base.ain`:
+```
+[Host]
+http://localhost:8080/api
+
+[Query]
+API_KEY=a922be9f-1aaf-47ef-b70b-b400a3aa386e
+```
+
+`get-post.ain`
+```
+[Host]
+/blog/post
+
+[Query]
+id=1
+```
+
+This will result in the url:
+```
+http://localhost:8080/api/blog/post?API_KEY=a922be9f-1aaf-47ef-b70b-b400a3aa386e&id=1
+```
+
+Each line under the [Query] section is appended with a delimiter. Ain defaults to the query-string delimiter `&`. See the [[Config]](#Config) section for setting a custom delimiter.
+
+All query-parameters are properly url-encoded. See the [url-encoding](#url-encoding).
+
+The [Query] section appends across template files.
+
 ## [Headers]
 Headers to include in the API call.
 
-The [Headers] section appends across template files so you can share common headers (e g Authorization: <JWT> and Content-Type: application/json)
+Example:
+```
+[Headers]
+Authorization: Bearer 888e90f2-319f-40a0-b422-d78bb95f229e
+Content-Type: application/json
+```
+
+The [Headers] section appends across template files so you can share common headers.
 
 ## [Method]
 What http-method to use in the API call (e g GET, POST, PATCH). If omitted the backend default is used (GET in both curl, wget and httpie).
@@ -216,9 +262,17 @@ The [Body] sections is overridden by latter template files.
 ## [Config]
 This section contains config for ain (any backend-specific config is passed via the [BackendOptions] section).
 
-Currently the only option supported is `Timeout=<timeout in seconds>`
+### Timeout
+Config format: `Timeout=<timeout in seconds>`
 
 The timeout is enforced during the whole execution of ain (both running executables and the actual API call). If omitted defaults to no timeout. Note that this is the only section where executables have no effect, since the timeout needs to be known before the executables are invoked.
+
+### Query delimiter
+Config format: `queryDelim=<text>`
+
+This is the delimiter used when concatenating the lines under the [[Query]](#Query) section to form the query-string of an URL. It any text that does not contain a space including the empty string.
+
+It defaults to the most used query-delimiter (`&`).
 
 The [Config] sections is overridden by latter template files.
 
@@ -282,6 +336,27 @@ Cannot find value for variable PORT on line 2:
 2 > http://localhost:${PORT}
 3
 ```
+
+# URL-encoding
+[URL-encoding](https://en.wikipedia.org/wiki/Percent-encoding) is something ain tries hard to take care of for you. Both the path and the query-section of an url is scanned and any non-valid charaters are encoded while already legal encodings (format `%<hex><hex>) are kept as is.
+
+This means that you can mix url-encoded text, half encoded text or unencoded text and ain will convert them all into a properly url-encoded URL.
+
+Example:
+```
+[Host]
+https://localhost:8080/api/finance/ca$h
+
+[Query]
+account=full of ca%24h
+```
+
+Will result in the URL:
+```
+https://localhost:8080/api/finance/ca%24h?account=full+of+ca%24h
+```
+
+The only caveats is that ain cannot know if a plus sign (+) is an encoded space or if the actual plus sign was meant. In this case ain leaves the plus sign as is. Also it cannot know if you actually meant %<hex><hex> instead of an encoded character. In both cases you need to yourself manually escape the plus (%2B) and percent sign (%25).
 
 # Sharing is caring
 Ain can print out the command instead of running it via the `-p` flag. This enables you to inspect how the curl, wget or httpie API call would look like or share the command:
