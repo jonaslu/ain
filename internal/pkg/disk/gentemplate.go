@@ -19,6 +19,9 @@ http://localhost:${PORT}
 [Headers]
 Content-Type: application/json
 
+# [Query]
+# id=1
+
 # [Method]
 # POST
 
@@ -29,6 +32,7 @@ Content-Type: application/json
 
 [Config]
 Timeout=3
+# queryDelim=&
 
 [Backend]
 {{Backends}}
@@ -39,7 +43,8 @@ Timeout=3
 # Short help:
 # Comments start with hash-sign (#) and are ignored.
 # ${VARIABLES} are replaced with the .env-file or environment variable value
-# $(executables.sh) are replaced with the output of that executable`
+# $(executables.sh) are replaced with the output of that executable
+# More in depth help here: https://github.com/jonaslu/ain`
 
 func getUsefulBackendOptions(backendBinary string) string {
 	switch backendBinary {
