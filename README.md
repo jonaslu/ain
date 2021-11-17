@@ -62,7 +62,7 @@ The command above will output a starter-template to the file `basic_template.ain
 The basic template contains a common scenario of calling GET on localhost
 with the `Content-Type: application/json`.
 
-Run the generated template by specifying a PORT environment variable:
+Run the generated template by specifying a `PORT` environment variable:
 ```
 PORT=8080 ain basic_template.ain
 ```
@@ -111,7 +111,7 @@ $> ain base.ain create-blog-post.ain
 }
 ```
 
-See all options: `ain -h`
+See the help for all options ain supports: `ain -h`
 
 # Important concepts
 * Templates: Files containing what, how and where to make the API call. By convention has the file-ending `.ain`.
@@ -167,6 +167,11 @@ Anything after a pound sign (#) is a comment and will be ignored.
 Ain accepts one or more template-files as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [[Headers]](#Headers), [[Backend]](#backend) and [[BackendOptions]](#BackendOptions) in a base template file and then specifying the specific [[Host]](#Host), [[Method]](#Method) and [[Body]](#Body) in several template files, one for each API-endpoint. You can even use an `alias` for things you will always set.
 
 Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$EDITOR` (or vim if not set) so you can edit the template file. Any changes are not stored back into the template file and used only this invocation.
+
+Example:
+```
+ain templates/get-blog-post.ain!
+```
 
 Note that the `$EDITOR` cannot fork (as vscode does) because ain waits for the `$EDITOR` command to finish. Any terminal editor such as vim, emacs, nano etc will be fine.
 
@@ -231,7 +236,7 @@ http://localhost:8080/api/blog/post?API_KEY=a922be9f-1aaf-47ef-b70b-b400a3aa386e
 
 Each line under the [Query] section is appended with a delimiter. Ain defaults to the query-string delimiter `&`. See the [[Config]](#Config) section for setting a custom delimiter.
 
-All query-parameters are properly url-encoded. See the [url-encoding](#url-encoding).
+All query-parameters are properly url-encoded. See [url-encoding](#url-encoding).
 
 The [Query] section appends across template files.
 
@@ -250,6 +255,12 @@ The [Headers] section appends across template files so you can share common head
 ## [Method]
 What http-method to use in the API call (e g GET, POST, PATCH). If omitted the backend default is used (GET in both curl, wget and httpie).
 
+Example:
+```
+[Method]
+POST
+```
+
 The [Method] section is overridden by latter template files.
 
 ## [Body]
@@ -257,10 +268,25 @@ If the API call needs a body (as in the POST or PATCH http methods) the content 
 
 The file passed to the backend is removed after the API call unless you pass the `-l` flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPFILE` if you'd like them elsewhere.
 
+Example:
+```
+[Body]
+{
+  "some": "json"
+}
+```
+
 The [Body] sections is overridden by latter template files.
 
 ## [Config]
-This section contains config for ain (any backend-specific config is passed via the [BackendOptions] section).
+This section contains config for ain. Any backend-specific config is passed via the [[BackendOptions]](#BackendOptions) section.
+
+Full config example:
+```
+[Config]
+Timeout=3
+queryDelim=;
+```
 
 ### Timeout
 Config format: `Timeout=<timeout in seconds>`
@@ -280,6 +306,12 @@ The [Config] sections is overridden by latter template files.
 The [Backend] specifies what command should be used to run the actual API call.
 
 Valid options are [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/).
+
+Example:
+```
+[Backend]
+curl
+```
 
 The [Backend] section is mandatory and is overridden by latter template files.
 
@@ -338,7 +370,7 @@ Cannot find value for variable PORT on line 2:
 ```
 
 # URL-encoding
-[URL-encoding](https://en.wikipedia.org/wiki/Percent-encoding) is something ain tries hard to take care of for you. Both the path and the query-section of an url is scanned and any non-valid charaters are encoded while already legal encodings (format `%<hex><hex>) are kept as is.
+[URL-encoding](https://en.wikipedia.org/wiki/Percent-encoding) is something ain tries hard to take care of for you. Both the path and the query-section of an url is scanned and any non-valid charaters are encoded while already legal encodings (format `%<hex><hex>` and `+` for the query string) are kept as is.
 
 This means that you can mix url-encoded text, half encoded text or unencoded text and ain will convert them all into a properly url-encoded URL.
 
