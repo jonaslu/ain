@@ -8,6 +8,7 @@ import (
 )
 
 const defaultQueryDelim = "&"
+const queryKeyValueDelim = "="
 
 func isHex(currentChar byte) bool {
 	switch {
@@ -70,7 +71,7 @@ func addQueryString(host *url.URL, parse *data.Parse) {
 
 	queryString = queryString + strings.Join(parse.Query, queryDelim)
 
-	if queryDelim == "" || !strings.Contains(queryString, queryDelim) {
+	if queryDelim == "" || !strings.Contains(queryString, queryKeyValueDelim) {
 		host.RawQuery = queryEscape(queryString)
 		return
 	}
@@ -79,14 +80,14 @@ func addQueryString(host *url.URL, parse *data.Parse) {
 	for _, keyValuePairStr := range strings.Split(queryString, queryDelim) {
 		var encodedKeyValuePair string
 
-		keyValuePair := strings.SplitN(keyValuePairStr, "=", 2)
+		keyValuePair := strings.SplitN(keyValuePairStr, queryKeyValueDelim, 2)
 		if len(keyValuePair) == 2 {
 			encodedKeyValuePair = strings.Join(
 				[]string{
 					queryEscape(keyValuePair[0]),
 					queryEscape(keyValuePair[1]),
 				},
-				"=",
+				queryKeyValueDelim,
 			)
 		} else {
 			encodedKeyValuePair = queryEscape(keyValuePairStr)
