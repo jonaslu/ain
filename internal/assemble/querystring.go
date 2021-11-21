@@ -11,12 +11,9 @@ const defaultQueryDelim = "&"
 const queryKeyValueDelim = "="
 
 func isHex(currentChar byte) bool {
-	switch {
-	case '0' <= currentChar && currentChar <= '9':
-		return true
-	case 'a' <= currentChar && currentChar <= 'f':
-		return true
-	case 'A' <= currentChar && currentChar <= 'F':
+	if '0' <= currentChar && currentChar <= '9' ||
+		'a' <= currentChar && currentChar <= 'f' ||
+		'A' <= currentChar && currentChar <= 'F' {
 		return true
 	}
 
@@ -24,7 +21,7 @@ func isHex(currentChar byte) bool {
 }
 
 // Borrowed from net/url in the go standard library
-const upperhex = "0123456789ABCDEF"
+const upperHex = "0123456789ABCDEF"
 
 func queryEscape(queryString string) string {
 	var result strings.Builder
@@ -37,7 +34,7 @@ func queryEscape(queryString string) string {
 			'A' <= currentChar && currentChar <= 'Z' ||
 			'0' <= currentChar && currentChar <= '9' ||
 			currentChar == '+' ||
-			i+2 < len(queryString) && isHex(queryString[i+1]) && isHex(queryString[i+2]) {
+			currentChar == '%' && i+2 < len(queryString) && isHex(queryString[i+1]) && isHex(queryString[i+2]) {
 
 			result.WriteByte(currentChar)
 		} else {
@@ -45,8 +42,8 @@ func queryEscape(queryString string) string {
 				result.WriteByte('+')
 			} else {
 				result.WriteByte('%')
-				result.WriteByte(upperhex[currentChar>>4])
-				result.WriteByte(upperhex[currentChar&15])
+				result.WriteByte(upperHex[currentChar>>4])
+				result.WriteByte(upperHex[currentChar&15])
 			}
 		}
 	}
