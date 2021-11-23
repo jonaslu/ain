@@ -53,11 +53,10 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 
 		if err != nil {
 			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", hostStr, err))
+		} else {
+			addQueryString(host, parse)
+			callData.Host = host
 		}
-
-		addQueryString(host, parse)
-
-		callData.Host = host
 	}
 
 	if parse.Backend == "" {
