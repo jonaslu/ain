@@ -2,6 +2,7 @@ package assemble
 
 import (
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
@@ -9,6 +10,9 @@ import (
 
 const defaultQueryDelim = "&"
 const queryKeyValueDelim = "="
+
+var rawHostKeyValueDelimRegexp = regexp.MustCompile(queryKeyValueDelim)
+var querySectionKeyValueDelimRegexp = regexp.MustCompile(`\s*` + queryKeyValueDelim + `\s*`)
 
 func isHex(currentChar byte) bool {
 	if '0' <= currentChar && currentChar <= '9' ||
@@ -51,33 +55,13 @@ func queryEscape(queryString string) string {
 	return result.String()
 }
 
-func addQueryString(host *url.URL, parse *data.Parse) {
-	if host.RawQuery == "" && len(parse.Query) == 0 {
-		return
-	}
-
-	queryDelim := defaultQueryDelim
-	if parse.Config.QueryDelim != nil {
-		queryDelim = *parse.Config.QueryDelim
-	}
-
-	queryString := host.RawQuery
-	if host.RawQuery != "" && len(parse.Query) > 0 {
-		queryString = queryString + queryDelim
-	}
-
-	queryString = queryString + strings.Join(parse.Query, queryDelim)
-
-	if queryDelim == "" || !strings.Contains(queryString, queryKeyValueDelim) {
-		host.RawQuery = queryEscape(queryString)
-		return
-	}
-
+func encodeKeyValues(keyValues []string, queryDelim string, queryKeyValueDelimRegexp *regexp.Regexp) string {
 	var encodedKeyValuePairs []string
-	for _, keyValuePairStr := range strings.Split(queryString, queryDelim) {
+
+	for _, keyValuePairStr := range keyValues {
 		var encodedKeyValuePair string
 
-		keyValuePair := strings.SplitN(keyValuePairStr, queryKeyValueDelim, 2)
+		keyValuePair := queryKeyValueDelimRegexp.Split(keyValuePairStr, 2)
 		if len(keyValuePair) == 2 {
 			encodedKeyValuePair = strings.Join(
 				[]string{
@@ -93,5 +77,32 @@ func addQueryString(host *url.URL, parse *data.Parse) {
 		encodedKeyValuePairs = append(encodedKeyValuePairs, encodedKeyValuePair)
 	}
 
-	host.RawQuery = strings.Join(encodedKeyValuePairs, queryDelim)
+	return strings.Join(encodedKeyValuePairs, queryDelim)
+}
+
+func addQueryString(host *url.URL, parse *data.Parse) {
+	if host.RawQuery == "" && len(parse.Query) == 0 {
+		return
+	}
+
+	queryDelim := defaultQueryDelim
+	if parse.Config.QueryDelim != nil {
+		queryDelim = *parse.Config.QueryDelim
+	}
+
+	queryParts := []string{}
+	if host.RawQuery != "" {
+		if queryDelim == "" {
+			queryParts = append(queryParts, queryEscape(host.RawQuery))
+		} else {
+			rawHostKeyValues := strings.Split(host.RawQuery, queryDelim)
+			queryParts = append(queryParts, encodeKeyValues(rawHostKeyValues, queryDelim, rawHostKeyValueDelimRegexp))
+		}
+	}
+
+	if len(parse.Query) > 0 {
+		queryParts = append(queryParts, encodeKeyValues(parse.Query, queryDelim, querySectionKeyValueDelimRegexp))
+	}
+
+	host.RawQuery = strings.Join(queryParts, queryDelim)
 }
