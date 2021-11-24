@@ -16,7 +16,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
 
-var version = "1.2.0"
+var version = "1.2.1"
 var gitSha = "develop"
 
 func printInternalErrorAndExit(err error) {
