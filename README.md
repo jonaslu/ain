@@ -196,11 +196,9 @@ Including the text above.
 ```
 
 ## [Host]
-Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g `base.ain`) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g `login.ain`): `/api/auth/login`
+Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g `base.ain`) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g `login.ain`): `/api/auth/login`.
 
-You can have query parameters in the url or you can use the [[Query]](#Query) section below.
-Any query-parameters added in the [[Query]](#Query) section are appended last to the URL.
-The whole URL is properly [url-encoding](#url-encoding) before passed to the backend.
+It's recommended that you use the [[Query]](#Query) section below for query-parameters as it handles joining with delimiters and trimming whitespace, but you can put raw query-paramters in the [Host] section too of course. Any query-parameters added in the [[Query]](#Query) section are appended last to the URL. The whole URL is properly [url-encoding](#url-encoding) before passed to the backend.
 
 Ain performs no validation on the url (as backends differ on what a valid url looks like). If your call does not go through use `ain -p` as mentioned in [troubleshooting](#troubleshooting) and input that directly into the backend to see what it thinks it means.
 
@@ -233,6 +231,11 @@ This will result in the url:
 ```
 http://localhost:8080/api/blog/post?API_KEY=a922be9f-1aaf-47ef-b70b-b400a3aa386e&id=1
 ```
+
+To avoid the common bash-ism error of having spaces around the equals sign, the whitespace in a query key / value is only significant within the string.
+
+This means that `page=3` and `page = 3` will become the same query parameter and `page = the next one` will become `page=the+next+one` when processed. If you need actual spaces between the equal-sign and the key / value strings you need to encode it yourself: e g `page+=+3` or put
+that key-value in the [[Host]](#Host) section where space is significant.
 
 Each line under the [Query] section is appended with a delimiter. Ain defaults to the query-string delimiter `&`. See the [[Config]](#Config) section for setting a custom delimiter.
 
