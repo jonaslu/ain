@@ -2,3 +2,4 @@ templates/
 ain-body*
 dist/
 .env
+main
