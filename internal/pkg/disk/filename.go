@@ -28,7 +28,7 @@ func GetTemplateFilenames() ([]string, error) {
 			return nil, errors.Wrap(err, "Could not read pipe stdin")
 		}
 
-		localTemplateFilenamesViaPipe, err := utils.TokenizeLine(string(fileNameBytes), true)
+		localTemplateFilenamesViaPipe, err := utils.TokenizeLine(string(fileNameBytes))
 		if err != nil {
 			return nil, errors.Wrap(err, "Could not read template name(s) from pipe")
 		}

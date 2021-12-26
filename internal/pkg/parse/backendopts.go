@@ -18,7 +18,7 @@ func parseBackendOptionsSection(template []sourceMarker, callData *data.Parse) *
 	}
 
 	for _, backendOptionLineContents := range captureResult.sectionLines {
-		tokenizedBackendOpts, err := utils.TokenizeLine(backendOptionLineContents.lineContents, true)
+		tokenizedBackendOpts, err := utils.TokenizeLine(backendOptionLineContents.lineContents)
 		if err != nil {
 			return newFatalMarker(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backendOptionLineContents)
 		}

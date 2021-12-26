@@ -50,7 +50,7 @@ func captureExecutableAndArgs(templateLines []sourceMarker) ([]executableAndArgs
 				continue
 			}
 
-			tokenizedExecutableLine, err := utils.TokenizeLine(executableAndArgsStr, true)
+			tokenizedExecutableLine, err := utils.TokenizeLine(executableAndArgsStr)
 			if err != nil {
 				fatals = append(fatals, newFatalMarker(err.Error(), templateLine))
 				continue

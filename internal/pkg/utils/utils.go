@@ -3,7 +3,6 @@ package utils
 import (
 	"strings"
 	"unicode"
-	"unicode/utf8"
 
 	"github.com/pkg/errors"
 )
@@ -12,64 +11,102 @@ const quoteEscapeRune = '\\'
 
 var quoteRunes = [...]rune{'"', '\''}
 
-// TODO Do I need the removeQuotes or should I revert it?
-func TokenizeLine(commandLine string, removeQuotes bool) ([]string, error) {
+const unterminatedQuoteErrorMessageContext = 3
+
+func TokenizeLine(commandLine string) ([]string, error) {
 	var tokenizedLines []string
-	commandLineBytes := []byte(commandLine)
-
-	startWordMarker := -1
-
-	var width int
-	var lastRune rune
 	var lastQuoteRune rune
+	var lastQuotePos int
 
-	for head := 0; head < len(commandLine); head += width {
-		var headRune rune
-		headRune, width = utf8.DecodeRune(commandLineBytes[head:])
+	commandLineRune := []rune(commandLine)
 
-		if startWordMarker == -1 && unicode.IsSpace(headRune) {
+	var builder strings.Builder
+	builder.Grow(len(commandLine))
+
+NextRune:
+	for i := 0; i < len(commandLineRune); i++ {
+		headRune := commandLineRune[i]
+
+		// Nothing has been collected, discard spaces
+		if unicode.IsSpace(headRune) && builder.Len() == 0 {
 			continue
 		}
 
-		if startWordMarker == -1 {
-			startWordMarker = head
-
-			for _, quoteRune := range quoteRunes {
-				if headRune == quoteRune {
-					lastQuoteRune = quoteRune
-				}
+		// Quoting is turned on
+		if lastQuoteRune > 0 {
+			// Escaped quote \" - write only the quote and carry on
+			if headRune == quoteEscapeRune && i < len(commandLineRune)-1 && commandLineRune[i+1] == lastQuoteRune {
+				builder.WriteRune(lastQuoteRune)
+				i = i + 1
+				continue
 			}
-		} else {
-			if lastQuoteRune > 0 {
-				if headRune == lastQuoteRune && lastRune != quoteEscapeRune {
-					if removeQuotes {
-						firstWordSansQuotes := startWordMarker + utf8.RuneLen(headRune)
-						if head > firstWordSansQuotes {
-							stringSansQuotes := strings.TrimSpace(string(commandLineBytes[firstWordSansQuotes:head]))
-							tokenizedLines = append(tokenizedLines, stringSansQuotes)
-						}
-					} else {
-						tokenizedLines = append(tokenizedLines, string(commandLineBytes[startWordMarker:head+width]))
-					}
 
-					startWordMarker = -1
-					lastQuoteRune = 0
+			// Turns quoting off
+			if headRune == lastQuoteRune {
+				lastQuoteRune = 0
+				continue
+			}
+
+			builder.WriteRune(headRune)
+			continue
+		}
+
+		// Quoting not turned on, look for any escaped quote
+		if headRune == quoteEscapeRune && i < len(commandLineRune)-1 {
+			for _, quoteRune := range quoteRunes {
+				if commandLineRune[i+1] == quoteRune {
+					builder.WriteRune(quoteRune)
+					i = i + 1
+					continue NextRune
 				}
-			} else if unicode.IsSpace(headRune) {
-				tokenizedLines = append(tokenizedLines, string(commandLineBytes[startWordMarker:head]))
-				startWordMarker = -1
 			}
 		}
 
-		lastRune = headRune
+		// Check for start of quoting
+		for _, quoteRune := range quoteRunes {
+			if headRune == quoteRune {
+				lastQuoteRune = quoteRune
+				lastQuotePos = i
+				continue NextRune
+			}
+		}
+
+		// We're not quoting and we are on a word boundary
+		if unicode.IsSpace(headRune) && lastQuoteRune == 0 {
+			tokenizedLines = append(tokenizedLines, builder.String())
+			builder.Reset()
+			continue
+		}
+
+		builder.WriteRune(headRune)
 	}
 
 	if lastQuoteRune > 0 {
-		return nil, errors.Errorf("Unterminated quote sequence: %s", string(commandLineBytes[startWordMarker:]))
+		var context string
+		preContext := lastQuotePos - unterminatedQuoteErrorMessageContext
+
+		if preContext < 1 {
+			preContext = 0
+		} else {
+			context = "..."
+		}
+
+		subContext := lastQuotePos + unterminatedQuoteErrorMessageContext + 1
+		if subContext >= len(commandLine) {
+			subContext = len(commandLine)
+		}
+
+		context = context + commandLine[preContext:subContext]
+
+		if lastQuotePos+unterminatedQuoteErrorMessageContext < len(commandLine)-1 {
+			context = context + "..."
+		}
+
+		return nil, errors.Errorf("Unterminated quote sequence: %s", context)
 	}
 
-	if startWordMarker != -1 {
-		tokenizedLines = append(tokenizedLines, string(commandLineBytes[startWordMarker:]))
+	if builder.Len() > 0 {
+		tokenizedLines = append(tokenizedLines, builder.String())
 	}
 
 	return tokenizedLines, nil
