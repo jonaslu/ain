@@ -4,7 +4,6 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
@@ -40,10 +39,5 @@ func GetTemplateFilenames() ([]string, error) {
 		localTemplateFilenames = append(localTemplateFilenames, localTemplateFilenamesViaPipe...)
 	}
 
-	trimmedLocalTemplateFilenames := []string{}
-	for _, localTemplateFilename := range localTemplateFilenames {
-		trimmedLocalTemplateFilenames = append(trimmedLocalTemplateFilenames, strings.TrimSpace(localTemplateFilename))
-	}
-
-	return trimmedLocalTemplateFilenames, nil
+	return localTemplateFilenames, nil
 }
