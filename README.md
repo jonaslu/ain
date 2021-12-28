@@ -182,6 +182,8 @@ $> find . -name *.ain | fzf -m | ain
 
 Template file names specified on the command line are read before any names from a pipe. This means that `echo create-blog-post.ain | ain base.ain` is the same as `ain base.ain create-blog-post.ain`.
 
+Ain function the same bash when it comes to file names: if they contain white-space the name should be quoted.
+
 # Supported sections
 Sections are case-insensitive and whitespace ignored but by convention uses CamelCase and are left indented. A section cannot be defined twice in a file. A section ends where the next begins or the file ends.
 
