@@ -46,6 +46,11 @@ scoop bucket add jonaslu_tools https://github.com/jonaslu/scoop-tools.git
 scoop install ain
 ```
 
+## Via the AUR (Arch Linux)
+```
+yay -S ain-bin
+```
+
 ## Download binaries yourself
 Install it so it's available on your `$PATH`:
 [https://github.com/jonaslu/ain/releases](https://github.com/jonaslu/ain/releases)
