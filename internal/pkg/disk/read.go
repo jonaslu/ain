@@ -14,12 +14,19 @@ import (
 const EDIT_FILE_SUFFIX = "!"
 
 func captureEditorOutput(tempFile *os.File) (string, error) {
-	editorCmd := os.Getenv("EDITOR")
-	if editorCmd == "" {
-		editorCmd = "vim"
+	editorEnvStr := os.Getenv("EDITOR")
+	if editorEnvStr == "" {
+		editorEnvStr = "vim"
 	}
 
-	cmd := exec.Command(editorCmd, tempFile.Name())
+	editorCmdAndArgs, err := utils.TokenizeLine(editorEnvStr)
+	if err != nil {
+		return "", errors.Wrap(err, "Cannot parse EDITOR environment variable")
+	}
+
+	editorArgs := append(editorCmdAndArgs[1:], tempFile.Name())
+
+	cmd := exec.Command(editorCmdAndArgs[0], editorArgs...)
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
 		return "", errors.Wrap(err, "Can't open /dev/tty")
