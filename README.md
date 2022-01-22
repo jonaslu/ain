@@ -179,7 +179,10 @@ Example:
 ain templates/get-blog-post.ain!
 ```
 
-Note that the `$EDITOR` cannot fork (as vscode does) because ain waits for the `$EDITOR` command to finish. Any terminal editor such as vim, emacs, nano etc will be fine.
+Ain waits for the `$EDITOR` command to exit. Any terminal editor such as vim, emacs, nano etc will be fine. If your editor of choice forks (such as [vscode](https://code.visualstudio.com/) does by default) check if there's a flag stopping it from forking. For example to stop vscode from forking use the `--wait` [flag](https://code.visualstudio.com/docs/editor/command-line#_core-cli-options):
+```
+export EDITOR="code --wait"
+```
 
 If ain is connected to a pipe it will try to read template file names off that pipe. This enables you to use [find](https://man7.org/linux/man-pages/man1/find.1.html) and a selector such as [fzf](https://github.com/junegunn/fzf) to keep track of the template-files:
 ```
