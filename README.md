@@ -346,7 +346,7 @@ The [BackendOptions] section appends across template files.
 # Environment variables
 Anything inside `${}` in a template is replaced with the value found in the environment.
 
-Ain also reads any .env files in the folder from where it's run. You can pass a custom .env file via the `-e` flag.
+Ain also reads any .env files in the folder from where it's run. You can pass a custom .env file via the `-e` flag. Only new variables are set. Any already existing env-variable is not modified.
 
 This enables you to specify things that vary across API calls either permanently in the .env file or one-shot via the command-line. Example:
 `PORT=5000 ain base.ain create-blog-post.ain`
