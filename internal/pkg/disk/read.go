@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const EDIT_FILE_SUFFIX = "!"
+const editFileSuffix = "!"
 
 func captureEditorOutput(tempFile *os.File) (string, error) {
 	editorEnvStr := os.Getenv("EDITOR")
@@ -87,8 +87,8 @@ func readEditedTemplate(sourceTemplateFileName string) (str string, err error) {
 }
 
 func ReadTemplate(templateFileName string) (string, error) {
-	if strings.HasSuffix(templateFileName, EDIT_FILE_SUFFIX) {
-		return readEditedTemplate(strings.TrimSuffix(templateFileName, EDIT_FILE_SUFFIX))
+	if strings.HasSuffix(templateFileName, editFileSuffix) {
+		return readEditedTemplate(strings.TrimSuffix(templateFileName, editFileSuffix))
 	}
 
 	fileContents, err := ioutil.ReadFile(templateFileName)
