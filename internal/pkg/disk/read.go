@@ -14,14 +14,22 @@ import (
 const editFileSuffix = "!"
 
 func captureEditorOutput(tempFile *os.File) (string, error) {
-	editorEnvStr := os.Getenv("EDITOR")
+	editorEnvVarName := "VISUAL"
+	editorEnvStr := os.Getenv(editorEnvVarName)
+
 	if editorEnvStr == "" {
+		editorEnvVarName = "EDITOR"
+		editorEnvStr = os.Getenv(editorEnvVarName)
+	}
+
+	if editorEnvStr == "" {
+		editorEnvVarName = "vim"
 		editorEnvStr = "vim"
 	}
 
 	editorCmdAndArgs, err := utils.TokenizeLine(editorEnvStr)
 	if err != nil {
-		return "", errors.Wrap(err, "Cannot parse EDITOR environment variable")
+		return "", errors.Wrapf(err, "Cannot parse $%s environment variable", editorEnvVarName)
 	}
 
 	editorArgs := append(editorCmdAndArgs[1:], tempFile.Name())
@@ -38,7 +46,7 @@ func captureEditorOutput(tempFile *os.File) (string, error) {
 
 	err = cmd.Run()
 	if err != nil {
-		return "", errors.Wrapf(err, "Error running $EDITOR %s", cmd.String())
+		return "", errors.Wrapf(err, "Error running $%s %s", editorEnvVarName, cmd.String())
 	}
 
 	_, err = tempFile.Seek(0, 0)
