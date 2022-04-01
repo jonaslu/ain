@@ -15,6 +15,43 @@ Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomn
 
 Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) to make the actual calls.
 
+# Table of contents
+<!-- npx doctoc --github --notitle --maxlevel=2 -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Pre-requisites](#pre-requisites)
+- [Installation](#installation)
+  - [If you have go installed](#if-you-have-go-installed)
+  - [Via homebrew](#via-homebrew)
+  - [Via scoop](#via-scoop)
+  - [Via the AUR (Arch Linux)](#via-the-aur-arch-linux)
+  - [Download binaries yourself](#download-binaries-yourself)
+- [Quick start](#quick-start)
+- [Longer start](#longer-start)
+- [Important concepts](#important-concepts)
+- [Templates](#templates)
+- [Running ain](#running-ain)
+- [Supported sections](#supported-sections)
+  - [[Host]](#host)
+  - [[Query]](#query)
+  - [[Headers]](#headers)
+  - [[Method]](#method)
+  - [[Body]](#body)
+  - [[Config]](#config)
+  - [[Backend]](#backend)
+  - [[BackendOptions]](#backendoptions)
+- [Environment variables](#environment-variables)
+- [Executables](#executables)
+- [Fatals](#fatals)
+- [URL-encoding](#url-encoding)
+- [Sharing is caring](#sharing-is-caring)
+- [Troubleshooting](#troubleshooting)
+- [Ain in a bigger context](#ain-in-a-bigger-context)
+- [Contributing](#contributing)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Pre-requisites
 You need [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) installed and available on your `$PATH`. The easiest way to test this is to run `ain -b`. This will generate a basic starter template listing what backends you have available on your system in the [[Backend]](#backend) section. It will select one and leave the others commented out.
 
