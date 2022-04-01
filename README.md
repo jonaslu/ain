@@ -209,7 +209,7 @@ Anything after a pound sign (#) is a comment and will be ignored.
 
 Ain accepts one or more template-file(s) as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [[Headers]](#Headers), [[Backend]](#backend) and [[BackendOptions]](#BackendOptions) in a base template file and then specifying the specific [[Host]](#Host), [[Method]](#Method) and [[Body]](#Body) in several template files, one for each API-endpoint. You can even use an `alias` for things you will always set.
 
-Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$VISUAL` or `$EDITOR` or defaults to vim editor in that order so you can edit the template file. Any changes are not stored back into the template file and used only this invocation.
+Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$VISUAL` or `$EDITOR` editor or falls back to vim in that order so you can edit the template file. Any changes are not stored back into the template file and used only this invocation.
 
 Example:
 ```

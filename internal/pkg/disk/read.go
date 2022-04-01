@@ -12,6 +12,7 @@ import (
 )
 
 const editFileSuffix = "!"
+const fallbackEditor = "vim"
 
 func captureEditorOutput(tempFile *os.File) (string, error) {
 	editorEnvVarName := "VISUAL"
@@ -23,8 +24,13 @@ func captureEditorOutput(tempFile *os.File) (string, error) {
 	}
 
 	if editorEnvStr == "" {
-		editorEnvVarName = "vim"
-		editorEnvStr = "vim"
+		_, err := exec.LookPath(fallbackEditor)
+		if err != nil {
+			return "", errors.New("Cannot find the fallback editor vim on the $PATH. Cannot edit file.")
+		}
+
+		editorEnvVarName = fallbackEditor
+		editorEnvStr = fallbackEditor
 	}
 
 	editorCmdAndArgs, err := utils.TokenizeLine(editorEnvStr)
