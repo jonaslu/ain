@@ -47,11 +47,13 @@ type backend interface {
 }
 
 func getBackend(callData *data.Call) (backend, error) {
-	if backendConstructor, exists := ValidBackends[callData.Backend]; exists {
+	requestedBackend := callData.Backend
+
+	if backendConstructor, exists := ValidBackends[requestedBackend]; exists {
 		return backendConstructor.constructor(callData, backendConstructor.BinaryName), nil
 	}
 
-	return nil, errors.Errorf("Unknown backend: %s", callData.Backend)
+	return nil, errors.Errorf("Unknown backend: %s", requestedBackend)
 }
 
 func ValidBackend(backendName string) bool {

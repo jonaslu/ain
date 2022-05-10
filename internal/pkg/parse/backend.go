@@ -6,6 +6,7 @@ import (
 
 	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/data"
+	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
 func parseBackendSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
@@ -26,13 +27,19 @@ func parseBackendSection(template []sourceMarker, callData *data.Parse) *fatalMa
 		}
 	}
 
-	backendName := strings.ToLower(backendLines[0].lineContents)
+	requestedBackendName := strings.ToLower(backendLines[0].lineContents)
 
-	if !call.ValidBackend(backendName) {
-		return newFatalMarker(fmt.Sprintf("Unknown backend %s", backendName), backendLines[0])
+	if !call.ValidBackend(requestedBackendName) {
+		for backendName, _ := range call.ValidBackends {
+			if utils.LevenshteinDistance(requestedBackendName, backendName) < 3 {
+				return newFatalMarker(fmt.Sprintf("Unknown backend: %s. Did you mean %s", requestedBackendName, backendName), backendLines[0])
+			}
+		}
+
+		return newFatalMarker(fmt.Sprintf("Unknown backend %s", requestedBackendName), backendLines[0])
 	}
 
-	callData.Backend = backendName
+	callData.Backend = requestedBackendName
 
 	return nil
 }
