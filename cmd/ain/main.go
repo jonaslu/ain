@@ -16,7 +16,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
 
-var version = "1.2.2"
+var version = "1.3.0"
 var gitSha = "develop"
 
 const bashSignalCaughtBase = 128
