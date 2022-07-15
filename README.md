@@ -247,7 +247,7 @@ Including the text above.
 ## [Host]
 Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g `base.ain`) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g `login.ain`): `/api/auth/login`.
 
-It's recommended that you use the [[Query]](#Query) section below for query-parameters as it handles joining with delimiters and trimming whitespace, but you can put raw query-paramters in the [Host] section too of course. Any query-parameters added in the [[Query]](#Query) section are appended last to the URL. The whole URL is properly [url-encoded](#url-encoding) before passed to the backend.
+It's recommended that you use the [[Query]](#Query) section below for query-parameters as it handles joining with delimiters and trimming whitespace. You  can however put raw query-paramters in the [Host] section too. Any query-parameters added in the [[Query]](#Query) section are appended last to the URL. The whole URL is properly [url-encoded](#url-encoding) before passed to the backend. The [Host] section shall combine to one and only one valid URL. Multiple URLs is not supported.
 
 Ain performs no validation on the url (as backends differ on what a valid url looks like). If your call does not go through use `ain -p` as mentioned in [troubleshooting](#troubleshooting) and input that directly into the backend to see what it thinks it means.
 
