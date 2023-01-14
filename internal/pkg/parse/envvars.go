@@ -13,7 +13,8 @@ const maximimLevenshteinDistance = 2
 const maximumNumberOfSuggestions = 3
 
 var envVarExpressionRe = regexp.MustCompile(`(m?)\${[^}]*}?`)
-var envVarKeyRe = regexp.MustCompile(`\${([^}]*)}`)
+var envVarKeyRe = regexp.MustCompile(`\${([^:}]*)[}:]`)
+var envVarDefaultValueRe = regexp.MustCompile(`\:([^}]*)}`)
 
 func formatMissingEnvVarErrorMessage(missingEnvVar string) string {
 	suggestions := []string{}
@@ -72,7 +73,13 @@ func transformEnvVars(templateLines []sourceMarker) ([]sourceMarker, []*fatalMar
 			value, exists := os.LookupEnv(envVarKey)
 
 			if !exists {
-				fatals = append(fatals, newFatalMarker(formatMissingEnvVarErrorMessage(envVarKey), templateLine))
+				envVarDefaultValue := envVarDefaultValueRe.FindStringSubmatch(envVarWithBrackets)
+				if len(envVarDefaultValue) != 2 {
+					fatals = append(fatals, newFatalMarker(formatMissingEnvVarErrorMessage(envVarKey), templateLine))
+					continue
+				} else {
+					lineContents = strings.Replace(lineContents, envVarWithBrackets, envVarDefaultValue[1], 1)
+				}
 			} else {
 				if value == "" {
 					fatals = append(fatals, newFatalMarker(fmt.Sprintf("Value for variable %s is empty", envVarKey), templateLine))

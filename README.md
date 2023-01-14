@@ -391,6 +391,8 @@ This enables you to specify things that vary across API calls either permanently
 
 Environment-variables are expanded first and can be used with any executable. Example `$(cat ${ENV}/token.json)`.
 
+Also it allows to specify a default value to be used in case the environment-variable doesn't hold any value, the syntax for this is `${ENVVARNAME:default_value}`.
+
 Ain uses [envparse](https://github.com/hashicorp/go-envparse) for parsing environment variables.
 
 # Executables
