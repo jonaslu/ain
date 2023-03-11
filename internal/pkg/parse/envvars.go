@@ -9,7 +9,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-const maximimLevenshteinDistance = 2
+const maximumLevenshteinDistance = 2
 const maximumNumberOfSuggestions = 3
 
 var envVarExpressionRe = regexp.MustCompile(`(m?)\${[^}]*}?`)
@@ -26,11 +26,11 @@ func formatMissingEnvVarErrorMessage(missingEnvVar string) string {
 			strLength = -strLength
 		}
 
-		if strLength > maximimLevenshteinDistance {
+		if strLength > maximumLevenshteinDistance {
 			continue
 		}
 
-		if utils.LevenshteinDistance(missingEnvVar, key) <= maximimLevenshteinDistance {
+		if utils.LevenshteinDistance(missingEnvVar, key) <= maximumLevenshteinDistance {
 			suggestions = append(suggestions, key)
 
 			if len(suggestions) >= maximumNumberOfSuggestions {
