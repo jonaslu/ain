@@ -421,6 +421,13 @@ Cannot find value for variable PORT on line 2:
 3
 ```
 
+# Quoting
+Quoting in bash is hard and therefore ain tries avoid it. There are four places where it might be necessary: Arguments to executables, backend options, invoking the $VISUAL or $EDITOR command and when passing template-names via a pipe into ain. All for the same reasons as bash: a word is an argument to something and a whitespace is the delimiter to the next argument. If whitespace is part of the argument it must be explicit.
+
+The canonical example of when quoting is needed is doing more complex things involving pipes. E g `$(sh -c 'find . | fzf -m | xargs echo')`.
+
+Quoting is kept simple, you can use ' or ". There is only one escape-sequence (\' and \" respectively) to insert a quote inside a quoted string of the same type. You can avoid when possible by selecting the other quote character (e g 'I need a " inside this string').
+
 # URL-encoding
 [URL-encoding](https://en.wikipedia.org/wiki/Percent-encoding) is something ain tries hard to take care of for you. Both the path and the query-section of an url is scanned and any non-valid charaters are encoded while already legal encodings (format `%<hex><hex>` and `+` for the query string) are kept as is.
 
