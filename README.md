@@ -316,9 +316,9 @@ POST
 The [Method] section is overridden by latter template files.
 
 ## [Body]
-If the API call needs a body (as in the POST or PATCH http methods) the content of this section is passed as a file to the backend with the formatting retained from the [Body] section. Ain uses files instead of passing the [Body] as a command-line parameter because white-space may be important (e g yaml) and this section tends to be long.
+If the API call needs a body (as in the POST or PATCH http methods) the content of this section is passed as a file to the backend with the formatting retained from the [Body] section. Ain uses files to pass the [Body] contents because white-space may be important (e g yaml) and this section tends to be long.
 
-The file passed to the backend is removed after the API call unless you pass the `-l` flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPFILE` if you'd like them elsewhere.
+The file passed to the backend is removed after the API call unless you pass the `-l` (as in leave) flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPFILE` if you'd like them elsewhere.
 
 Example:
 ```
@@ -327,6 +327,8 @@ Example:
   "some": "json"
 }
 ```
+
+Passing print command `-p` (as in print) flag will cause ain to write out the file in the directory where ain is invoked (`cwd`) and leave the file after completion. The `-p` flag is for [[sharing]](#sharing-is-caring) and for [[troubleshooting]](#troubleshooting). Leaving the body file makes the resulting printed command shareable and runnable. 
 
 The [Body] section is overridden by latter template files.
 
@@ -460,13 +462,16 @@ Piping it into bash is equivalent to running the command without `-p`.
 ain -p base.ain create-blog-post.ain | bash
 ```
 
+Any content within the [[Body]](#Body) section when passing the flag `-p` will be written to a file in the current working directory where ain is invoked. The file is not removed after ain completes. See [[Body]](#body) for details.
+
+# Hanlding line endings
 A note on line-endings. Ain uses line-feed (\n) when printing it's output. If you're on windows and storing ain:s result to a file, this
 may cause trouble. Instead of trying to guess what line ending we're on (WSL, docker, cygwin etc makes this a wild goose chase), you'll have to manually convert them if the receiving program complains.
 
 Instructions here: https://stackoverflow.com/a/19914445/1574968
 
 # Troubleshooting
-If the templates are valid but the actual call still fails, adding the `-p` flag will show you what the command ain tries to run looks like. Running this yourself in a terminal might give you more clues to what's wrong.
+If the templates are valid but the actual backend call fails, passing the `-p` flag will show you  the command ain tries to run. Invoking this yourself in a terminal might give you more clues to what's wrong.
 
 # Ain in a bigger context
 But wait! There's more!
