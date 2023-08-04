@@ -49,6 +49,11 @@ func TestTokenizeLineGoodCases(t *testing.T) {
 			`wo"  rd  "`,
 			[]string{`wo  rd  `},
 		},
+
+		`quote and quote back to back`: {
+			`"word""word"`,
+			[]string{`wordword`},
+		},
 	}
 
 	for name, test := range tests {
