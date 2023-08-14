@@ -41,8 +41,8 @@ func mergeCallData(dest, merge *data.Parse) {
 	}
 }
 
-func getCallData(parse *data.Parse) (*data.Call, []string) {
-	callData := data.Call{}
+func newBackendInput(parse *data.Parse) (*data.BackendInput, []string) {
+	backendInput := data.BackendInput{}
 	fatals := []string{}
 
 	if len(parse.Host) == 0 {
@@ -55,7 +55,7 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", hostStr, err))
 		} else {
 			addQueryString(host, parse)
-			callData.Host = host
+			backendInput.Host = host
 		}
 	}
 
@@ -63,14 +63,14 @@ func getCallData(parse *data.Parse) (*data.Call, []string) {
 		fatals = append(fatals, "No mandatory [Backend] section found")
 	}
 
-	callData.Body = parse.Body
-	callData.Method = parse.Method
-	callData.Headers = parse.Headers
-	callData.Backend = parse.Backend
-	callData.BackendOptions = parse.BackendOptions
-	callData.Config = parse.Config
+	backendInput.Body = parse.Body
+	backendInput.Method = parse.Method
+	backendInput.Headers = parse.Headers
+	backendInput.Backend = parse.Backend
+	backendInput.BackendOptions = parse.BackendOptions
+	backendInput.Config = parse.Config
 
-	return &callData, fatals
+	return &backendInput, fatals
 }
 
 func appendFatalMessages(fatalMessage, filename string, fatals []string) string {
@@ -90,7 +90,7 @@ func appendFatalMessages(fatalMessage, filename string, fatals []string) string 
 	return fatalMessage + strings.Join(fatals, "\n")
 }
 
-func Assemble(ctx context.Context, filenames []string) (*data.Call, string, error) {
+func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
 	fatals := ""
 
 	parseData := &data.Parse{}
@@ -116,10 +116,10 @@ func Assemble(ctx context.Context, filenames []string) (*data.Call, string, erro
 		return nil, fatals, nil
 	}
 
-	callData, validationFatals := getCallData(parseData)
+	backendInput, validationFatals := newBackendInput(parseData)
 	if len(validationFatals) > 0 {
 		fatals = appendFatalMessages(fatals, "", validationFatals)
 	}
 
-	return callData, fatals, nil
+	return backendInput, fatals, nil
 }

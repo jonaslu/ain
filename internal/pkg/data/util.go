@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (data Call) GetBodyAsTempFile(tmpDir string) (*os.File, error) {
+func (data BackendInput) GetBodyAsTempFile(tmpDir string) (*os.File, error) {
 	bodyStr := strings.Join(data.Body, "\n")
 
 	tmpFile, err := ioutil.TempFile(tmpDir, "ain-body")

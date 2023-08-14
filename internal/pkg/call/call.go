@@ -18,7 +18,7 @@ type BackedErr struct {
 
 type backendConstructor struct {
 	BinaryName  string
-	constructor func(*data.Call, string) backend
+	constructor func(*data.BackendInput, string) backend
 }
 
 var ValidBackends = map[string]backendConstructor{
@@ -46,11 +46,11 @@ type backend interface {
 	cleanUp() error
 }
 
-func getBackend(callData *data.Call) (backend, error) {
-	requestedBackend := callData.Backend
+func getBackend(backendInput *data.BackendInput) (backend, error) {
+	requestedBackend := backendInput.Backend
 
 	if backendConstructor, exists := ValidBackends[requestedBackend]; exists {
-		return backendConstructor.constructor(callData, backendConstructor.BinaryName), nil
+		return backendConstructor.constructor(backendInput, backendConstructor.BinaryName), nil
 	}
 
 	return nil, errors.Errorf("Unknown backend: %s", requestedBackend)
@@ -64,15 +64,15 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCommand bool) (string, error) {
+func CallBackend(ctx context.Context, backendInput *data.BackendInput, leaveTmpFile, printCommand bool) (string, error) {
 	backendTimeoutContext := ctx
-	if callData.Config.Timeout != data.TimeoutNotSet {
-		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
+	if backendInput.Config.Timeout != data.TimeoutNotSet {
+		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(backendInput.Config.Timeout)*time.Second)
 	}
 
-	backend, err := getBackend(callData)
+	backend, err := getBackend(backendInput)
 	if err != nil {
-		return "", errors.Wrapf(err, "Could not instantiate backend: %s", callData.Backend)
+		return "", errors.Wrapf(err, "Could not instantiate backend: %s", backendInput.Backend)
 	}
 
 	if printCommand {
@@ -90,20 +90,20 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 
 	if backendTimeoutContext.Err() == context.DeadlineExceeded {
 		return "", utils.CascadeErrorMessage(
-			errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout),
+			errors.Errorf("Backend-call: %s timed out after %d seconds", backendInput.Backend, backendInput.Config.Timeout),
 			removeTmpFileErr,
 		)
 	}
 
 	if err != nil {
 		return "", utils.CascadeErrorMessage(
-			errors.Wrapf(err, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output))),
+			errors.Wrapf(err, "Error running: %s\n%s", backendInput.Backend, strings.TrimSpace(string(output))),
 			removeTmpFileErr,
 		)
 	}
 
 	if removeTmpFileErr != nil {
-		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output)))
+		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", backendInput.Backend, strings.TrimSpace(string(output)))
 	}
 
 	return string(output), nil

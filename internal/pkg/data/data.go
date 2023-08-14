@@ -24,7 +24,7 @@ type Parse struct {
 	Config Config
 }
 
-type Call struct {
+type BackendInput struct {
 	Host    *url.URL
 	Body    []string
 	Method  string

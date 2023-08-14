@@ -98,7 +98,7 @@ Project home page: https://github.com/jonaslu/ain`
 		cancel()
 	}()
 
-	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames)
+	backendInput, fatal, err := assemble.Assemble(ctx, localTemplateFileNames)
 	if err != nil {
 		checkSignalRaisedAndExit(ctx, signalRaised)
 
@@ -112,7 +112,7 @@ Project home page: https://github.com/jonaslu/ain`
 		os.Exit(1)
 	}
 
-	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile, printCommand)
+	backendOutput, err := call.CallBackend(ctx, backendInput, leaveTmpFile, printCommand)
 	if err != nil {
 		checkSignalRaisedAndExit(ctx, signalRaised)
 

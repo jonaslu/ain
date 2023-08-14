@@ -12,15 +12,15 @@ import (
 )
 
 type httpie struct {
-	callData    *data.Call
-	tmpFileName string
-	binaryName  string
+	backendInput *data.BackendInput
+	tmpFileName  string
+	binaryName   string
 }
 
-func prependIgnoreStdin(callData *data.Call) {
+func prependIgnoreStdin(backendInput *data.BackendInput) {
 	var foundIgnoreStdin bool
 
-	for _, backendOptionLine := range callData.BackendOptions {
+	for _, backendOptionLine := range backendInput.BackendOptions {
 		for _, backendOption := range backendOptionLine {
 			if backendOption == "--ignore-stdin" {
 				foundIgnoreStdin = true
@@ -30,24 +30,24 @@ func prependIgnoreStdin(callData *data.Call) {
 	}
 
 	if !foundIgnoreStdin {
-		callData.BackendOptions = append([][]string{{"--ignore-stdin"}}, callData.BackendOptions...)
+		backendInput.BackendOptions = append([][]string{{"--ignore-stdin"}}, backendInput.BackendOptions...)
 	}
 }
 
-func newHttpieBackend(callData *data.Call, binaryName string) backend {
-	prependIgnoreStdin(callData)
+func newHttpieBackend(backendInput *data.BackendInput, binaryName string) backend {
+	prependIgnoreStdin(backendInput)
 	return &httpie{
-		callData:   callData,
-		binaryName: binaryName,
+		backendInput: backendInput,
+		binaryName:   binaryName,
 	}
 }
 
 func (httpie *httpie) getMethodArgument() string {
-	return strings.ToUpper(httpie.callData.Method)
+	return strings.ToUpper(httpie.backendInput.Method)
 }
 
 func (httpie *httpie) getBodyArgument(tmpDir string) (string, error) {
-	tmpFile, err := httpie.callData.GetBodyAsTempFile(tmpDir)
+	tmpFile, err := httpie.backendInput.GetBodyAsTempFile(tmpDir)
 	if err != nil {
 		return "", err
 	}
@@ -58,18 +58,18 @@ func (httpie *httpie) getBodyArgument(tmpDir string) (string, error) {
 
 func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 	args := []string{}
-	for _, backendOpt := range httpie.callData.BackendOptions {
+	for _, backendOpt := range httpie.backendInput.BackendOptions {
 		args = append(args, backendOpt...)
 	}
 
-	if httpie.callData.Method != "" {
+	if httpie.backendInput.Method != "" {
 		args = append(args, httpie.getMethodArgument())
 	}
 
-	args = append(args, httpie.callData.Host.String())
-	args = append(args, httpie.callData.Headers...)
+	args = append(args, httpie.backendInput.Host.String())
+	args = append(args, httpie.backendInput.Headers...)
 
-	if len(httpie.callData.Body) > 0 {
+	if len(httpie.backendInput.Body) > 0 {
 		bodyArg, err := httpie.getBodyArgument("")
 
 		if err != nil {
@@ -94,7 +94,7 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 
 func (httpie *httpie) getAsString() (string, error) {
 	args := [][]string{}
-	for _, optionLine := range httpie.callData.BackendOptions {
+	for _, optionLine := range httpie.backendInput.BackendOptions {
 		lineArguments := []string{}
 		for _, option := range optionLine {
 			lineArguments = append(lineArguments, utils.EscapeForShell(option))
@@ -102,17 +102,17 @@ func (httpie *httpie) getAsString() (string, error) {
 		args = append(args, lineArguments)
 	}
 
-	if httpie.callData.Method != "" {
+	if httpie.backendInput.Method != "" {
 		args = append(args, []string{utils.EscapeForShell(httpie.getMethodArgument())})
 	}
 
-	args = append(args, []string{utils.EscapeForShell(httpie.callData.Host.String())})
+	args = append(args, []string{utils.EscapeForShell(httpie.backendInput.Host.String())})
 
-	for _, header := range httpie.callData.Headers {
+	for _, header := range httpie.backendInput.Headers {
 		args = append(args, []string{utils.EscapeForShell(header)})
 	}
 
-	if len(httpie.callData.Body) > 0 {
+	if len(httpie.backendInput.Body) > 0 {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return "", errors.Wrap(err, "Could not get current working dir, cannot store body temp-file")
