@@ -97,12 +97,12 @@ func Assemble(ctx context.Context, filenames []string) (*data.Call, string, erro
 	parseData.Config.Timeout = data.TimeoutNotSet
 
 	for _, filename := range filenames {
-		template, err := disk.ReadTemplate(filename)
+		rawTemplateString, err := disk.ReadRawTemplateString(filename)
 		if err != nil {
 			return nil, "", err
 		}
 
-		fileCallData, fileFatals := parse.ParseTemplate(ctx, template)
+		fileCallData, fileFatals := parse.ParseTemplate(ctx, rawTemplateString)
 		if len(fileFatals) > 0 {
 			fatals = appendFatalMessages(fatals, filename, fileFatals)
 		}

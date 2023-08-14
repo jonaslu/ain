@@ -48,10 +48,10 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	return strippedLines, templateLines
 }
 
-func ParseTemplate(ctx context.Context, template string) (*data.Parse, []string) {
+func ParseTemplate(ctx context.Context, rawTemplateString string) (*data.Parse, []string) {
 	var fatals []string
 
-	trimmedTemplate, templateLines := trimTemplate(template)
+	trimmedTemplate, templateLines := trimTemplate(rawTemplateString)
 	if len(trimmedTemplate) == 0 {
 		return nil, []string{"Cannot process empty template"}
 	}
