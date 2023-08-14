@@ -4,7 +4,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
-func parseHostSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
+func parseHostSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
 	captureResult, captureErr := captureSection("Host", template, true)
 	if captureErr != nil {
 		return captureErr
@@ -15,7 +15,7 @@ func parseHostSection(template []sourceMarker, callData *data.Parse) *fatalMarke
 	}
 
 	for _, hostLine := range captureResult.sectionLines {
-		callData.Host = append(callData.Host, hostLine.lineContents)
+		parsedTemplate.Host = append(parsedTemplate.Host, hostLine.lineContents)
 	}
 
 	return nil

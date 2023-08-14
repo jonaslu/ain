@@ -11,7 +11,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
-func mergeCallData(dest, merge *data.Parse) {
+func mergeParsedTemplate(dest, merge *data.ParsedTemplate) {
 	dest.Host = append(dest.Host, merge.Host...)
 
 	dest.Query = append(dest.Query, merge.Query...)
@@ -41,34 +41,34 @@ func mergeCallData(dest, merge *data.Parse) {
 	}
 }
 
-func newBackendInput(parse *data.Parse) (*data.BackendInput, []string) {
+func newBackendInput(parsedTemplate *data.ParsedTemplate) (*data.BackendInput, []string) {
 	backendInput := data.BackendInput{}
 	fatals := []string{}
 
-	if len(parse.Host) == 0 {
+	if len(parsedTemplate.Host) == 0 {
 		fatals = append(fatals, "No mandatory [Host] section found")
 	} else {
-		hostStr := strings.Join(parse.Host, "")
+		hostStr := strings.Join(parsedTemplate.Host, "")
 		host, err := url.Parse(hostStr)
 
 		if err != nil {
 			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", hostStr, err))
 		} else {
-			addQueryString(host, parse)
+			addQueryString(host, parsedTemplate)
 			backendInput.Host = host
 		}
 	}
 
-	if parse.Backend == "" {
+	if parsedTemplate.Backend == "" {
 		fatals = append(fatals, "No mandatory [Backend] section found")
 	}
 
-	backendInput.Body = parse.Body
-	backendInput.Method = parse.Method
-	backendInput.Headers = parse.Headers
-	backendInput.Backend = parse.Backend
-	backendInput.BackendOptions = parse.BackendOptions
-	backendInput.Config = parse.Config
+	backendInput.Body = parsedTemplate.Body
+	backendInput.Method = parsedTemplate.Method
+	backendInput.Headers = parsedTemplate.Headers
+	backendInput.Backend = parsedTemplate.Backend
+	backendInput.BackendOptions = parsedTemplate.BackendOptions
+	backendInput.Config = parsedTemplate.Config
 
 	return &backendInput, fatals
 }
@@ -93,8 +93,8 @@ func appendFatalMessages(fatalMessage, filename string, fatals []string) string 
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
 	fatals := ""
 
-	parseData := &data.Parse{}
-	parseData.Config.Timeout = data.TimeoutNotSet
+	parsedTemplate := &data.ParsedTemplate{}
+	parsedTemplate.Config.Timeout = data.TimeoutNotSet
 
 	for _, filename := range filenames {
 		rawTemplateString, err := disk.ReadRawTemplateString(filename)
@@ -102,13 +102,13 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			return nil, "", err
 		}
 
-		fileCallData, fileFatals := parse.ParseTemplate(ctx, rawTemplateString)
+		template, fileFatals := parse.ParseTemplate(ctx, rawTemplateString)
 		if len(fileFatals) > 0 {
 			fatals = appendFatalMessages(fatals, filename, fileFatals)
 		}
 
 		if fatals == "" {
-			mergeCallData(parseData, fileCallData)
+			mergeParsedTemplate(parsedTemplate, template)
 		}
 	}
 
@@ -116,7 +116,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, fatals, nil
 	}
 
-	backendInput, validationFatals := newBackendInput(parseData)
+	backendInput, validationFatals := newBackendInput(parsedTemplate)
 	if len(validationFatals) > 0 {
 		fatals = appendFatalMessages(fatals, "", validationFatals)
 	}

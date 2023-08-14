@@ -7,7 +7,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func parseBackendOptionsSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
+func parseBackendOptionsSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
 	captureResult, captureFatal := captureSection("BackendOptions", template, true)
 	if captureFatal != nil {
 		return captureFatal
@@ -23,7 +23,7 @@ func parseBackendOptionsSection(template []sourceMarker, callData *data.Parse) *
 			return newFatalMarker(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backendOptionLineContents)
 		}
 
-		callData.BackendOptions = append(callData.BackendOptions, tokenizedBackendOpts)
+		parsedTemplate.BackendOptions = append(parsedTemplate.BackendOptions, tokenizedBackendOpts)
 	}
 
 	return nil

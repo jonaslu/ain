@@ -4,7 +4,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/data"
 )
 
-func parseQuerySection(template []sourceMarker, callData *data.Parse) *fatalMarker {
+func parseQuerySection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
 	captureResult, captureFatal := captureSection("Query", template, true)
 	if captureFatal != nil {
 		return captureFatal
@@ -21,7 +21,7 @@ func parseQuerySection(template []sourceMarker, callData *data.Parse) *fatalMark
 		query = append(query, queryLine.lineContents)
 	}
 
-	callData.Query = query
+	parsedTemplate.Query = query
 
 	return nil
 }

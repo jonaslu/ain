@@ -9,7 +9,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func parseBackendSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
+func parseBackendSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
 	captureResult, captureFatal := captureSection("Backend", template, true)
 	if captureFatal != nil {
 		return captureFatal
@@ -39,7 +39,7 @@ func parseBackendSection(template []sourceMarker, callData *data.Parse) *fatalMa
 		return newFatalMarker(fmt.Sprintf("Unknown backend %s", requestedBackendName), backendLines[0])
 	}
 
-	callData.Backend = requestedBackendName
+	parsedTemplate.Backend = requestedBackendName
 
 	return nil
 }

@@ -48,7 +48,7 @@ func trimTemplate(template string) ([]sourceMarker, []string) {
 	return strippedLines, templateLines
 }
 
-func ParseTemplate(ctx context.Context, rawTemplateString string) (*data.Parse, []string) {
+func ParseTemplate(ctx context.Context, rawTemplateString string) (*data.ParsedTemplate, []string) {
 	var fatals []string
 
 	trimmedTemplate, templateLines := trimTemplate(rawTemplateString)
@@ -66,14 +66,14 @@ func ParseTemplate(ctx context.Context, rawTemplateString string) (*data.Parse, 
 	}
 
 	// !! TODO !! If this gets worse, put it in  it's on initializer method
-	parseData := &data.Parse{}
-	parseData.Config.Timeout = data.TimeoutNotSet
+	parsedTemplate := &data.ParsedTemplate{}
+	parsedTemplate.Config.Timeout = data.TimeoutNotSet
 
-	if configFatal := parseConfigSection(envVarsTemplate, parseData); configFatal != nil {
+	if configFatal := parseConfigSection(envVarsTemplate, parsedTemplate); configFatal != nil {
 		return nil, []string{formatFatalMarker(configFatal, templateLines)}
 	}
 
-	executablesTemplate, executableFatals := transformExecutables(ctx, parseData.Config, envVarsTemplate)
+	executablesTemplate, executableFatals := transformExecutables(ctx, parsedTemplate.Config, envVarsTemplate)
 	if len(executableFatals) > 0 {
 		for _, transformFatalMarker := range executableFatals {
 			fatals = append(fatals, formatFatalMarker(transformFatalMarker, templateLines))
@@ -82,7 +82,7 @@ func ParseTemplate(ctx context.Context, rawTemplateString string) (*data.Parse, 
 		return nil, fatals
 	}
 
-	sectionParsers := []func([]sourceMarker, *data.Parse) *fatalMarker{
+	sectionParsers := []func([]sourceMarker, *data.ParsedTemplate) *fatalMarker{
 		parseHostSection,
 		parseQuerySection,
 		parseHeadersSection,
@@ -93,10 +93,10 @@ func ParseTemplate(ctx context.Context, rawTemplateString string) (*data.Parse, 
 	}
 
 	for _, sectionParser := range sectionParsers {
-		if callFatalMarker := sectionParser(executablesTemplate, parseData); callFatalMarker != nil {
+		if callFatalMarker := sectionParser(executablesTemplate, parsedTemplate); callFatalMarker != nil {
 			fatals = append(fatals, formatFatalMarker(callFatalMarker, templateLines))
 		}
 	}
 
-	return parseData, fatals
+	return parsedTemplate, fatals
 }

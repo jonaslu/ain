@@ -11,7 +11,7 @@ type Config struct {
 	QueryDelim *string
 }
 
-type Parse struct {
+type ParsedTemplate struct {
 	Host    []string
 	Query   []string
 	Body    []string

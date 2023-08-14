@@ -2,7 +2,7 @@ package parse
 
 import "github.com/jonaslu/ain/internal/pkg/data"
 
-func parseBodySection(template []sourceMarker, callData *data.Parse) *fatalMarker {
+func parseBodySection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
 	captureResult, captureFatal := captureSection("Body", template, false)
 	if captureFatal != nil {
 		return captureFatal
@@ -13,7 +13,7 @@ func parseBodySection(template []sourceMarker, callData *data.Parse) *fatalMarke
 	}
 
 	for _, bodyLineContents := range captureResult.sectionLines {
-		callData.Body = append(callData.Body, bodyLineContents.lineContents)
+		parsedTemplate.Body = append(parsedTemplate.Body, bodyLineContents.lineContents)
 	}
 
 	return nil

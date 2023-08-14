@@ -52,7 +52,7 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 	return true, int32(timeoutIntervalInt64), nil
 }
 
-func parseConfigSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
+func parseConfigSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
 	captureResult, captureErr := captureSection("Config", template, true)
 	if captureErr != nil {
 		return captureErr
@@ -66,7 +66,7 @@ func parseConfigSection(template []sourceMarker, callData *data.Parse) *fatalMar
 
 	for _, configLine := range configLines {
 		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.lineContents); isTimeoutConfig {
-			if callData.Config.Timeout > 0 {
+			if parsedTemplate.Config.Timeout > 0 {
 				return newFatalMarker("Timeout config set twice", configLine)
 			}
 
@@ -74,12 +74,12 @@ func parseConfigSection(template []sourceMarker, callData *data.Parse) *fatalMar
 				return newFatalMarker(err.Error(), configLine)
 			}
 
-			callData.Config.Timeout = timeoutValue
+			parsedTemplate.Config.Timeout = timeoutValue
 			continue
 		}
 
 		if isQueryDelim, queryDelimValue, err := parseQueryDelim(configLine.lineContents); isQueryDelim {
-			if callData.Config.QueryDelim != nil {
+			if parsedTemplate.Config.QueryDelim != nil {
 				return newFatalMarker("Query delimiter set twice", configLine)
 			}
 
@@ -87,7 +87,7 @@ func parseConfigSection(template []sourceMarker, callData *data.Parse) *fatalMar
 				return newFatalMarker(err.Error(), configLine)
 			}
 
-			callData.Config.QueryDelim = &queryDelimValue
+			parsedTemplate.Config.QueryDelim = &queryDelimValue
 			continue
 		}
 	}

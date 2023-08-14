@@ -2,7 +2,7 @@ package parse
 
 import "github.com/jonaslu/ain/internal/pkg/data"
 
-func parseHeadersSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
+func parseHeadersSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
 	captureResult, captureFatal := captureSection("Headers", template, true)
 	if captureFatal != nil {
 		return captureFatal
@@ -19,7 +19,7 @@ func parseHeadersSection(template []sourceMarker, callData *data.Parse) *fatalMa
 		headers = append(headers, headerLine.lineContents)
 	}
 
-	callData.Headers = headers
+	parsedTemplate.Headers = headers
 
 	return nil
 }
