@@ -3,16 +3,16 @@ package parse
 import "github.com/jonaslu/ain/internal/pkg/data"
 
 func parseBodySection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	captureResult, captureFatal := captureSection("Body", template, false)
+	sectionLines, captureFatal := captureSection("Body", template, false)
 	if captureFatal != nil {
 		return captureFatal
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
+	if len(sectionLines) == 0 {
 		return nil
 	}
 
-	for _, bodyLineContents := range captureResult.sectionLines {
+	for _, bodyLineContents := range sectionLines {
 		parsedTemplate.Body = append(parsedTemplate.Body, bodyLineContents.lineContents)
 	}
 

@@ -6,17 +6,12 @@ import (
 	"strings"
 )
 
-type captureResult struct {
-	sectionHeaderLine sourceMarker
-	sectionLines      []sourceMarker
-}
-
 const knownSectionHeaders = "host|query|headers|method|body|config|backend|backendoptions"
 
 var knownSectionsRe = regexp.MustCompile(`^\[(` + knownSectionHeaders + `)\]$`)
 var unescapeKnownSectionsRe = regexp.MustCompile(`^\\\[(` + knownSectionHeaders + `)\]$`)
 
-func captureSection(sectionName string, template []sourceMarker, trim bool) (*captureResult, *fatalMarker) {
+func captureSection(sectionName string, template []sourceMarker, trim bool) ([]sourceMarker, *fatalMarker) {
 	var sectionLines []sourceMarker
 	sectionHeaderLine := emptyLine
 	capturing := false
@@ -61,10 +56,5 @@ func captureSection(sectionName string, template []sourceMarker, trim bool) (*ca
 		return nil, newFatalMarker("Empty ["+sectionName+"] line", sectionHeaderLine)
 	}
 
-	captureResult := &captureResult{
-		sectionHeaderLine: sectionHeaderLine,
-		sectionLines:      sectionLines,
-	}
-
-	return captureResult, nil
+	return sectionLines, nil
 }

@@ -3,19 +3,17 @@ package parse
 import "github.com/jonaslu/ain/internal/pkg/data"
 
 func parseHeadersSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	captureResult, captureFatal := captureSection("Headers", template, true)
+	sectionLines, captureFatal := captureSection("Headers", template, true)
 	if captureFatal != nil {
 		return captureFatal
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
+	if len(sectionLines) == 0 {
 		return nil
 	}
 
-	headerLines := captureResult.sectionLines
-
 	headers := []string{}
-	for _, headerLine := range headerLines {
+	for _, headerLine := range sectionLines {
 		headers = append(headers, headerLine.lineContents)
 	}
 

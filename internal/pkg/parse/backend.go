@@ -10,33 +10,31 @@ import (
 )
 
 func parseBackendSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	captureResult, captureFatal := captureSection("Backend", template, true)
+	sectionLines, captureFatal := captureSection("Backend", template, true)
 	if captureFatal != nil {
 		return captureFatal
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
+	if len(sectionLines) == 0 {
 		return nil
 	}
 
-	backendLines := captureResult.sectionLines
-
-	if len(backendLines) > 1 {
-		for _, backendLine := range backendLines {
+	if len(sectionLines) > 1 {
+		for _, backendLine := range sectionLines {
 			return newFatalMarker("Found several lines under [Backend]", backendLine)
 		}
 	}
 
-	requestedBackendName := strings.ToLower(backendLines[0].lineContents)
+	requestedBackendName := strings.ToLower(sectionLines[0].lineContents)
 
 	if !call.ValidBackend(requestedBackendName) {
 		for backendName, _ := range call.ValidBackends {
 			if utils.LevenshteinDistance(requestedBackendName, backendName) < 3 {
-				return newFatalMarker(fmt.Sprintf("Unknown backend: %s. Did you mean %s", requestedBackendName, backendName), backendLines[0])
+				return newFatalMarker(fmt.Sprintf("Unknown backend: %s. Did you mean %s", requestedBackendName, backendName), sectionLines[0])
 			}
 		}
 
-		return newFatalMarker(fmt.Sprintf("Unknown backend %s", requestedBackendName), backendLines[0])
+		return newFatalMarker(fmt.Sprintf("Unknown backend %s", requestedBackendName), sectionLines[0])
 	}
 
 	parsedTemplate.Backend = requestedBackendName

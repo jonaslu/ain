@@ -8,16 +8,16 @@ import (
 )
 
 func parseBackendOptionsSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	captureResult, captureFatal := captureSection("BackendOptions", template, true)
+	sectionLines, captureFatal := captureSection("BackendOptions", template, true)
 	if captureFatal != nil {
 		return captureFatal
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
+	if len(sectionLines) == 0 {
 		return nil
 	}
 
-	for _, backendOptionLineContents := range captureResult.sectionLines {
+	for _, backendOptionLineContents := range sectionLines {
 		tokenizedBackendOpts, err := utils.TokenizeLine(backendOptionLineContents.lineContents)
 		if err != nil {
 			return newFatalMarker(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backendOptionLineContents)

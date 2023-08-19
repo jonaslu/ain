@@ -53,18 +53,16 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 }
 
 func parseConfigSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	captureResult, captureErr := captureSection("Config", template, true)
+	sectionLines, captureErr := captureSection("Config", template, true)
 	if captureErr != nil {
 		return captureErr
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
+	if len(sectionLines) == 0 {
 		return nil
 	}
 
-	configLines := captureResult.sectionLines
-
-	for _, configLine := range configLines {
+	for _, configLine := range sectionLines {
 		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.lineContents); isTimeoutConfig {
 			if parsedTemplate.Config.Timeout > 0 {
 				return newFatalMarker("Timeout config set twice", configLine)

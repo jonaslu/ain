@@ -5,19 +5,17 @@ import (
 )
 
 func parseQuerySection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	captureResult, captureFatal := captureSection("Query", template, true)
+	sectionLines, captureFatal := captureSection("Query", template, true)
 	if captureFatal != nil {
 		return captureFatal
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
+	if len(sectionLines) == 0 {
 		return nil
 	}
 
-	queryLines := captureResult.sectionLines
-
 	query := []string{}
-	for _, queryLine := range queryLines {
+	for _, queryLine := range sectionLines {
 		query = append(query, queryLine.lineContents)
 	}
 

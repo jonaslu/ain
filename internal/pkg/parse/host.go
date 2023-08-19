@@ -5,16 +5,16 @@ import (
 )
 
 func parseHostSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	captureResult, captureErr := captureSection("Host", template, true)
+	sectionLines, captureErr := captureSection("Host", template, true)
 	if captureErr != nil {
 		return captureErr
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
+	if len(sectionLines) == 0 {
 		return nil
 	}
 
-	for _, hostLine := range captureResult.sectionLines {
+	for _, hostLine := range sectionLines {
 		parsedTemplate.Host = append(parsedTemplate.Host, hostLine.lineContents)
 	}
 
