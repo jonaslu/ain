@@ -68,7 +68,7 @@ func captureEditorOutput(tempFile *os.File) (string, error) {
 	return string(tempFileContents), nil
 }
 
-func readEditedTemplate(sourceTemplateFileName string) (str string, err error) {
+func readEditedTemplate(sourceTemplateFileName string) (string, error) {
 	sourceTemplate, err := os.Open(sourceTemplateFileName)
 	if err != nil {
 		return "", errors.Wrapf(err, "Cannot open source template file %s", sourceTemplateFileName)
@@ -92,8 +92,8 @@ func readEditedTemplate(sourceTemplateFileName string) (str string, err error) {
 		}
 	}()
 
-	writtenLen, err := io.Copy(tempFile, sourceTemplate)
-	if writtenLen == 0 {
+	_, err = io.Copy(tempFile, sourceTemplate)
+	if err != nil {
 		return "", errors.Wrap(err, "Cannot copy source template file to temp-file")
 	}
 
