@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -26,7 +27,10 @@ type Sections struct {
 	BackendOptionsSection []SourceMarker
 	DefaultVars           []SourceMarker
 
+	fatals []string
+
 	rawTemplateLines []string
+	filename         string
 }
 
 type capturedSection struct {
@@ -55,8 +59,12 @@ func getSectionHeading(rawTemplateLine string) string {
 
 func NewSections(rawTemplateString, filename string) *Sections {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
-	sections := Sections{rawTemplateLines: rawTemplateLines}
+	sections := Sections{
+		rawTemplateLines: rawTemplateLines,
+		filename:         filename,
+	}
 
+	templateEmpty := true
 	capturedSections := []capturedSection{}
 	currentSectionLines := &[]SourceMarker{}
 
@@ -87,10 +95,14 @@ func NewSections(rawTemplateString, filename string) *Sections {
 			SourceLineIndex: sourceIndex,
 		}
 
+		templateEmpty = false
+
 		*currentSectionLines = append(*currentSectionLines, sourceMarker)
 	}
 
-	spew.Dump(capturedSections)
+	if templateEmpty {
+		sections.fatals = []string{"Cannot process empty template"}
+	}
 
 	return &sections
 }
@@ -104,6 +116,11 @@ func main() {
 			panic(err)
 		}
 
-		NewSections(template, filename)
+		sections := NewSections(template, filename)
+		if sections.HasFatalMessages() {
+			fmt.Println(sections.GetFatalMessages())
+		} else {
+			spew.Dump(sections)
+		}
 	}
 }
