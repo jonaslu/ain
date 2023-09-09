@@ -57,13 +57,30 @@ func getSectionHeading(rawTemplateLine string) string {
 	return ""
 }
 
-func NewSections(rawTemplateString, filename string) *Sections {
-	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
-	sections := Sections{
-		rawTemplateLines: rawTemplateLines,
-		filename:         filename,
+func checkValidHeadings(capturedSections []capturedSection, sections *Sections) {
+	// Keeps "header": [1,5,7] <- Name of heading and on what lines in the file
+	headingDefinitionSourceLines := map[string][]int{}
+
+	for _, capturedSection := range capturedSections {
+		if len(*capturedSection.sectionLines) == 0 {
+			sections.SetFatalMessage(fmt.Sprintf("Empty %s section", capturedSection.heading), capturedSection.headingSourceLineIndex)
+		}
+
+		headingDefinitionSourceLines[capturedSection.heading] = append(headingDefinitionSourceLines[capturedSection.heading], capturedSection.headingSourceLineIndex)
 	}
 
+	// !! TODO !! We now know the sourceLineIndex where multiple headings
+	// are defined so we can print this more nicely
+	for heading, headingSourceLineIndex := range headingDefinitionSourceLines {
+		if len(headingSourceLineIndex) > 1 {
+			sections.fatals = append(
+				sections.fatals,
+				fmt.Sprintf("Several %s sections found on line %d and %d", heading, headingSourceLineIndex[0]+1, headingSourceLineIndex[1]+1))
+		}
+	}
+}
+
+func getCapturedSections(rawTemplateLines []string) ([]capturedSection, bool) {
 	templateEmpty := true
 	capturedSections := []capturedSection{}
 	currentSectionLines := &[]SourceMarker{}
@@ -83,6 +100,8 @@ func NewSections(rawTemplateString, filename string) *Sections {
 				sectionLines:           currentSectionLines,
 			})
 
+			templateEmpty = false
+
 			continue
 		}
 
@@ -95,13 +114,26 @@ func NewSections(rawTemplateString, filename string) *Sections {
 			SourceLineIndex: sourceIndex,
 		}
 
-		templateEmpty = false
-
 		*currentSectionLines = append(*currentSectionLines, sourceMarker)
 	}
 
+	return capturedSections, templateEmpty
+}
+
+func NewSections(rawTemplateString, filename string) *Sections {
+	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
+	sections := Sections{
+		rawTemplateLines: rawTemplateLines,
+		filename:         filename,
+	}
+
+	capturedSections, templateEmpty := getCapturedSections(rawTemplateLines)
+
 	if templateEmpty {
+		// !! TODO !! Change to no valid headings found, it can be full of stuff
 		sections.fatals = []string{"Cannot process empty template"}
+	} else {
+		checkValidHeadings(capturedSections, &sections)
 	}
 
 	return &sections
