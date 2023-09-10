@@ -47,6 +47,40 @@ var unescapeKnownSectionsRe = regexp.MustCompile(`(?i)^\s*\\\[(` + knownSectionH
 var removeTrailingCommendRegExp = regexp.MustCompile("#.*$")
 var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
 
+func trimSourceMarkerLines(sourceMarkers *[]SourceMarker) *[]SourceMarker {
+	for idx := range *sourceMarkers {
+		sourceMarker := &(*sourceMarkers)[idx]
+		sourceMarker.LineContents = strings.TrimSpace(sourceMarker.LineContents)
+	}
+
+	return sourceMarkers
+}
+
+func (s *Sections) setCapturedSections(capturedSections []capturedSection) {
+	for _, capturedSection := range capturedSections {
+		switch capturedSection.heading {
+		case "config":
+			s.ConfigSection = *trimSourceMarkerLines(capturedSection.sectionLines)
+		case "host":
+			s.HostSection = *trimSourceMarkerLines(capturedSection.sectionLines)
+		case "query":
+			s.QuerySection = *trimSourceMarkerLines(capturedSection.sectionLines)
+		case "headers":
+			s.HeadersSection = *trimSourceMarkerLines(capturedSection.sectionLines)
+		case "method":
+			s.MethodSection = *trimSourceMarkerLines(capturedSection.sectionLines)
+		case "body":
+			s.BodySection = *capturedSection.sectionLines
+		case "backend":
+			s.BackendSection = *trimSourceMarkerLines(capturedSection.sectionLines)
+		case "backendoptions":
+			s.BackendOptionsSection = *trimSourceMarkerLines(capturedSection.sectionLines)
+		case "defaultvars":
+			s.DefaultVars = *trimSourceMarkerLines(capturedSection.sectionLines)
+		}
+	}
+}
+
 func getSectionHeading(rawTemplateLine string) string {
 	matchedLine := knownSectionsRe.FindStringSubmatch(rawTemplateLine)
 
@@ -134,6 +168,10 @@ func NewSections(rawTemplateString, filename string) *Sections {
 		sections.fatals = []string{"Cannot process empty template"}
 	} else {
 		checkValidHeadings(capturedSections, &sections)
+	}
+
+	if !sections.HasFatalMessages() {
+		sections.setCapturedSections(capturedSections)
 	}
 
 	return &sections
