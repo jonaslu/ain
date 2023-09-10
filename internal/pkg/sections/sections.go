@@ -1,14 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
-
-	"github.com/davecgh/go-spew/spew"
-	"github.com/jonaslu/ain/internal/pkg/disk"
 )
 
 type SourceMarker struct {
@@ -175,22 +171,4 @@ func NewSections(rawTemplateString, filename string) *Sections {
 	}
 
 	return &sections
-}
-
-func main() {
-	flag.Parse()
-	filenames := flag.Args()
-	for _, filename := range filenames {
-		template, err := disk.ReadRawTemplateString(filename)
-		if err != nil {
-			panic(err)
-		}
-
-		sections := NewSections(template, filename)
-		if sections.HasFatalMessages() {
-			fmt.Println(sections.GetFatalMessages())
-		} else {
-			spew.Dump(sections)
-		}
-	}
 }
