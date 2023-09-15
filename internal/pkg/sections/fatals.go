@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func (s *Sections) SetFatalMessage(msg string, sourceLineIndex int) {
+func (s *SectionedTemplate) SetFatalMessage(msg string, sourceLineIndex int) {
 	var templateContext []string
 
 	errorLine := sourceLineIndex
@@ -27,7 +27,7 @@ func (s *Sections) SetFatalMessage(msg string, sourceLineIndex int) {
 	s.fatals = append(s.fatals, message)
 }
 
-func (s *Sections) GetFatalMessages() string {
+func (s *SectionedTemplate) GetFatalMessages() string {
 	fatalMessage := "Fatal error"
 	if len(s.fatals) > 1 {
 		fatalMessage = fatalMessage + "s"
@@ -38,6 +38,6 @@ func (s *Sections) GetFatalMessages() string {
 	return fatalMessage + strings.Join(s.fatals, "\n")
 }
 
-func (s *Sections) HasFatalMessages() bool {
+func (s *SectionedTemplate) HasFatalMessages() bool {
 	return len(s.fatals) > 0
 }

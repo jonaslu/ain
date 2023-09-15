@@ -24,7 +24,7 @@ const (
 	DefaultVarsSection    = "defaultvars"
 )
 
-type Sections struct {
+type SectionedTemplate struct {
 	sections map[string]*[]SourceMarker
 
 	fatals []string
@@ -68,7 +68,7 @@ func trimSourceMarkerLines(sourceMarkers *[]SourceMarker) *[]SourceMarker {
 	return sourceMarkers
 }
 
-func (s *Sections) setCapturedSections(capturedSections []capturedSection) {
+func (s *SectionedTemplate) setCapturedSections(capturedSections []capturedSection) {
 	for _, capturedSection := range capturedSections {
 		if capturedSection.heading == BodySection {
 			s.sections[capturedSection.heading] = capturedSection.sectionLines
@@ -88,7 +88,7 @@ func getSectionHeading(rawTemplateLine string) string {
 	return ""
 }
 
-func checkValidHeadings(capturedSections []capturedSection, sections *Sections) {
+func checkValidHeadings(capturedSections []capturedSection, sections *SectionedTemplate) {
 	// Keeps "header": [1,5,7] <- Name of heading and on what lines in the file
 	headingDefinitionSourceLines := map[string][]int{}
 
@@ -151,9 +151,9 @@ func getCapturedSections(rawTemplateLines []string) ([]capturedSection, bool) {
 	return capturedSections, templateEmpty
 }
 
-func NewSections(rawTemplateString, filename string) *Sections {
+func NewSections(rawTemplateString, filename string) *SectionedTemplate {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
-	sections := Sections{
+	sectionedTemplate := SectionedTemplate{
 		sections:         map[string]*[]SourceMarker{},
 		rawTemplateLines: rawTemplateLines,
 		filename:         filename,
@@ -163,14 +163,14 @@ func NewSections(rawTemplateString, filename string) *Sections {
 
 	if templateEmpty {
 		// !! TODO !! Change to no valid headings found, it can be full of stuff
-		sections.fatals = []string{"Cannot process empty template"}
+		sectionedTemplate.fatals = []string{"Cannot process empty template"}
 	} else {
-		checkValidHeadings(capturedSections, &sections)
+		checkValidHeadings(capturedSections, &sectionedTemplate)
 	}
 
-	if !sections.HasFatalMessages() {
-		sections.setCapturedSections(capturedSections)
+	if !sectionedTemplate.HasFatalMessages() {
+		sectionedTemplate.setCapturedSections(capturedSections)
 	}
 
-	return &sections
+	return &sectionedTemplate
 }

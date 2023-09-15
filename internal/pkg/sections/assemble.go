@@ -12,7 +12,7 @@ import (
 )
 
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
-	allSections := []*Sections{}
+	allSectionedTemplates := []*SectionedTemplate{}
 	fatals := []string{}
 
 	for _, filename := range filenames {
@@ -23,10 +23,10 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			return nil, "", err
 		}
 
-		if sections := NewSections(rawTemplateString, filename); sections.HasFatalMessages() {
-			fatals = append(fatals, sections.GetFatalMessages())
+		if sectionedTemplate := NewSections(rawTemplateString, filename); sectionedTemplate.HasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
 		} else {
-			allSections = append(allSections, sections)
+			allSectionedTemplates = append(allSectionedTemplates, sectionedTemplate)
 		}
 	}
 
@@ -43,7 +43,7 @@ func main() {
 	flag.Parse()
 	filenames := flag.Args()
 
-	backendInput, fatals, err := Assemble(context.TODO(), filenames)
+	_, fatals, err := Assemble(context.TODO(), filenames)
 	if err != nil {
 		panic(err)
 	}
