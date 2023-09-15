@@ -34,7 +34,17 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	spew.Dump(allSections)
+	for _, sectionedTemplate := range allSectionedTemplates {
+		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.HasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		}
+	}
+
+	if len(fatals) > 0 {
+		return nil, strings.Join(fatals, "\n\n"), nil
+	}
+
+	spew.Dump(allSectionedTemplates)
 
 	return nil, "", nil
 }
