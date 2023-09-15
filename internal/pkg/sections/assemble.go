@@ -12,10 +12,8 @@ import (
 )
 
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
+	allSections := []*Sections{}
 	fatals := []string{}
-
-	parsedTemplate := &data.ParsedTemplate{}
-	parsedTemplate.Config.Timeout = data.TimeoutNotSet
 
 	for _, filename := range filenames {
 		// !! TODO !! The file-name will be displayed as test.ain! <- Remove the exclamation-mark
@@ -25,15 +23,18 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			return nil, "", err
 		}
 
-		sections := NewSections(rawTemplateString, filename)
-		if sections.HasFatalMessages() {
+		if sections := NewSections(rawTemplateString, filename); sections.HasFatalMessages() {
 			fatals = append(fatals, sections.GetFatalMessages())
+		} else {
+			allSections = append(allSections, sections)
 		}
 	}
 
 	if len(fatals) > 0 {
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
+
+	spew.Dump(allSections)
 
 	return nil, "", nil
 }
@@ -50,6 +51,5 @@ func main() {
 	if fatals != "" {
 		fmt.Println(fatals)
 	}
-
-	spew.Dump(backendInput)
 }
+

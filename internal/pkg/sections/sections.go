@@ -12,16 +12,20 @@ type SourceMarker struct {
 	SourceLineIndex int
 }
 
+const (
+	ConfigSection         = "config"
+	HostSection           = "host"
+	QuerySection          = "query"
+	HeadersSection        = "headers"
+	MethodSection         = "method"
+	BodySection           = "body"
+	BackendSection        = "backend"
+	BackendOptionsSection = "backendoptions"
+	DefaultVarsSection    = "defaultvars"
+)
+
 type Sections struct {
-	ConfigSection         []SourceMarker
-	HostSection           []SourceMarker
-	QuerySection          []SourceMarker
-	HeadersSection        []SourceMarker
-	MethodSection         []SourceMarker
-	BodySection           []SourceMarker
-	BackendSection        []SourceMarker
-	BackendOptionsSection []SourceMarker
-	DefaultVars           []SourceMarker
+	sections map[string]*[]SourceMarker
 
 	fatals []string
 
@@ -35,10 +39,22 @@ type capturedSection struct {
 	sectionLines           *[]SourceMarker
 }
 
-const knownSectionHeaders = "host|query|headers|method|body|config|backend|backendoptions|defaultvars"
+var allSectionHeaders = []string{
+	ConfigSection,
+	HostSection,
+	QuerySection,
+	HeadersSection,
+	MethodSection,
+	BodySection,
+	BackendSection,
+	BackendOptionsSection,
+	DefaultVarsSection,
+}
 
-var knownSectionsRe = regexp.MustCompile(`(?i)^\s*\[(` + knownSectionHeaders + `)\]\s*$`)
-var unescapeKnownSectionsRe = regexp.MustCompile(`(?i)^\s*\\\[(` + knownSectionHeaders + `)\]\s*$`)
+var knownSectionHeadersStr = strings.Join(allSectionHeaders, "|")
+
+var knownSectionsRe = regexp.MustCompile(`(?i)^\s*\[(` + knownSectionHeadersStr + `)\]\s*$`)
+var unescapeKnownSectionsRe = regexp.MustCompile(`(?i)^\s*\\\[(` + knownSectionHeadersStr + `)\]\s*$`)
 
 var removeTrailingCommendRegExp = regexp.MustCompile("#.*$")
 var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
@@ -54,25 +70,10 @@ func trimSourceMarkerLines(sourceMarkers *[]SourceMarker) *[]SourceMarker {
 
 func (s *Sections) setCapturedSections(capturedSections []capturedSection) {
 	for _, capturedSection := range capturedSections {
-		switch capturedSection.heading {
-		case "config":
-			s.ConfigSection = *trimSourceMarkerLines(capturedSection.sectionLines)
-		case "host":
-			s.HostSection = *trimSourceMarkerLines(capturedSection.sectionLines)
-		case "query":
-			s.QuerySection = *trimSourceMarkerLines(capturedSection.sectionLines)
-		case "headers":
-			s.HeadersSection = *trimSourceMarkerLines(capturedSection.sectionLines)
-		case "method":
-			s.MethodSection = *trimSourceMarkerLines(capturedSection.sectionLines)
-		case "body":
-			s.BodySection = *capturedSection.sectionLines
-		case "backend":
-			s.BackendSection = *trimSourceMarkerLines(capturedSection.sectionLines)
-		case "backendoptions":
-			s.BackendOptionsSection = *trimSourceMarkerLines(capturedSection.sectionLines)
-		case "defaultvars":
-			s.DefaultVars = *trimSourceMarkerLines(capturedSection.sectionLines)
+		if capturedSection.heading == BodySection {
+			s.sections[capturedSection.heading] = capturedSection.sectionLines
+		} else {
+			s.sections[capturedSection.heading] = trimSourceMarkerLines(capturedSection.sectionLines)
 		}
 	}
 }
@@ -153,6 +154,7 @@ func getCapturedSections(rawTemplateLines []string) ([]capturedSection, bool) {
 func NewSections(rawTemplateString, filename string) *Sections {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
 	sections := Sections{
+		sections:         map[string]*[]SourceMarker{},
 		rawTemplateLines: rawTemplateLines,
 		filename:         filename,
 	}
