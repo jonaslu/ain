@@ -44,7 +44,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	totalConfig := data.Config{Timeout: data.TimeoutNotSet}
+	totalConfig := data.NewConfig()
 
 	for i := len(allSectionedTemplates) - 1; i >= 0; i-- {
 		sectionedTemplate := allSectionedTemplates[i]

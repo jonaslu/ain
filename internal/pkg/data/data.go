@@ -11,6 +11,10 @@ type Config struct {
 	QueryDelim *string
 }
 
+func NewConfig() Config {
+	return Config{Timeout: TimeoutNotSet}
+}
+
 type ParsedTemplate struct {
 	Host    []string
 	Query   []string

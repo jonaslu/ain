@@ -51,7 +51,7 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 }
 
 func (s *SectionedTemplate) getConfig() data.Config {
-	config := data.Config{Timeout: data.TimeoutNotSet}
+	config := data.NewConfig()
 
 	for _, configLine := range *s.GetNamedSection(ConfigSection) {
 		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.LineContents); isTimeoutConfig {
