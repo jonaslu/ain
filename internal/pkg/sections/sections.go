@@ -30,6 +30,14 @@ type SectionedTemplate struct {
 	filename         string
 }
 
+func (s *SectionedTemplate) GetNamedSection(sectionHeader string) *[]SourceMarker {
+	if section, exists := s.sections[sectionHeader]; exists {
+		return section
+	}
+
+	return &[]SourceMarker{}
+}
+
 func NewSections(rawTemplateString, filename string) *SectionedTemplate {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
 	sectionedTemplate := SectionedTemplate{
