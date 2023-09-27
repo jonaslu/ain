@@ -72,7 +72,28 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	spew.Dump(totalConfig)
+	allExecutableAndArgs := [][]executableAndArgs{}
+	for _, sectionedTemplate := range allSectionedTemplates {
+		allExecutableAndArgs = append(allExecutableAndArgs, sectionedTemplate.captureExecutableAndArgs())
+
+		if sectionedTemplate.HasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		}
+	}
+
+	if len(fatals) > 0 {
+		return nil, strings.Join(fatals, "\n\n"), nil
+	}
+
+	[][]executable
+
+	spew.Dump(allExecutableAndArgs)
+
+	// Pick out regexes
+	// If any errors-abort
+	// Run regexes
+	// If any errors-abort
+	// Insert regexes
 
 	return nil, "", nil
 }
@@ -90,13 +111,3 @@ func main() {
 		fmt.Println(fatals)
 	}
 }
-
-// I want this: I want to traverse all templates for all sections.
-// I can do that in-mem. Then I want to find the overwriting ones
-
-// Transform env-vars - how do I do that?
-// Find all sections for each section.
-
-// We'll do this, go thru all, subst env shit.
-
-// Then parse out the config and go thru all with executables (they can return empty shit?)
