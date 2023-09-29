@@ -88,6 +88,18 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	allExecutablesOutput := callExecutables(ctx, totalConfig, allExecutableAndArgs)
 	spew.Dump(allExecutablesOutput)
 
+	for _, sectionedTemplate := range allSectionedTemplates {
+		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.HasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		}
+	}
+
+	if len(fatals) > 0 {
+		return nil, strings.Join(fatals, "\n\n"), nil
+	}
+
+	spew.Dump(allSectionedTemplates)
+
 	return nil, "", nil
 }
 

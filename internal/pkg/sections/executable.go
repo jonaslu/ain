@@ -17,6 +17,8 @@ import (
 var executableExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
 var executableRe = regexp.MustCompile(`\$\(([^)]*)\)`)
 
+var emptyOutputLineRe = regexp.MustCompile(`^\s*$`)
+
 type executableAndArgs struct {
 	executable string
 	args       []string
@@ -139,4 +141,40 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 	wg.Wait()
 
 	return executableResults
+}
+
+func (s *SectionedTemplate) insertExecutableOutput(executableResults *[]executableOutput) {
+	for _, sectionName := range includedSections {
+		replacedSection := []SourceMarker{}
+		section := s.GetNamedSection(sectionName)
+
+		for _, templateLine := range *section {
+			lineContents := templateLine.LineContents
+
+			for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
+				result := (*executableResults)[0]
+				*executableResults = (*executableResults)[1:]
+				if result.fatalMessage != "" {
+					s.SetFatalMessage(result.fatalMessage, templateLine.SourceLineIndex)
+					continue
+				}
+
+				lineContents = strings.Replace(lineContents, executableWithParens, result.output, 1)
+			}
+
+			multilineOutput := strings.Split(strings.ReplaceAll(lineContents, "\r\n", "\n"), "\n")
+			for _, lineOutput := range multilineOutput {
+				if emptyOutputLineRe.MatchString(lineOutput) {
+					continue
+				}
+
+				templateLine.LineContents = lineOutput
+				replacedSection = append(replacedSection, templateLine)
+			}
+		}
+
+		// !! TODO !! Possibly re-do as a setter on the struct.
+		// Setter will know what sections to trim
+		s.sections[sectionName] = &replacedSection
+	}
 }
