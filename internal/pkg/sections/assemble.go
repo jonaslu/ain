@@ -72,9 +72,9 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	allExecutableAndArgs := [][]executableAndArgs{}
+	allExecutableAndArgs := []executableAndArgs{}
 	for _, sectionedTemplate := range allSectionedTemplates {
-		allExecutableAndArgs = append(allExecutableAndArgs, sectionedTemplate.captureExecutableAndArgs())
+		allExecutableAndArgs = append(allExecutableAndArgs, sectionedTemplate.captureExecutableAndArgs()...)
 
 		if sectionedTemplate.HasFatalMessages() {
 			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
@@ -85,15 +85,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	[][]executable
-
-	spew.Dump(allExecutableAndArgs)
-
-	// Pick out regexes
-	// If any errors-abort
-	// Run regexes
-	// If any errors-abort
-	// Insert regexes
+	allExecutablesOutput := callExecutables(ctx, totalConfig, allExecutableAndArgs)
+	spew.Dump(allExecutablesOutput)
 
 	return nil, "", nil
 }
