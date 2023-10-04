@@ -2,6 +2,7 @@ package call
 
 import (
 	"context"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -56,7 +57,7 @@ func (httpie *httpie) getBodyArgument(tmpDir string) (string, error) {
 	return "@" + tmpFile.Name(), nil
 }
 
-func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
+func (httpie *httpie) runAsCmd(ctx context.Context) (Output, error) {
 	args := []string{}
 	for _, backendOpt := range httpie.callData.BackendOptions {
 		args = append(args, backendOpt...)
@@ -73,23 +74,47 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 		bodyArg, err := httpie.getBodyArgument("")
 
 		if err != nil {
-			return nil, err
+			return Output{}, err
 		}
 
 		args = append(args, bodyArg)
 	}
 
 	httpCmd := exec.CommandContext(ctx, httpie.binaryName, args...)
-	output, err := httpCmd.CombinedOutput()
-
+	stdErrPipe, err := httpCmd.StderrPipe()
 	if err != nil {
-		return output, &BackedErr{
+		return Output{}, err
+	}
+	stdOutPipe, err := httpCmd.StdoutPipe()
+	if err != nil {
+		return Output{}, err
+	}
+	httpCmd.Start()
+	if err != nil {
+		return Output{}, err
+	}
+	stdOut, err := io.ReadAll(stdOutPipe)
+	if err != nil {
+		return Output{StdOut: stdOut}, &BackedErr{
 			Err:      err,
 			ExitCode: httpCmd.ProcessState.ExitCode(),
 		}
 	}
-
-	return output, nil
+	stdErr, err := io.ReadAll(stdErrPipe)
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: httpCmd.ProcessState.ExitCode(),
+		}
+	}
+	err = httpCmd.Wait()
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: httpCmd.ProcessState.ExitCode(),
+		}
+	}
+	return Output{StdOut: stdOut, StdErr: stdErr}, nil
 }
 
 func (httpie *httpie) getAsString() (string, error) {

@@ -2,6 +2,7 @@ package call
 
 import (
 	"context"
+	"io"
 	"os"
 	"os/exec"
 	"regexp"
@@ -86,7 +87,7 @@ func (wget *wget) getBodyArgument(tmpDir string) (string, error) {
 	return "", nil
 }
 
-func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
+func (wget *wget) runAsCmd(ctx context.Context) (Output, error) {
 	args := []string{}
 	for _, backendOpt := range wget.callData.BackendOptions {
 		args = append(args, backendOpt...)
@@ -101,7 +102,7 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 	if len(wget.callData.Body) > 0 {
 		bodyArgs, err := wget.getBodyArgument("")
 		if err != nil {
-			return nil, err
+			return Output{}, err
 		}
 
 		args = append(args, bodyArgs)
@@ -110,15 +111,40 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, wget.callData.Host.String())
 
 	wgetCmd := exec.CommandContext(ctx, wget.binaryName, args...)
-	output, err := wgetCmd.CombinedOutput()
+	stdErrPipe, err := wgetCmd.StderrPipe()
 	if err != nil {
-		return output, &BackedErr{
+		return Output{}, err
+	}
+	stdOutPipe, err := wgetCmd.StdoutPipe()
+	if err != nil {
+		return Output{}, err
+	}
+	wgetCmd.Start()
+	if err != nil {
+		return Output{}, err
+	}
+	stdOut, err := io.ReadAll(stdOutPipe)
+	if err != nil {
+		return Output{StdOut: stdOut}, &BackedErr{
 			Err:      err,
 			ExitCode: wgetCmd.ProcessState.ExitCode(),
 		}
 	}
-
-	return output, nil
+	stdErr, err := io.ReadAll(stdErrPipe)
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: wgetCmd.ProcessState.ExitCode(),
+		}
+	}
+	err = wgetCmd.Wait()
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: wgetCmd.ProcessState.ExitCode(),
+		}
+	}
+	return Output{StdOut: stdOut, StdErr: stdErr}, nil
 }
 
 func (wget *wget) getAsString() (string, error) {

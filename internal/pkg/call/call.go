@@ -11,6 +11,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Output struct {
+	StdOut []byte
+	StdErr []byte
+}
+
 type BackedErr struct {
 	Err      error
 	ExitCode int
@@ -41,7 +46,7 @@ func (err *BackedErr) Error() string {
 }
 
 type backend interface {
-	runAsCmd(context.Context) ([]byte, error)
+	runAsCmd(context.Context) (Output, error)
 	getAsString() (string, error)
 	cleanUp() error
 }
@@ -64,7 +69,7 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCommand bool) (string, error) {
+func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCommand bool) (Output, error) {
 	backendTimeoutContext := ctx
 	if callData.Config.Timeout != data.TimeoutNotSet {
 		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
@@ -72,11 +77,15 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 
 	backend, err := getBackend(callData)
 	if err != nil {
-		return "", errors.Wrapf(err, "Could not instantiate backend: %s", callData.Backend)
+		return Output{}, errors.Wrapf(err, "Could not instantiate backend: %s", callData.Backend)
 	}
 
 	if printCommand {
-		return backend.getAsString()
+		if command, err := backend.getAsString(); err != nil {
+			return Output{StdErr: []byte(command)}, err
+		} else {
+			return Output{StdOut: []byte(command)}, nil
+		}
 	}
 
 	output, err := backend.runAsCmd(backendTimeoutContext)
@@ -89,22 +98,22 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 	}
 
 	if backendTimeoutContext.Err() == context.DeadlineExceeded {
-		return "", utils.CascadeErrorMessage(
+		return output, utils.CascadeErrorMessage(
 			errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout),
 			removeTmpFileErr,
 		)
 	}
 
 	if err != nil {
-		return "", utils.CascadeErrorMessage(
-			errors.Wrapf(err, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output))),
+		return output, utils.CascadeErrorMessage(
+			errors.Wrapf(err, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output.StdOut))),
 			removeTmpFileErr,
 		)
 	}
 
 	if removeTmpFileErr != nil {
-		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output)))
+		return output, errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output.StdOut)))
 	}
 
-	return string(output), nil
+	return output, nil
 }
