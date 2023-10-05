@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
@@ -86,7 +85,6 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	}
 
 	allExecutablesOutput := callExecutables(ctx, totalConfig, allExecutableAndArgs)
-	spew.Dump(allExecutablesOutput)
 
 	for _, sectionedTemplate := range allSectionedTemplates {
 		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.HasFatalMessages() {
@@ -98,7 +96,23 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	spew.Dump(allSectionedTemplates)
+	var host string
+
+	for _, sectionedTemplate := range allSectionedTemplates {
+		for _, hostSourceMarker := range *sectionedTemplate.GetNamedSection(HostSection) {
+			host = host + hostSourceMarker.LineContents
+		}
+	}
+
+	if host == "" {
+		fatals = append(fatals, "No mandatory [Host] section found")
+	}
+
+	if len(fatals) > 0 {
+		return nil, strings.Join(fatals, "\n\n"), nil
+	}
+
+	fmt.Println(host)
 
 	return nil, "", nil
 }
