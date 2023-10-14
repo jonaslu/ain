@@ -98,7 +98,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	var host, backend string
+	var host, backend, method string
 
 	for _, sectionedTemplate := range allSectionedTemplates {
 		for _, hostSourceMarker := range *sectionedTemplate.GetNamedSection(HostSection) {
@@ -129,6 +129,13 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			backend = requestedBackendName
 		}
 
+		methodSourceMarkers := *sectionedTemplate.GetNamedSection(MethodSection)
+		if len(methodSourceMarkers) > 1 {
+			sectionedTemplate.SetFatalMessage("Found several lines under [Method]", methodSourceMarkers[0].SourceLineIndex)
+		} else if len(methodSourceMarkers) == 1 {
+			method = methodSourceMarkers[0].LineContents
+		}
+
 		if sectionedTemplate.HasFatalMessages() {
 			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
 		}
@@ -153,7 +160,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n"), nil
 	}
 
-	fmt.Println(host, backend)
+	fmt.Println(host, backend, method)
 
 	return nil, "", nil
 }
