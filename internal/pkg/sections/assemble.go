@@ -101,9 +101,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	var host, backend, method string
 
 	for _, sectionedTemplate := range allSectionedTemplates {
-		for _, hostSourceMarker := range *sectionedTemplate.GetNamedSection(HostSection) {
-			host = host + hostSourceMarker.LineContents
-		}
+		host = host + sectionedTemplate.getHost()
 
 		backendSourceMarkers := *sectionedTemplate.GetNamedSection(BackendSection)
 		if len(backendSourceMarkers) > 1 {
@@ -178,3 +176,48 @@ func main() {
 		fmt.Println(fatals)
 	}
 }
+
+/*
+	body, headers, query []string
+	backendoptions [][]string
+
+	// All append = host, query, headers, backendopts
+	for _, sectionedTemplate := range allSectionedTemplates {
+		for _, headersSourceMarker := range *sectionedTemplate.GetNamedSection(HeadersSection) {
+			headers = append(headers, headersSourceMarker.LineContents)
+		}
+
+		for _, querySourceMarker := range *sectionedTemplate.GetNamedSection(QuerySection) {
+			query = append(query, querySourceMarker.LineContents)
+		}
+
+		for _, backendOptionsSourceMarker := range *sectionedTemplate.GetNamedSection(BackendOptionsSection) {
+			tokenizedBackendOpts, err := utils.TokenizeLine(backendOptionsSourceMarker.LineContents)
+			if err != nil {
+				sectionedTemplate.SetFatalMessage(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backendOptionsSourceMarker.SourceLineIndex)
+			}
+
+			backendoptions = append(backendoptions, tokenizedBackendOpts)
+		}
+
+		var localMethod string
+		for _, methodSourceMarker := range *sectionedTemplate.GetNamedSection(MethodSection) {
+			if localMethod != "" {
+				sectionedTemplate.SetFatalMessage("Found several lines under [Method]", methodSourceMarker.SourceLineIndex)
+			}
+
+			localMethod = methodSourceMarker.LineContents
+		}
+
+		method = localMethod
+	}
+
+	// Check backend non-nil
+	// url.Parse(host)
+
+	Copy the rest and return!
+
+	if len(fatals) > 0 {
+		return nil, strings.Join(fatals, "\n\n"), nil
+	}
+*/
