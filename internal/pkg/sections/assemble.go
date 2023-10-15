@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/disk"
-	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
@@ -103,28 +101,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	for _, sectionedTemplate := range allSectionedTemplates {
 		host = host + sectionedTemplate.getHost()
 
-		backendSourceMarkers := *sectionedTemplate.GetNamedSection(BackendSection)
-		if len(backendSourceMarkers) > 1 {
-			sectionedTemplate.SetFatalMessage("Found several lines under [Backend]", backendSourceMarkers[0].SourceLineIndex)
-		} else if len(backendSourceMarkers) == 1 {
-			backendSourceMarker := backendSourceMarkers[0]
-			requestedBackendName := strings.ToLower(backendSourceMarker.LineContents)
-
-			if !call.ValidBackend(requestedBackendName) {
-				foundMisspelledName := false
-				for backendName, _ := range call.ValidBackends {
-					if utils.LevenshteinDistance(requestedBackendName, backendName) < 3 {
-						sectionedTemplate.SetFatalMessage(fmt.Sprintf("Unknown backend: %s. Did you mean %s", requestedBackendName, backendName), backendSourceMarker.SourceLineIndex)
-						foundMisspelledName = true
-					}
-				}
-
-				if !foundMisspelledName {
-					sectionedTemplate.SetFatalMessage(fmt.Sprintf("Unknown backend %s", requestedBackendName), backendSourceMarker.SourceLineIndex)
-				}
-			}
-
-			backend = requestedBackendName
+		if localBackend := sectionedTemplate.getBackend(); localBackend != "" {
+			backend = localBackend
 		}
 
 		methodSourceMarkers := *sectionedTemplate.GetNamedSection(MethodSection)
@@ -176,48 +154,3 @@ func main() {
 		fmt.Println(fatals)
 	}
 }
-
-/*
-	body, headers, query []string
-	backendoptions [][]string
-
-	// All append = host, query, headers, backendopts
-	for _, sectionedTemplate := range allSectionedTemplates {
-		for _, headersSourceMarker := range *sectionedTemplate.GetNamedSection(HeadersSection) {
-			headers = append(headers, headersSourceMarker.LineContents)
-		}
-
-		for _, querySourceMarker := range *sectionedTemplate.GetNamedSection(QuerySection) {
-			query = append(query, querySourceMarker.LineContents)
-		}
-
-		for _, backendOptionsSourceMarker := range *sectionedTemplate.GetNamedSection(BackendOptionsSection) {
-			tokenizedBackendOpts, err := utils.TokenizeLine(backendOptionsSourceMarker.LineContents)
-			if err != nil {
-				sectionedTemplate.SetFatalMessage(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backendOptionsSourceMarker.SourceLineIndex)
-			}
-
-			backendoptions = append(backendoptions, tokenizedBackendOpts)
-		}
-
-		var localMethod string
-		for _, methodSourceMarker := range *sectionedTemplate.GetNamedSection(MethodSection) {
-			if localMethod != "" {
-				sectionedTemplate.SetFatalMessage("Found several lines under [Method]", methodSourceMarker.SourceLineIndex)
-			}
-
-			localMethod = methodSourceMarker.LineContents
-		}
-
-		method = localMethod
-	}
-
-	// Check backend non-nil
-	// url.Parse(host)
-
-	Copy the rest and return!
-
-	if len(fatals) > 0 {
-		return nil, strings.Join(fatals, "\n\n"), nil
-	}
-*/
