@@ -105,11 +105,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			backend = localBackend
 		}
 
-		methodSourceMarkers := *sectionedTemplate.GetNamedSection(MethodSection)
-		if len(methodSourceMarkers) > 1 {
-			sectionedTemplate.SetFatalMessage("Found several lines under [Method]", methodSourceMarkers[0].SourceLineIndex)
-		} else if len(methodSourceMarkers) == 1 {
-			method = methodSourceMarkers[0].LineContents
+		if localMethod := sectionedTemplate.getMethod(); localMethod != "" {
+			method = localMethod
 		}
 
 		if sectionedTemplate.HasFatalMessages() {
