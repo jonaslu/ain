@@ -96,7 +96,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	var host, backend, method string
+	var host, backend, method, body string
 
 	for _, sectionedTemplate := range allSectionedTemplates {
 		host = host + sectionedTemplate.getHost()
@@ -107,6 +107,10 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 
 		if localMethod := sectionedTemplate.getMethod(); localMethod != "" {
 			method = localMethod
+		}
+
+		if localBody := sectionedTemplate.getBody(); localBody != "" {
+			body = localBody
 		}
 
 		if sectionedTemplate.HasFatalMessages() {
@@ -133,7 +137,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n"), nil
 	}
 
-	fmt.Println(host, backend, method)
+	fmt.Println(host, backend, method, body)
 
 	return nil, "", nil
 }
