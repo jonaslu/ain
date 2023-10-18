@@ -97,9 +97,11 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	}
 
 	var host, backend, method, body string
+	var headers []string
 
 	for _, sectionedTemplate := range allSectionedTemplates {
 		host = host + sectionedTemplate.getHost()
+		headers = append(headers, sectionedTemplate.getHeaders()...)
 
 		if localBackend := sectionedTemplate.getBackend(); localBackend != "" {
 			backend = localBackend
@@ -137,7 +139,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n"), nil
 	}
 
-	fmt.Println(host, backend, method, body)
+	fmt.Println(host, backend, method, body, headers)
 
 	return nil, "", nil
 }
