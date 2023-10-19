@@ -43,26 +43,26 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	totalConfig := data.NewConfig()
+	config := data.NewConfig()
 
 	for i := len(allSectionedTemplates) - 1; i >= 0; i-- {
 		sectionedTemplate := allSectionedTemplates[i]
-		config := sectionedTemplate.getConfig()
+		localConfig := sectionedTemplate.getConfig()
 
 		if sectionedTemplate.HasFatalMessages() {
 			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
 			break
 		}
 
-		if totalConfig.Timeout == data.TimeoutNotSet {
-			totalConfig.Timeout = config.Timeout
+		if config.Timeout == data.TimeoutNotSet {
+			config.Timeout = localConfig.Timeout
 		}
 
-		if totalConfig.QueryDelim == nil {
-			totalConfig.QueryDelim = config.QueryDelim
+		if config.QueryDelim == nil {
+			config.QueryDelim = localConfig.QueryDelim
 		}
 
-		if totalConfig.Timeout > data.TimeoutNotSet && totalConfig.QueryDelim != nil {
+		if config.Timeout > data.TimeoutNotSet && config.QueryDelim != nil {
 			break
 		}
 	}
@@ -84,7 +84,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	allExecutablesOutput := callExecutables(ctx, totalConfig, allExecutableAndArgs)
+	allExecutablesOutput := callExecutables(ctx, config, allExecutableAndArgs)
 
 	for _, sectionedTemplate := range allSectionedTemplates {
 		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.HasFatalMessages() {
