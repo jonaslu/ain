@@ -1,13 +1,11 @@
-package main
+package parse
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net/url"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
@@ -162,21 +160,5 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	backendInput.BackendOptions = backendOptions
 	backendInput.Config = config
 
-	spew.Dump(backendInput)
-
 	return &backendInput, "", nil
-}
-
-func main() {
-	flag.Parse()
-	filenames := flag.Args()
-
-	_, fatals, err := Assemble(context.TODO(), filenames)
-	if err != nil {
-		panic(err)
-	}
-
-	if fatals != "" {
-		fmt.Println(fatals)
-	}
 }

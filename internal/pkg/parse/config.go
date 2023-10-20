@@ -18,8 +18,6 @@ func parseQueryDelim(configStr string) (bool, string, error) {
 		return false, "", nil
 	}
 
-	// We don't need to trim the string because it's already been
-	// trimmed when converted into []sourceMarker:s
 	queryDelim := queryDelimMatch[1]
 	if strings.Contains(queryDelim, " ") {
 		return true, "", errors.New("Delimiter cannot contain space")
@@ -52,43 +50,41 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 	return true, int32(timeoutIntervalInt64), nil
 }
 
-func parseConfigSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	sectionLines, captureErr := captureSection("Config", template, true)
-	if captureErr != nil {
-		return captureErr
-	}
+func (s *SectionedTemplate) getConfig() data.Config {
+	config := data.NewConfig()
 
-	if len(sectionLines) == 0 {
-		return nil
-	}
-
-	for _, configLine := range sectionLines {
-		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.lineContents); isTimeoutConfig {
-			if parsedTemplate.Config.Timeout > 0 {
-				return newFatalMarker("Timeout config set twice", configLine)
+	for _, configLine := range *s.GetNamedSection(ConfigSection) {
+		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.LineContents); isTimeoutConfig {
+			if config.Timeout > 0 {
+				// !! TODO !! Can have Query delimiter set n times
+				s.SetFatalMessage("Timeout config set twice", configLine.SourceLineIndex)
+				return config
 			}
 
 			if err != nil {
-				return newFatalMarker(err.Error(), configLine)
+				s.SetFatalMessage(err.Error(), configLine.SourceLineIndex)
+				return config
 			}
 
-			parsedTemplate.Config.Timeout = timeoutValue
+			config.Timeout = timeoutValue
 			continue
 		}
 
-		if isQueryDelim, queryDelimValue, err := parseQueryDelim(configLine.lineContents); isQueryDelim {
-			if parsedTemplate.Config.QueryDelim != nil {
-				return newFatalMarker("Query delimiter set twice", configLine)
+		if isQueryDelim, queryDelimValue, err := parseQueryDelim(configLine.LineContents); isQueryDelim {
+			if config.QueryDelim != nil {
+				// !! TODO !! Can have Query delimiter set n times
+				s.SetFatalMessage("Query delimiter set twice", configLine.SourceLineIndex)
+				return config
 			}
 
 			if err != nil {
-				return newFatalMarker(err.Error(), configLine)
+				s.SetFatalMessage(err.Error(), configLine.SourceLineIndex)
 			}
 
-			parsedTemplate.Config.QueryDelim = &queryDelimValue
+			config.QueryDelim = &queryDelimValue
 			continue
 		}
 	}
 
-	return nil
+	return config
 }

@@ -1,20 +1,10 @@
 package parse
 
-import "github.com/jonaslu/ain/internal/pkg/data"
-
-func parseBodySection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	sectionLines, captureFatal := captureSection("Body", template, false)
-	if captureFatal != nil {
-		return captureFatal
+func (s *SectionedTemplate) getBody() []string {
+	var body []string
+	for _, bodySourceMarker := range *s.GetNamedSection(BodySection) {
+		body = append(body, bodySourceMarker.LineContents)
 	}
 
-	if len(sectionLines) == 0 {
-		return nil
-	}
-
-	for _, bodyLineContents := range sectionLines {
-		parsedTemplate.Body = append(parsedTemplate.Body, bodyLineContents.lineContents)
-	}
-
-	return nil
+	return body
 }

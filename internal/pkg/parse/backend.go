@@ -5,39 +5,34 @@ import (
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/call"
-	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func parseBackendSection(template []sourceMarker, parsedTemplate *data.ParsedTemplate) *fatalMarker {
-	sectionLines, captureFatal := captureSection("Backend", template, true)
-	if captureFatal != nil {
-		return captureFatal
+func (s *SectionedTemplate) getBackend() string {
+	backendSourceMarkers := *s.GetNamedSection(BackendSection)
+	if len(backendSourceMarkers) == 0 {
+		return ""
 	}
 
-	if len(sectionLines) == 0 {
-		return nil
+	if len(backendSourceMarkers) > 1 {
+		s.SetFatalMessage("Found several lines under [Backend]", backendSourceMarkers[0].SourceLineIndex)
+		return ""
 	}
 
-	if len(sectionLines) > 1 {
-		for _, backendLine := range sectionLines {
-			return newFatalMarker("Found several lines under [Backend]", backendLine)
-		}
-	}
+	backendSourceMarker := backendSourceMarkers[0]
+	backend := strings.ToLower(backendSourceMarker.LineContents)
 
-	requestedBackendName := strings.ToLower(sectionLines[0].lineContents)
-
-	if !call.ValidBackend(requestedBackendName) {
-		for backendName, _ := range call.ValidBackends {
-			if utils.LevenshteinDistance(requestedBackendName, backendName) < 3 {
-				return newFatalMarker(fmt.Sprintf("Unknown backend: %s. Did you mean %s", requestedBackendName, backendName), sectionLines[0])
+	if !call.ValidBackend(backend) {
+		for backendName := range call.ValidBackends {
+			if utils.LevenshteinDistance(backend, backendName) < 3 {
+				s.SetFatalMessage(fmt.Sprintf("Unknown backend: %s. Did you mean %s", backend, backendName), backendSourceMarker.SourceLineIndex)
+				return ""
 			}
 		}
 
-		return newFatalMarker(fmt.Sprintf("Unknown backend %s", requestedBackendName), sectionLines[0])
+		s.SetFatalMessage(fmt.Sprintf("Unknown backend %s", backend), backendSourceMarker.SourceLineIndex)
+		return ""
 	}
 
-	parsedTemplate.Backend = requestedBackendName
-
-	return nil
+	return backend
 }

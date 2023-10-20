@@ -1,4 +1,4 @@
-package assemble
+package parse
 
 import (
 	"net/url"
@@ -80,14 +80,14 @@ func encodeKeyValues(keyValues []string, queryDelim string, queryKeyValueDelimRe
 	return strings.Join(encodedKeyValuePairs, queryDelim)
 }
 
-func addQueryString(host *url.URL, parsedTemplate *data.ParsedTemplate) {
-	if host.RawQuery == "" && len(parsedTemplate.Query) == 0 {
+func addQueryString(host *url.URL, query []string, config data.Config) {
+	if host.RawQuery == "" && len(query) == 0 {
 		return
 	}
 
 	queryDelim := defaultQueryDelim
-	if parsedTemplate.Config.QueryDelim != nil {
-		queryDelim = *parsedTemplate.Config.QueryDelim
+	if config.QueryDelim != nil {
+		queryDelim = *config.QueryDelim
 	}
 
 	queryParts := []string{}
@@ -100,8 +100,8 @@ func addQueryString(host *url.URL, parsedTemplate *data.ParsedTemplate) {
 		}
 	}
 
-	if len(parsedTemplate.Query) > 0 {
-		queryParts = append(queryParts, encodeKeyValues(parsedTemplate.Query, queryDelim, querySectionKeyValueDelimRegexp))
+	if len(query) > 0 {
+		queryParts = append(queryParts, encodeKeyValues(query, queryDelim, querySectionKeyValueDelimRegexp))
 	}
 
 	host.RawQuery = strings.Join(queryParts, queryDelim)
