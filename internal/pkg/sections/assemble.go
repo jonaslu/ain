@@ -155,7 +155,14 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n"), nil
 	}
 
-	spew.Dump(backendInput, method, body)
+	backendInput.Method = method
+	backendInput.Body = body
+	backendInput.Headers = headers
+	backendInput.Backend = backend
+	backendInput.BackendOptions = backendOptions
+	backendInput.Config = config
+
+	spew.Dump(backendInput)
 
 	return &backendInput, "", nil
 }
