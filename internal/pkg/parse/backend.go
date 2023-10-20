@@ -8,14 +8,14 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func (s *SectionedTemplate) getBackend() string {
-	backendSourceMarkers := *s.GetNamedSection(BackendSection)
+func (s *sectionedTemplate) getBackend() string {
+	backendSourceMarkers := *s.getNamedSection(BackendSection)
 	if len(backendSourceMarkers) == 0 {
 		return ""
 	}
 
 	if len(backendSourceMarkers) > 1 {
-		s.SetFatalMessage("Found several lines under [Backend]", backendSourceMarkers[0].SourceLineIndex)
+		s.setFatalMessage("Found several lines under [Backend]", backendSourceMarkers[0].SourceLineIndex)
 		return ""
 	}
 
@@ -25,12 +25,12 @@ func (s *SectionedTemplate) getBackend() string {
 	if !call.ValidBackend(backend) {
 		for backendName := range call.ValidBackends {
 			if utils.LevenshteinDistance(backend, backendName) < 3 {
-				s.SetFatalMessage(fmt.Sprintf("Unknown backend: %s. Did you mean %s", backend, backendName), backendSourceMarker.SourceLineIndex)
+				s.setFatalMessage(fmt.Sprintf("Unknown backend: %s. Did you mean %s", backend, backendName), backendSourceMarker.SourceLineIndex)
 				return ""
 			}
 		}
 
-		s.SetFatalMessage(fmt.Sprintf("Unknown backend %s", backend), backendSourceMarker.SourceLineIndex)
+		s.setFatalMessage(fmt.Sprintf("Unknown backend %s", backend), backendSourceMarker.SourceLineIndex)
 		return ""
 	}
 

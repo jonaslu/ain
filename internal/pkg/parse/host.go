@@ -1,8 +1,8 @@
 package parse
 
-func (s *SectionedTemplate) getHost() string {
+func (s *sectionedTemplate) getHost() string {
 	var host string
-	for _, hostSourceMarker := range *s.GetNamedSection(HostSection) {
+	for _, hostSourceMarker := range *s.getNamedSection(HostSection) {
 		host = host + hostSourceMarker.LineContents
 	}
 

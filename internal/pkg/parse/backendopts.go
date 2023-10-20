@@ -6,14 +6,14 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func (s *SectionedTemplate) getBackendOptions() [][]string {
+func (s *sectionedTemplate) getBackendOptions() [][]string {
 	var backendOptions [][]string
 
-	for _, backedOptionSourceMarker := range *s.GetNamedSection(BackendOptionsSection) {
+	for _, backedOptionSourceMarker := range *s.getNamedSection(BackendOptionsSection) {
 		tokenizedBackendOpts, err := utils.TokenizeLine(backedOptionSourceMarker.LineContents)
 		if err != nil {
 			// !! TODO !! Can parse all messages don't have to return
-			s.SetFatalMessage(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backedOptionSourceMarker.SourceLineIndex)
+			s.setFatalMessage(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backedOptionSourceMarker.SourceLineIndex)
 			return backendOptions
 		}
 

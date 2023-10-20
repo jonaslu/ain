@@ -46,7 +46,7 @@ func formatMissingEnvVarErrorMessage(missingEnvVar string) string {
 	return fmt.Sprintf("Cannot find value for variable %s", missingEnvVar)
 }
 
-func (s *SectionedTemplate) substituteEnvVars() {
+func (s *sectionedTemplate) substituteEnvVars() {
 	for _, section := range s.sections {
 		for idx := range *section {
 			templateLine := &(*section)[idx]
@@ -55,14 +55,14 @@ func (s *SectionedTemplate) substituteEnvVars() {
 			for _, envVarWithBrackets := range envVarExpressionRe.FindAllString(lineContents, -1) {
 				envVarKeyStr := envVarKeyRe.FindStringSubmatch(envVarWithBrackets)
 				if len(envVarKeyStr) != 2 {
-					s.SetFatalMessage("Malformed variable", templateLine.SourceLineIndex)
+					s.setFatalMessage("Malformed variable", templateLine.SourceLineIndex)
 					continue
 				}
 
 				envVarKey := envVarKeyStr[1]
 
 				if envVarKey == "" {
-					s.SetFatalMessage("Empty variable", templateLine.SourceLineIndex)
+					s.setFatalMessage("Empty variable", templateLine.SourceLineIndex)
 					continue
 				}
 
@@ -71,10 +71,10 @@ func (s *SectionedTemplate) substituteEnvVars() {
 				value, exists := os.LookupEnv(envVarKey)
 
 				if !exists {
-					s.SetFatalMessage(formatMissingEnvVarErrorMessage(envVarKey), templateLine.SourceLineIndex)
+					s.setFatalMessage(formatMissingEnvVarErrorMessage(envVarKey), templateLine.SourceLineIndex)
 				} else {
 					if value == "" {
-						s.SetFatalMessage(fmt.Sprintf("Value for variable %s is empty", envVarKey), templateLine.SourceLineIndex)
+						s.setFatalMessage(fmt.Sprintf("Value for variable %s is empty", envVarKey), templateLine.SourceLineIndex)
 					} else {
 						lineContents = strings.Replace(lineContents, envVarWithBrackets, value, 1)
 					}

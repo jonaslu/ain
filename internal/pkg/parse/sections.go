@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-type SourceMarker struct {
+type sourceMarker struct {
 	LineContents    string
 	SourceLineIndex int
 }
@@ -21,8 +21,8 @@ const (
 	DefaultVarsSection    = "defaultvars"
 )
 
-type SectionedTemplate struct {
-	sections map[string]*[]SourceMarker
+type sectionedTemplate struct {
+	sections map[string]*[]sourceMarker
 
 	fatals []string
 
@@ -30,18 +30,18 @@ type SectionedTemplate struct {
 	filename         string
 }
 
-func (s *SectionedTemplate) GetNamedSection(sectionHeader string) *[]SourceMarker {
+func (s *sectionedTemplate) getNamedSection(sectionHeader string) *[]sourceMarker {
 	if section, exists := s.sections[sectionHeader]; exists {
 		return section
 	}
 
-	return &[]SourceMarker{}
+	return &[]sourceMarker{}
 }
 
-func NewSections(rawTemplateString, filename string) *SectionedTemplate {
+func newSections(rawTemplateString, filename string) *sectionedTemplate {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
-	sectionedTemplate := SectionedTemplate{
-		sections:         map[string]*[]SourceMarker{},
+	sectionedTemplate := sectionedTemplate{
+		sections:         map[string]*[]sourceMarker{},
 		rawTemplateLines: rawTemplateLines,
 		filename:         filename,
 	}
@@ -55,7 +55,7 @@ func NewSections(rawTemplateString, filename string) *SectionedTemplate {
 		checkValidHeadings(capturedSections, &sectionedTemplate)
 	}
 
-	if !sectionedTemplate.HasFatalMessages() {
+	if !sectionedTemplate.hasFatalMessages() {
 		sectionedTemplate.setCapturedSections(capturedSections)
 	}
 

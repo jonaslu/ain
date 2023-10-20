@@ -10,7 +10,7 @@ import (
 type capturedSection struct {
 	heading                string
 	headingSourceLineIndex int
-	sectionLines           *[]SourceMarker
+	sectionLines           *[]sourceMarker
 }
 
 var allSectionHeaders = []string{
@@ -33,7 +33,7 @@ var unescapeKnownSectionsRe = regexp.MustCompile(`(?i)^\s*\\\[(` + knownSectionH
 var removeTrailingCommendRegExp = regexp.MustCompile("#.*$")
 var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
 
-func trimSourceMarkerLines(sourceMarkers *[]SourceMarker) *[]SourceMarker {
+func trimSourceMarkerLines(sourceMarkers *[]sourceMarker) *[]sourceMarker {
 	for idx := range *sourceMarkers {
 		sourceMarker := &(*sourceMarkers)[idx]
 		sourceMarker.LineContents = strings.TrimSpace(sourceMarker.LineContents)
@@ -42,7 +42,7 @@ func trimSourceMarkerLines(sourceMarkers *[]SourceMarker) *[]SourceMarker {
 	return sourceMarkers
 }
 
-func (s *SectionedTemplate) setCapturedSections(capturedSections []capturedSection) {
+func (s *sectionedTemplate) setCapturedSections(capturedSections []capturedSection) {
 	for _, capturedSection := range capturedSections {
 		if capturedSection.heading == BodySection {
 			s.sections[capturedSection.heading] = capturedSection.sectionLines
@@ -62,13 +62,13 @@ func getSectionHeading(rawTemplateLine string) string {
 	return ""
 }
 
-func checkValidHeadings(capturedSections []capturedSection, sections *SectionedTemplate) {
+func checkValidHeadings(capturedSections []capturedSection, sections *sectionedTemplate) {
 	// Keeps "header": [1,5,7] <- Name of heading and on what lines in the file
 	headingDefinitionSourceLines := map[string][]int{}
 
 	for _, capturedSection := range capturedSections {
 		if len(*capturedSection.sectionLines) == 0 {
-			sections.SetFatalMessage(fmt.Sprintf("Empty %s section", capturedSection.heading), capturedSection.headingSourceLineIndex)
+			sections.setFatalMessage(fmt.Sprintf("Empty %s section", capturedSection.heading), capturedSection.headingSourceLineIndex)
 		}
 
 		headingDefinitionSourceLines[capturedSection.heading] = append(headingDefinitionSourceLines[capturedSection.heading], capturedSection.headingSourceLineIndex)
@@ -88,7 +88,7 @@ func checkValidHeadings(capturedSections []capturedSection, sections *SectionedT
 func getCapturedSections(rawTemplateLines []string) ([]capturedSection, bool) {
 	templateEmpty := true
 	capturedSections := []capturedSection{}
-	currentSectionLines := &[]SourceMarker{}
+	currentSectionLines := &[]sourceMarker{}
 
 	for sourceIndex, rawTemplateLine := range rawTemplateLines {
 		if isCommentOrWhitespaceRegExp.MatchString(rawTemplateLine) {
@@ -98,7 +98,7 @@ func getCapturedSections(rawTemplateLines []string) ([]capturedSection, bool) {
 		trailingCommentsRemoved := removeTrailingCommendRegExp.ReplaceAllString(rawTemplateLine, "")
 
 		if sectionHeading := getSectionHeading(trailingCommentsRemoved); sectionHeading != "" {
-			currentSectionLines = &[]SourceMarker{}
+			currentSectionLines = &[]sourceMarker{}
 			capturedSections = append(capturedSections, capturedSection{
 				heading:                sectionHeading,
 				headingSourceLineIndex: sourceIndex,
@@ -114,7 +114,7 @@ func getCapturedSections(rawTemplateLines []string) ([]capturedSection, bool) {
 			trailingCommentsRemoved = strings.Replace(trailingCommentsRemoved, `\`, "", 1)
 		}
 
-		sourceMarker := SourceMarker{
+		sourceMarker := sourceMarker{
 			LineContents:    strings.TrimRightFunc(trailingCommentsRemoved, func(r rune) bool { return unicode.IsSpace(r) }),
 			SourceLineIndex: sourceIndex,
 		}

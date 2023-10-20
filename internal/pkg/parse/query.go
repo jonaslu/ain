@@ -1,9 +1,9 @@
 package parse
 
-func (s *SectionedTemplate) getQuery() []string {
+func (s *sectionedTemplate) getQuery() []string {
 	var query []string
 
-	for _, querySourceMarker := range *s.GetNamedSection(QuerySection) {
+	for _, querySourceMarker := range *s.getNamedSection(QuerySection) {
 		query = append(query, querySourceMarker.LineContents)
 	}
 

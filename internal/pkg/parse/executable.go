@@ -40,30 +40,30 @@ var includedSections = []string{
 	DefaultVarsSection,
 }
 
-func (s *SectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
+func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	executables := []executableAndArgs{}
 
 	for _, sectionName := range includedSections {
-		for _, templateLine := range *s.GetNamedSection(sectionName) {
+		for _, templateLine := range *s.getNamedSection(sectionName) {
 			lineContents := templateLine.LineContents
 
 			for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
 				executableAndArgsCapture := executableRe.FindStringSubmatch(executableWithParens)
 
 				if len(executableAndArgsCapture) != 2 {
-					s.SetFatalMessage("Malformed executable", templateLine.SourceLineIndex)
+					s.setFatalMessage("Malformed executable", templateLine.SourceLineIndex)
 					continue
 				}
 
 				executableAndArgsStr := executableAndArgsCapture[1]
 				if executableAndArgsStr == "" {
-					s.SetFatalMessage("Empty executable", templateLine.SourceLineIndex)
+					s.setFatalMessage("Empty executable", templateLine.SourceLineIndex)
 					continue
 				}
 
 				tokenizedExecutableLine, err := utils.TokenizeLine(executableAndArgsStr)
 				if err != nil {
-					s.SetFatalMessage(err.Error(), templateLine.SourceLineIndex)
+					s.setFatalMessage(err.Error(), templateLine.SourceLineIndex)
 					continue
 				}
 
@@ -143,10 +143,10 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 	return executableResults
 }
 
-func (s *SectionedTemplate) insertExecutableOutput(executableResults *[]executableOutput) {
+func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executableOutput) {
 	for _, sectionName := range includedSections {
-		replacedSection := []SourceMarker{}
-		section := s.GetNamedSection(sectionName)
+		replacedSection := []sourceMarker{}
+		section := s.getNamedSection(sectionName)
 
 		for _, templateLine := range *section {
 			lineContents := templateLine.LineContents
@@ -155,7 +155,7 @@ func (s *SectionedTemplate) insertExecutableOutput(executableResults *[]executab
 				result := (*executableResults)[0]
 				*executableResults = (*executableResults)[1:]
 				if result.fatalMessage != "" {
-					s.SetFatalMessage(result.fatalMessage, templateLine.SourceLineIndex)
+					s.setFatalMessage(result.fatalMessage, templateLine.SourceLineIndex)
 					continue
 				}
 

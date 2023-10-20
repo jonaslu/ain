@@ -11,7 +11,7 @@ import (
 )
 
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
-	allSectionedTemplates := []*SectionedTemplate{}
+	allSectionedTemplates := []*sectionedTemplate{}
 	fatals := []string{}
 
 	for _, filename := range filenames {
@@ -22,8 +22,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			return nil, "", err
 		}
 
-		if sectionedTemplate := NewSections(rawTemplateString, filename); sectionedTemplate.HasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		if sectionedTemplate := newSections(rawTemplateString, filename); sectionedTemplate.hasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 		} else {
 			allSectionedTemplates = append(allSectionedTemplates, sectionedTemplate)
 		}
@@ -34,8 +34,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	}
 
 	for _, sectionedTemplate := range allSectionedTemplates {
-		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.HasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.hasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 		}
 	}
 
@@ -49,8 +49,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		sectionedTemplate := allSectionedTemplates[i]
 		localConfig := sectionedTemplate.getConfig()
 
-		if sectionedTemplate.HasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		if sectionedTemplate.hasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 			break
 		}
 
@@ -75,8 +75,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	for _, sectionedTemplate := range allSectionedTemplates {
 		allExecutableAndArgs = append(allExecutableAndArgs, sectionedTemplate.captureExecutableAndArgs()...)
 
-		if sectionedTemplate.HasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		if sectionedTemplate.hasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 		}
 	}
 
@@ -87,8 +87,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	allExecutablesOutput := callExecutables(ctx, config, allExecutableAndArgs)
 
 	for _, sectionedTemplate := range allSectionedTemplates {
-		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.HasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.hasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 		}
 	}
 
@@ -118,8 +118,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			body = localBody
 		}
 
-		if sectionedTemplate.HasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.GetFatalMessages())
+		if sectionedTemplate.hasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 		}
 	}
 
