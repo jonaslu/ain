@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/url"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
@@ -127,8 +129,19 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
+	var backendInput data.BackendInput
+
 	if host == "" {
 		fatals = append(fatals, "No mandatory [Host] section found")
+	} else {
+		hostUrl, err := url.Parse(host)
+
+		if err != nil {
+			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", host, err))
+		} else {
+			addQueryString(hostUrl, query, config)
+			backendInput.Host = hostUrl
+		}
 	}
 
 	if backend == "" {
@@ -142,9 +155,9 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n"), nil
 	}
 
-	fmt.Println(host, backend, method, body, headers, query, backendOptions)
+	spew.Dump(backendInput, method, body)
 
-	return nil, "", nil
+	return &backendInput, "", nil
 }
 
 func main() {
