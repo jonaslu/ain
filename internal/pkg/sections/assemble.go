@@ -96,8 +96,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(fatals, "\n\n"), nil
 	}
 
-	var host, backend, method, body string
-	var headers, query []string
+	var host, backend, method string
+	var headers, query, body []string
 	var backendOptions [][]string
 
 	for _, sectionedTemplate := range allSectionedTemplates {
@@ -114,7 +114,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			method = localMethod
 		}
 
-		if localBody := sectionedTemplate.getBody(); localBody != "" {
+		if localBody := sectionedTemplate.getBody(); len(localBody) > 0 {
 			body = localBody
 		}
 
