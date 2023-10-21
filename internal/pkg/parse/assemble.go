@@ -82,13 +82,13 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(allSectionedTemplateFatals, "\n\n"), nil
 	}
 
+	if substituteEnvVarsFatals := substituteEnvVars(allSectionedTemplates); len(substituteEnvVarsFatals) > 0 {
+		return nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
+	}
+
 	config, configFatals := getConfig(allSectionedTemplates)
 	if len(configFatals) > 0 {
 		return nil, strings.Join(configFatals, "\n\n"), nil
-	}
-
-	if substituteEnvVarsFatals := substituteEnvVars(allSectionedTemplates); len(substituteEnvVarsFatals) > 0 {
-		return nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
 	}
 
 	var fatals []string
