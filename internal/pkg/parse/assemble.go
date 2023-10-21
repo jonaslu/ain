@@ -10,39 +10,30 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
 
-func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
+func getAllSectionedTemplates(filenames []string) ([]*sectionedTemplate, []string, error) {
+	newSectionedTemplateFatals := []string{}
 	allSectionedTemplates := []*sectionedTemplate{}
-	fatals := []string{}
 
 	for _, filename := range filenames {
 		// !! TODO !! The file-name will be displayed as test.ain! <- Remove the exclamation-mark
 		// when setting the file-name2.
 		rawTemplateString, err := disk.ReadRawTemplateString(filename)
 		if err != nil {
-			return nil, "", err
+			return nil, newSectionedTemplateFatals, err
 		}
 
 		if sectionedTemplate := newSectionedTemplate(rawTemplateString, filename); sectionedTemplate.hasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.getFatalMessages())
+			newSectionedTemplateFatals = append(newSectionedTemplateFatals, sectionedTemplate.getFatalMessages())
 		} else {
 			allSectionedTemplates = append(allSectionedTemplates, sectionedTemplate)
 		}
 	}
 
-	if len(fatals) > 0 {
-		return nil, strings.Join(fatals, "\n\n"), nil
-	}
+	return allSectionedTemplates, newSectionedTemplateFatals, nil
+}
 
-	for _, sectionedTemplate := range allSectionedTemplates {
-		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.hasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.getFatalMessages())
-		}
-	}
-
-	if len(fatals) > 0 {
-		return nil, strings.Join(fatals, "\n\n"), nil
-	}
-
+func getConfig(allSectionedTemplates []*sectionedTemplate) (data.Config, []string) {
+	configFatals := []string{}
 	config := data.NewConfig()
 
 	for i := len(allSectionedTemplates) - 1; i >= 0; i-- {
@@ -50,7 +41,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		localConfig := sectionedTemplate.getConfig()
 
 		if sectionedTemplate.hasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.getFatalMessages())
+			configFatals = append(configFatals, sectionedTemplate.getFatalMessages())
 			break
 		}
 
@@ -64,6 +55,31 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 
 		if config.Timeout > data.TimeoutNotSet && config.QueryDelim != nil {
 			break
+		}
+	}
+
+	return config, configFatals
+}
+
+func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
+	allSectionedTemplates, allSectionedTemplateFatals, err := getAllSectionedTemplates(filenames)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if len(allSectionedTemplateFatals) > 0 {
+		return nil, strings.Join(allSectionedTemplateFatals, "\n\n"), nil
+	}
+
+	config, configFatals := getConfig(allSectionedTemplates)
+	if len(configFatals) > 0 {
+		return nil, strings.Join(configFatals, "\n\n"), nil
+	}
+
+	var fatals []string
+	for _, sectionedTemplate := range allSectionedTemplates {
+		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.hasFatalMessages() {
+			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 		}
 	}
 
