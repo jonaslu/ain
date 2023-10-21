@@ -61,6 +61,17 @@ func getConfig(allSectionedTemplates []*sectionedTemplate) (data.Config, []strin
 	return config, configFatals
 }
 
+func substituteEnvVars(allSectionedTemplates []*sectionedTemplate) []string {
+	substituteEnvVarsFatals := []string{}
+	for _, sectionedTemplate := range allSectionedTemplates {
+		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.hasFatalMessages() {
+			substituteEnvVarsFatals = append(substituteEnvVarsFatals, sectionedTemplate.getFatalMessages())
+		}
+	}
+
+	return substituteEnvVarsFatals
+}
+
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
 	allSectionedTemplates, allSectionedTemplateFatals, err := getAllSectionedTemplates(filenames)
 	if err != nil {
@@ -76,17 +87,11 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(configFatals, "\n\n"), nil
 	}
 
+	if substituteEnvVarsFatals := substituteEnvVars(allSectionedTemplates); len(substituteEnvVarsFatals) > 0 {
+		return nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
+	}
+
 	var fatals []string
-	for _, sectionedTemplate := range allSectionedTemplates {
-		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.hasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.getFatalMessages())
-		}
-	}
-
-	if len(fatals) > 0 {
-		return nil, strings.Join(fatals, "\n\n"), nil
-	}
-
 	allExecutableAndArgs := []executableAndArgs{}
 	for _, sectionedTemplate := range allSectionedTemplates {
 		allExecutableAndArgs = append(allExecutableAndArgs, sectionedTemplate.captureExecutableAndArgs()...)
