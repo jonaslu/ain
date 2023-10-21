@@ -38,7 +38,7 @@ func (s *sectionedTemplate) getNamedSection(sectionHeader string) *[]sourceMarke
 	return &[]sourceMarker{}
 }
 
-func newSections(rawTemplateString, filename string) *sectionedTemplate {
+func newSectionedTemplate(rawTemplateString, filename string) *sectionedTemplate {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
 	sectionedTemplate := sectionedTemplate{
 		sections:         map[string]*[]sourceMarker{},

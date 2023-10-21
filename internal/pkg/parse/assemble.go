@@ -22,7 +22,7 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 			return nil, "", err
 		}
 
-		if sectionedTemplate := newSections(rawTemplateString, filename); sectionedTemplate.hasFatalMessages() {
+		if sectionedTemplate := newSectionedTemplate(rawTemplateString, filename); sectionedTemplate.hasFatalMessages() {
 			fatals = append(fatals, sectionedTemplate.getFatalMessages())
 		} else {
 			allSectionedTemplates = append(allSectionedTemplates, sectionedTemplate)
