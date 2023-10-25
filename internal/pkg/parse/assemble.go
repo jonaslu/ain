@@ -63,6 +63,7 @@ func getConfig(allSectionedTemplates []*sectionedTemplate) (data.Config, []strin
 
 func substituteEnvVars(allSectionedTemplates []*sectionedTemplate) []string {
 	substituteEnvVarsFatals := []string{}
+
 	for _, sectionedTemplate := range allSectionedTemplates {
 		if sectionedTemplate.substituteEnvVars(); sectionedTemplate.hasFatalMessages() {
 			substituteEnvVarsFatals = append(substituteEnvVarsFatals, sectionedTemplate.getFatalMessages())
@@ -70,6 +71,104 @@ func substituteEnvVars(allSectionedTemplates []*sectionedTemplate) []string {
 	}
 
 	return substituteEnvVarsFatals
+}
+
+func substituteExecutables(ctx context.Context, config data.Config, allSectionedTemplates []*sectionedTemplate) []string {
+	substituteExecutablesFatals := []string{}
+	allExecutableAndArgs := []executableAndArgs{}
+
+	for _, sectionedTemplate := range allSectionedTemplates {
+		allExecutableAndArgs = append(allExecutableAndArgs, sectionedTemplate.captureExecutableAndArgs()...)
+
+		if sectionedTemplate.hasFatalMessages() {
+			substituteExecutablesFatals = append(substituteExecutablesFatals, sectionedTemplate.getFatalMessages())
+		}
+	}
+
+	if len(substituteExecutablesFatals) > 0 {
+		return substituteExecutablesFatals
+	}
+
+	allExecutablesOutput := callExecutables(ctx, config, allExecutableAndArgs)
+
+	for _, sectionedTemplate := range allSectionedTemplates {
+		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.hasFatalMessages() {
+			substituteExecutablesFatals = append(substituteExecutablesFatals, sectionedTemplate.getFatalMessages())
+		}
+	}
+
+	return substituteExecutablesFatals
+}
+
+type allSectionRows struct {
+	host           string
+	backend        string
+	method         string
+	headers        []string
+	query          []string
+	body           []string
+	backendOptions [][]string
+}
+
+func getAllSectionRows(allSectionedTemplates []*sectionedTemplate) (allSectionRows, []string) {
+	allSectionRowsFatals := []string{}
+	allSectionRows := allSectionRows{}
+
+	for _, sectionedTemplate := range allSectionedTemplates {
+		allSectionRows.host = allSectionRows.host + sectionedTemplate.getHost()
+		allSectionRows.headers = append(allSectionRows.headers, sectionedTemplate.getHeaders()...)
+		allSectionRows.query = append(allSectionRows.query, sectionedTemplate.getQuery()...)
+		allSectionRows.backendOptions = append(allSectionRows.backendOptions, sectionedTemplate.getBackendOptions()...)
+
+		if localBackend := sectionedTemplate.getBackend(); localBackend != "" {
+			allSectionRows.backend = localBackend
+		}
+
+		if localMethod := sectionedTemplate.getMethod(); localMethod != "" {
+			allSectionRows.method = localMethod
+		}
+
+		if localBody := sectionedTemplate.getBody(); len(localBody) > 0 {
+			allSectionRows.body = localBody
+		}
+
+		if sectionedTemplate.hasFatalMessages() {
+			allSectionRowsFatals = append(allSectionRowsFatals, sectionedTemplate.getFatalMessages())
+		}
+	}
+
+	return allSectionRows, allSectionRowsFatals
+}
+
+func getBackendInput(allSectionRows allSectionRows, config data.Config) (*data.BackendInput, []string) {
+	backendInputFatals := []string{}
+	backendInput := data.BackendInput{}
+
+	if allSectionRows.host == "" {
+		backendInputFatals = append(backendInputFatals, "No mandatory [Host] section found")
+	} else {
+		hostUrl, err := url.Parse(allSectionRows.host)
+
+		if err != nil {
+			backendInputFatals = append(backendInputFatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", allSectionRows.host, err))
+		} else {
+			addQueryString(hostUrl, allSectionRows.query, config)
+			backendInput.Host = hostUrl
+		}
+	}
+
+	if allSectionRows.backend == "" {
+		backendInputFatals = append(backendInputFatals, "No mandatory [Backend] section found")
+	}
+
+	backendInput.Method = allSectionRows.method
+	backendInput.Body = allSectionRows.body
+	backendInput.Headers = allSectionRows.headers
+	backendInput.Backend = allSectionRows.backend
+	backendInput.BackendOptions = allSectionRows.backendOptions
+	backendInput.Config = config
+
+	return &backendInput, backendInputFatals
 }
 
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
@@ -91,95 +190,22 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(configFatals, "\n\n"), nil
 	}
 
-	var fatals []string
-	allExecutableAndArgs := []executableAndArgs{}
-	for _, sectionedTemplate := range allSectionedTemplates {
-		allExecutableAndArgs = append(allExecutableAndArgs, sectionedTemplate.captureExecutableAndArgs()...)
-
-		if sectionedTemplate.hasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.getFatalMessages())
-		}
+	if substituteExecutablesFatals := substituteExecutables(ctx, config, allSectionedTemplates); len(substituteExecutablesFatals) > 0 {
+		return nil, strings.Join(substituteExecutablesFatals, "\n\n"), nil
 	}
 
-	if len(fatals) > 0 {
-		return nil, strings.Join(fatals, "\n\n"), nil
+	allSectionRows, allSectionRowsFatals := getAllSectionRows(allSectionedTemplates)
+	if len(allSectionRowsFatals) > 0 {
+		return nil, strings.Join(allSectionRowsFatals, "\n\n"), nil
 	}
 
-	allExecutablesOutput := callExecutables(ctx, config, allExecutableAndArgs)
-
-	for _, sectionedTemplate := range allSectionedTemplates {
-		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.hasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.getFatalMessages())
-		}
-	}
-
-	if len(fatals) > 0 {
-		return nil, strings.Join(fatals, "\n\n"), nil
-	}
-
-	var host, backend, method string
-	var headers, query, body []string
-	var backendOptions [][]string
-
-	for _, sectionedTemplate := range allSectionedTemplates {
-		host = host + sectionedTemplate.getHost()
-		headers = append(headers, sectionedTemplate.getHeaders()...)
-		query = append(query, sectionedTemplate.getQuery()...)
-		backendOptions = append(backendOptions, sectionedTemplate.getBackendOptions()...)
-
-		if localBackend := sectionedTemplate.getBackend(); localBackend != "" {
-			backend = localBackend
-		}
-
-		if localMethod := sectionedTemplate.getMethod(); localMethod != "" {
-			method = localMethod
-		}
-
-		if localBody := sectionedTemplate.getBody(); len(localBody) > 0 {
-			body = localBody
-		}
-
-		if sectionedTemplate.hasFatalMessages() {
-			fatals = append(fatals, sectionedTemplate.getFatalMessages())
-		}
-	}
-
-	if len(fatals) > 0 {
-		return nil, strings.Join(fatals, "\n\n"), nil
-	}
-
-	var backendInput data.BackendInput
-
-	if host == "" {
-		fatals = append(fatals, "No mandatory [Host] section found")
-	} else {
-		hostUrl, err := url.Parse(host)
-
-		if err != nil {
-			fatals = append(fatals, fmt.Sprintf("[Host] has illegal url: %s, error: %v", host, err))
-		} else {
-			addQueryString(hostUrl, query, config)
-			backendInput.Host = hostUrl
-		}
-	}
-
-	if backend == "" {
-		fatals = append(fatals, "No mandatory [Backend] section found")
-	}
-
-	if len(fatals) > 0 {
+	backendInput, backendInputFatals := getBackendInput(allSectionRows, config)
+	if len(backendInputFatals) > 0 {
 		// Since we no longer have a sectionedTemplate errors
 		// are no longer linked to a file and we separate
 		// with one newline
-		return nil, strings.Join(fatals, "\n"), nil
+		return nil, strings.Join(backendInputFatals, "\n"), nil
 	}
 
-	backendInput.Method = method
-	backendInput.Body = body
-	backendInput.Headers = headers
-	backendInput.Backend = backend
-	backendInput.BackendOptions = backendOptions
-	backendInput.Config = config
-
-	return &backendInput, "", nil
+	return backendInput, "", nil
 }
