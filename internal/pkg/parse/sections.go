@@ -18,8 +18,21 @@ const (
 	BodySection           = "body"
 	BackendSection        = "backend"
 	BackendOptionsSection = "backendoptions"
-	DefaultVarsSection    = "defaultvars"
+	// As above, so below
+	// If you add one here then add it to the slice below too IF
+	// it should be included when capturing executables (i e not Config
+	// as it's parsed before running executables).
 )
+
+var sectionsAllowingExecutables = []string{
+	HostSection,
+	QuerySection,
+	HeadersSection,
+	MethodSection,
+	BodySection,
+	BackendSection,
+	BackendOptionsSection,
+}
 
 type sectionedTemplate struct {
 	sections map[string]*[]sourceMarker

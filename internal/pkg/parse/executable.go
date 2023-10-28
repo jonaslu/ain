@@ -29,21 +29,10 @@ type executableOutput struct {
 	fatalMessage string
 }
 
-var includedSections = []string{
-	HostSection,
-	QuerySection,
-	HeadersSection,
-	MethodSection,
-	BodySection,
-	BackendSection,
-	BackendOptionsSection,
-	DefaultVarsSection,
-}
-
 func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	executables := []executableAndArgs{}
 
-	for _, sectionName := range includedSections {
+	for _, sectionName := range sectionsAllowingExecutables {
 		for _, templateLine := range *s.getNamedSection(sectionName) {
 			lineContents := templateLine.LineContents
 
@@ -144,7 +133,7 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 }
 
 func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executableOutput) {
-	for _, sectionName := range includedSections {
+	for _, sectionName := range sectionsAllowingExecutables {
 		replacedSection := []sourceMarker{}
 		section := s.getNamedSection(sectionName)
 
