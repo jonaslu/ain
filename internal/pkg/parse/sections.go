@@ -19,10 +19,23 @@ const (
 	BackendSection        = "backend"
 	BackendOptionsSection = "backendoptions"
 	// As above, so below
-	// If you add one here then add it to the slice below too IF
+	// If you add one here then add it to the slice below.
+	// AND IF
 	// it should be included when capturing executables (i e not Config
-	// as it's parsed before running executables).
+	// as it's parsed before running executables) add it to the
+	// second slice below
 )
+
+var allSectionHeaders = []string{
+	ConfigSection,
+	HostSection,
+	QuerySection,
+	HeadersSection,
+	MethodSection,
+	BodySection,
+	BackendSection,
+	BackendOptionsSection,
+}
 
 var sectionsAllowingExecutables = []string{
 	HostSection,

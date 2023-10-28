@@ -13,18 +13,6 @@ type capturedSection struct {
 	sectionLines           *[]sourceMarker
 }
 
-var allSectionHeaders = []string{
-	ConfigSection,
-	HostSection,
-	QuerySection,
-	HeadersSection,
-	MethodSection,
-	BodySection,
-	BackendSection,
-	BackendOptionsSection,
-	DefaultVarsSection,
-}
-
 var knownSectionHeadersStr = strings.Join(allSectionHeaders, "|")
 
 var knownSectionsRe = regexp.MustCompile(`(?i)^\s*\[(` + knownSectionHeadersStr + `)\]\s*$`)
