@@ -1,7 +1,7 @@
 package parse
 
 func (s *sectionedTemplate) getMethod() string {
-	methodSourceMarkers := *s.getNamedSection(MethodSection)
+	methodSourceMarkers := *s.getNamedSection(methodSection)
 
 	if len(methodSourceMarkers) == 0 {
 		return ""

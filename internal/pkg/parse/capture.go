@@ -32,7 +32,7 @@ func trimSourceMarkerLines(sourceMarkers *[]sourceMarker) *[]sourceMarker {
 
 func (s *sectionedTemplate) setCapturedSections(capturedSections []capturedSection) {
 	for _, capturedSection := range capturedSections {
-		if capturedSection.heading == BodySection {
+		if capturedSection.heading == bodySection {
 			s.sections[capturedSection.heading] = capturedSection.sectionLines
 		} else {
 			s.sections[capturedSection.heading] = trimSourceMarkerLines(capturedSection.sectionLines)

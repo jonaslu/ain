@@ -10,14 +10,14 @@ type sourceMarker struct {
 }
 
 const (
-	ConfigSection         = "config"
-	HostSection           = "host"
-	QuerySection          = "query"
-	HeadersSection        = "headers"
-	MethodSection         = "method"
-	BodySection           = "body"
-	BackendSection        = "backend"
-	BackendOptionsSection = "backendoptions"
+	configSection         = "config"
+	hostSection           = "host"
+	querySection          = "query"
+	headersSection        = "headers"
+	methodSection         = "method"
+	bodySection           = "body"
+	backendSection        = "backend"
+	backendOptionsSection = "backendoptions"
 	// As above, so below
 	// If you add one here then add it to the slice below.
 	// AND IF
@@ -27,24 +27,24 @@ const (
 )
 
 var allSectionHeaders = []string{
-	ConfigSection,
-	HostSection,
-	QuerySection,
-	HeadersSection,
-	MethodSection,
-	BodySection,
-	BackendSection,
-	BackendOptionsSection,
+	configSection,
+	hostSection,
+	querySection,
+	headersSection,
+	methodSection,
+	bodySection,
+	backendSection,
+	backendOptionsSection,
 }
 
 var sectionsAllowingExecutables = []string{
-	HostSection,
-	QuerySection,
-	HeadersSection,
-	MethodSection,
-	BodySection,
-	BackendSection,
-	BackendOptionsSection,
+	hostSection,
+	querySection,
+	headersSection,
+	methodSection,
+	bodySection,
+	backendSection,
+	backendOptionsSection,
 }
 
 type sectionedTemplate struct {

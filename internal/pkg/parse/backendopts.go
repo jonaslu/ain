@@ -9,7 +9,7 @@ import (
 func (s *sectionedTemplate) getBackendOptions() [][]string {
 	var backendOptions [][]string
 
-	for _, backedOptionSourceMarker := range *s.getNamedSection(BackendOptionsSection) {
+	for _, backedOptionSourceMarker := range *s.getNamedSection(backendOptionsSection) {
 		tokenizedBackendOpts, err := utils.TokenizeLine(backedOptionSourceMarker.LineContents)
 		if err != nil {
 			// !! TODO !! Can parse all messages don't have to return

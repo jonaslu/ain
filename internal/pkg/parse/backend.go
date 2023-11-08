@@ -9,7 +9,7 @@ import (
 )
 
 func (s *sectionedTemplate) getBackend() string {
-	backendSourceMarkers := *s.getNamedSection(BackendSection)
+	backendSourceMarkers := *s.getNamedSection(backendSection)
 	if len(backendSourceMarkers) == 0 {
 		return ""
 	}

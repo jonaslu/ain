@@ -3,7 +3,7 @@ package parse
 func (s *sectionedTemplate) getQuery() []string {
 	var query []string
 
-	for _, querySourceMarker := range *s.getNamedSection(QuerySection) {
+	for _, querySourceMarker := range *s.getNamedSection(querySection) {
 		query = append(query, querySourceMarker.LineContents)
 	}
 

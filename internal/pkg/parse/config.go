@@ -53,7 +53,7 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 func (s *sectionedTemplate) getConfig() data.Config {
 	config := data.NewConfig()
 
-	for _, configLine := range *s.getNamedSection(ConfigSection) {
+	for _, configLine := range *s.getNamedSection(configSection) {
 		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.LineContents); isTimeoutConfig {
 			if config.Timeout > 0 {
 				// !! TODO !! Can have Query delimiter set n times
