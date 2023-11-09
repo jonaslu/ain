@@ -17,8 +17,6 @@ import (
 var executableExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
 var executableRe = regexp.MustCompile(`\$\(([^)]*)\)`)
 
-var emptyOutputLineRe = regexp.MustCompile(`^\s*$`)
-
 type executableAndArgs struct {
 	executable string
 	args       []string
