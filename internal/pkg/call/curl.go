@@ -2,7 +2,6 @@ package call
 
 import (
 	"context"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -67,7 +66,7 @@ func (curl *curl) getBodyArgument(tmpDir string) ([]string, error) {
 	return []string{}, nil
 }
 
-func (curl *curl) runAsCmd(ctx context.Context) (Output, error) {
+func (curl *curl) generateCmd(ctx context.Context) (*exec.Cmd, error) {
 	args := []string{}
 	for _, backendOpt := range curl.callData.BackendOptions {
 		args = append(args, backendOpt...)
@@ -80,47 +79,14 @@ func (curl *curl) runAsCmd(ctx context.Context) (Output, error) {
 
 	bodyArgs, err := curl.getBodyArgument("")
 	if err != nil {
-		return Output{}, err
+		return nil, err
 	}
 
 	args = append(args, bodyArgs...)
 	args = append(args, curl.callData.Host.String())
 
 	curlCmd := exec.CommandContext(ctx, curl.binaryName, args...)
-	stdErrPipe, err := curlCmd.StderrPipe()
-	if err != nil {
-		return Output{}, err
-	}
-	stdOutPipe, err := curlCmd.StdoutPipe()
-	if err != nil {
-		return Output{}, err
-	}
-	curlCmd.Start()
-	if err != nil {
-		return Output{}, err
-	}
-	stdOut, err := io.ReadAll(stdOutPipe)
-	if err != nil {
-		return Output{StdOut: stdOut}, &BackedErr{
-			Err:      err,
-			ExitCode: curlCmd.ProcessState.ExitCode(),
-		}
-	}
-	stdErr, err := io.ReadAll(stdErrPipe)
-	if err != nil {
-		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
-			Err:      err,
-			ExitCode: curlCmd.ProcessState.ExitCode(),
-		}
-	}
-	err = curlCmd.Wait()
-	if err != nil {
-		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
-			Err:      err,
-			ExitCode: curlCmd.ProcessState.ExitCode(),
-		}
-	}
-	return Output{StdOut: stdOut, StdErr: stdErr}, nil
+        return  curlCmd, nil
 }
 
 func (curl *curl) getAsString() (string, error) {

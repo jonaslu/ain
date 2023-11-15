@@ -3,6 +3,8 @@ package call
 import (
 	"context"
 	"fmt"
+	"io"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -46,7 +48,7 @@ func (err *BackedErr) Error() string {
 }
 
 type backend interface {
-	runAsCmd(context.Context) (Output, error)
+	generateCmd(context.Context) (*exec.Cmd, error)
 	getAsString() (string, error)
 	cleanUp() error
 }
@@ -88,7 +90,12 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 		}
 	}
 
-	output, err := backend.runAsCmd(backendTimeoutContext)
+	cmd, err := backend.generateCmd(backendTimeoutContext)
+        if err != nil {
+            return Output{}, errors.Wrapf(err, "Could not generate valid command: %s", callData.Backend)
+        }
+
+        output, err := runCmd(cmd);
 
 	var removeTmpFileErr error
 	if !leaveTmpFile || err != nil {
@@ -117,3 +124,41 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 
 	return output, nil
 }
+
+func runCmd(cmd *exec.Cmd) (Output, error) {
+	stdErrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return Output{}, err
+	}
+	stdOutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return Output{}, err
+	}
+	cmd.Start()
+	if err != nil {
+		return Output{}, err
+	}
+	stdOut, err := io.ReadAll(stdOutPipe)
+	if err != nil {
+		return Output{StdOut: stdOut}, &BackedErr{
+			Err:      err,
+			ExitCode: cmd.ProcessState.ExitCode(),
+		}
+	}
+	stdErr, err := io.ReadAll(stdErrPipe)
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: cmd.ProcessState.ExitCode(),
+		}
+	}
+	err = cmd.Wait()
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: cmd.ProcessState.ExitCode(),
+		}
+	}
+	return Output{StdOut: stdOut, StdErr: stdErr}, nil
+}
+
