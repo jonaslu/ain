@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/pkg/errors"
 )
@@ -53,9 +52,6 @@ func parseTimeoutConfig(configStr string) (bool, int32, error) {
 
 func (s *sectionedTemplate) getConfig() data.Config {
 	config := data.NewConfig()
-	spew.Dump(s.getNamedSection(configSection))
-	s.splitAndTrimSection(configSection)
-	spew.Dump(s.getNamedSection(configSection))
 
 	for _, configLine := range *s.getNamedSection(configSection) {
 		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.LineContents); isTimeoutConfig {

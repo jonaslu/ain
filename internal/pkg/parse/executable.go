@@ -131,11 +131,12 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 }
 
 func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executableOutput) {
-	for _, sectionName := range sectionsAllowingExecutables {
-		replacedSection := []sourceMarker{}
-		section := s.getNamedSection(sectionName)
+	for _, sectionHeader := range sectionsAllowingExecutables {
+		section := s.getNamedSection(sectionHeader)
+		anythingReplaced := false
 
-		for _, templateLine := range *section {
+		for idx := range *section {
+			templateLine := &(*section)[idx]
 			lineContents := templateLine.LineContents
 
 			for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
@@ -147,21 +148,14 @@ func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executab
 				}
 
 				lineContents = strings.Replace(lineContents, executableWithParens, result.output, 1)
+				anythingReplaced = true
 			}
 
-			multilineOutput := strings.Split(strings.ReplaceAll(lineContents, "\r\n", "\n"), "\n")
-			for _, lineOutput := range multilineOutput {
-				if emptyOutputLineRe.MatchString(lineOutput) {
-					continue
-				}
-
-				templateLine.LineContents = lineOutput
-				replacedSection = append(replacedSection, templateLine)
-			}
+			templateLine.LineContents = lineContents
 		}
 
-		// !! TODO !! Possibly re-do as a setter on the struct.
-		// Setter will know what sections to trim
-		s.sections[sectionName] = &replacedSection
+		if anythingReplaced {
+			s.splitAndTrimSection(sectionHeader)
+		}
 	}
 }

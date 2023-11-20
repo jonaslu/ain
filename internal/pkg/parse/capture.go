@@ -23,24 +23,31 @@ var emptyOutputLineRe = regexp.MustCompile(`^\s*$`)
 var removeTrailingCommendRegExp = regexp.MustCompile("#.*$")
 var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
 
-func (s *sectionedTemplate) splitAndTrimSection(sectionHeader string) {
-	sourceMarkers := s.getNamedSection(sectionHeader)
-	replacedSection := []sourceMarker{}
+func (s *sectionedTemplate) splitAndTrimSection(sectionHeaders ...string) {
+	for _, sectionHeader := range sectionHeaders {
+		sourceMarkers := s.getNamedSection(sectionHeader)
+		replacedSection := []sourceMarker{}
 
-	for _, templateLine := range *sourceMarkers {
-		multilineOutput := strings.Split(strings.ReplaceAll(templateLine.LineContents, "\r\n", "\n"), "\n")
+		for _, templateLine := range *sourceMarkers {
+			multilineOutput := strings.Split(strings.ReplaceAll(templateLine.LineContents, "\r\n", "\n"), "\n")
 
-		for _, lineOutput := range multilineOutput {
-			if emptyOutputLineRe.MatchString(lineOutput) {
-				continue
+			for _, lineOutput := range multilineOutput {
+				if sectionHeader != bodySection {
+					if emptyOutputLineRe.MatchString(lineOutput) {
+						continue
+					}
+
+					templateLine.LineContents = strings.TrimSpace(lineOutput)
+				} else {
+					templateLine.LineContents = lineOutput
+				}
+
+				replacedSection = append(replacedSection, templateLine)
 			}
-
-			templateLine.LineContents = strings.TrimSpace(lineOutput)
-			replacedSection = append(replacedSection, templateLine)
 		}
-	}
 
-	s.sections[sectionHeader] = &replacedSection
+		s.sections[sectionHeader] = &replacedSection
+	}
 }
 
 func (s *sectionedTemplate) setCapturedSections(capturedSections []capturedSection) {

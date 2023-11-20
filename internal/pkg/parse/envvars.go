@@ -47,7 +47,9 @@ func formatMissingEnvVarErrorMessage(missingEnvVar string) string {
 }
 
 func (s *sectionedTemplate) substituteEnvVars() {
-	for _, section := range s.sections {
+	for sectionHeader, section := range s.sections {
+		anythingReplaced := false
+
 		for idx := range *section {
 			templateLine := &(*section)[idx]
 			lineContents := templateLine.LineContents
@@ -77,11 +79,16 @@ func (s *sectionedTemplate) substituteEnvVars() {
 						s.setFatalMessage(fmt.Sprintf("Value for variable %s is empty", envVarKey), templateLine.SourceLineIndex)
 					} else {
 						lineContents = strings.Replace(lineContents, envVarWithBrackets, value, 1)
+						anythingReplaced = true
 					}
 				}
 			}
 
 			templateLine.LineContents = lineContents
+		}
+
+		if anythingReplaced {
+			s.splitAndTrimSection(sectionHeader)
 		}
 	}
 }
