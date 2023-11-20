@@ -28,7 +28,7 @@ NextRune:
 		headRune := commandLineRune[i]
 
 		// Nothing has been collected, discard spaces
-		if unicode.IsSpace(headRune) && builder.Len() == 0 {
+		if lastQuoteRune == 0 && unicode.IsSpace(headRune) && builder.Len() == 0 {
 			continue
 		}
 

@@ -54,6 +54,11 @@ func TestTokenizeLineGoodCases(t *testing.T) {
 			`"word""word"`,
 			[]string{`wordword`},
 		},
+
+		`quoted whitespace in the beginning and end should be retained`: {
+			`"   word    "`,
+			[]string{`   word    `},
+		},
 	}
 
 	for name, test := range tests {
