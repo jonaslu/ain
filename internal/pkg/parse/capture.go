@@ -4,67 +4,125 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
-type captureResult struct {
-	sectionHeaderLine sourceMarker
-	sectionLines      []sourceMarker
+type capturedSection struct {
+	heading                string
+	headingSourceLineIndex int
+	sectionLines           *[]sourceMarker
 }
 
-const knownSectionHeaders = "host|query|headers|method|body|config|backend|backendoptions"
+var knownSectionHeadersStr = strings.Join(allSectionHeaders, "|")
 
-var knownSectionsRe = regexp.MustCompile(`^\[(` + knownSectionHeaders + `)\]$`)
-var unescapeKnownSectionsRe = regexp.MustCompile(`^\\\[(` + knownSectionHeaders + `)\]$`)
+var knownSectionsRe = regexp.MustCompile(`(?i)^\s*\[(` + knownSectionHeadersStr + `)\]\s*$`)
+var unescapeKnownSectionsRe = regexp.MustCompile(`(?i)^\s*\\\[(` + knownSectionHeadersStr + `)\]\s*$`)
 
-func captureSection(sectionName string, template []sourceMarker, trim bool) (*captureResult, *fatalMarker) {
-	var sectionLines []sourceMarker
-	sectionHeaderLine := emptyLine
-	capturing := false
+var emptyOutputLineRe = regexp.MustCompile(`^\s*$`)
 
-	for _, templateLine := range template {
-		lineContents := templateLine.lineContents
-		trimmedLineContents := strings.TrimSpace(templateLine.lineContents)
-		lowerCasedTrimmedLineContents := strings.ToLower(trimmedLineContents)
+var removeTrailingCommendRegExp = regexp.MustCompile("#.*$")
+var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
 
-		if lowerCasedTrimmedLineContents == "["+strings.ToLower(sectionName)+"]" {
-			if sectionHeaderLine != emptyLine {
-				return nil, newFatalMarker(fmt.Sprintf("Several [%s] sections found on line %d and %d", sectionName, sectionHeaderLine.sourceLineIndex, templateLine.sourceLineIndex), emptyLine)
-			}
+func (s *sectionedTemplate) splitAndTrimSection(sectionHeader string) {
+	sourceMarkers := s.getNamedSection(sectionHeader)
+	replacedSection := []sourceMarker{}
 
-			sectionHeaderLine = templateLine
-			capturing = true
-			continue
-		}
+	for _, templateLine := range *sourceMarkers {
+		multilineOutput := strings.Split(strings.ReplaceAll(templateLine.LineContents, "\r\n", "\n"), "\n")
 
-		if knownSectionsRe.MatchString(lowerCasedTrimmedLineContents) {
-			capturing = false
-			continue
-		}
+		for _, lineOutput := range multilineOutput {
+			if sectionHeader != bodySection {
+				if emptyOutputLineRe.MatchString(lineOutput) {
+					continue
+				}
 
-		if unescapeKnownSectionsRe.MatchString(lowerCasedTrimmedLineContents) {
-			lineContents = strings.Replace(lineContents, `\`, "", 1)
-			trimmedLineContents = strings.Replace(trimmedLineContents, `\`, "", 1)
-		}
-
-		if capturing {
-			if trim {
-				templateLine.lineContents = trimmedLineContents
+				templateLine.LineContents = strings.TrimSpace(lineOutput)
 			} else {
-				templateLine.lineContents = lineContents
+				templateLine.LineContents = lineOutput
 			}
 
-			sectionLines = append(sectionLines, templateLine)
+			replacedSection = append(replacedSection, templateLine)
 		}
 	}
 
-	if sectionHeaderLine != emptyLine && len(sectionLines) == 0 {
-		return nil, newFatalMarker("Empty ["+sectionName+"] line", sectionHeaderLine)
+	s.sections[sectionHeader] = &replacedSection
+}
+
+func (s *sectionedTemplate) setCapturedSections(capturedSections []capturedSection) {
+	for _, capturedSection := range capturedSections {
+		s.sections[capturedSection.heading] = capturedSection.sectionLines
+	}
+}
+
+func getSectionHeading(rawTemplateLine string) string {
+	matchedLine := knownSectionsRe.FindStringSubmatch(rawTemplateLine)
+
+	if len(matchedLine) == 2 {
+		return strings.ToLower(matchedLine[1])
 	}
 
-	captureResult := &captureResult{
-		sectionHeaderLine: sectionHeaderLine,
-		sectionLines:      sectionLines,
+	return ""
+}
+
+func checkValidHeadings(capturedSections []capturedSection, sections *sectionedTemplate) {
+	// Keeps "header": [1,5,7] <- Name of heading and on what lines in the file
+	headingDefinitionSourceLines := map[string][]int{}
+
+	for _, capturedSection := range capturedSections {
+		if len(*capturedSection.sectionLines) == 0 {
+			sections.setFatalMessage(fmt.Sprintf("Empty %s section", capturedSection.heading), capturedSection.headingSourceLineIndex)
+		}
+
+		headingDefinitionSourceLines[capturedSection.heading] = append(headingDefinitionSourceLines[capturedSection.heading], capturedSection.headingSourceLineIndex)
 	}
 
-	return captureResult, nil
+	// !! TODO !! We now know the sourceLineIndex where multiple headings
+	// are defined so we can print this more nicely
+	for heading, headingSourceLineIndex := range headingDefinitionSourceLines {
+		if len(headingSourceLineIndex) > 1 {
+			sections.fatals = append(
+				sections.fatals,
+				fmt.Sprintf("Several %s sections found on line %d and %d", heading, headingSourceLineIndex[0]+1, headingSourceLineIndex[1]+1))
+		}
+	}
+}
+
+func getCapturedSections(rawTemplateLines []string) ([]capturedSection, bool) {
+	templateEmpty := true
+	capturedSections := []capturedSection{}
+	currentSectionLines := &[]sourceMarker{}
+
+	for sourceIndex, rawTemplateLine := range rawTemplateLines {
+		if isCommentOrWhitespaceRegExp.MatchString(rawTemplateLine) {
+			continue
+		}
+
+		trailingCommentsRemoved := removeTrailingCommendRegExp.ReplaceAllString(rawTemplateLine, "")
+
+		if sectionHeading := getSectionHeading(trailingCommentsRemoved); sectionHeading != "" {
+			currentSectionLines = &[]sourceMarker{}
+			capturedSections = append(capturedSections, capturedSection{
+				heading:                sectionHeading,
+				headingSourceLineIndex: sourceIndex,
+				sectionLines:           currentSectionLines,
+			})
+
+			templateEmpty = false
+
+			continue
+		}
+
+		if unescapeKnownSectionsRe.MatchString(trailingCommentsRemoved) {
+			trailingCommentsRemoved = strings.Replace(trailingCommentsRemoved, `\`, "", 1)
+		}
+
+		sourceMarker := sourceMarker{
+			LineContents:    strings.TrimRightFunc(trailingCommentsRemoved, func(r rune) bool { return unicode.IsSpace(r) }),
+			SourceLineIndex: sourceIndex,
+		}
+
+		*currentSectionLines = append(*currentSectionLines, sourceMarker)
+	}
+
+	return capturedSections, templateEmpty
 }

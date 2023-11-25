@@ -3,28 +3,22 @@ package parse
 import (
 	"fmt"
 
-	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func parseBackendOptionsSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
-	captureResult, captureFatal := captureSection("BackendOptions", template, true)
-	if captureFatal != nil {
-		return captureFatal
-	}
+func (s *sectionedTemplate) getBackendOptions() [][]string {
+	var backendOptions [][]string
 
-	if captureResult.sectionHeaderLine == emptyLine {
-		return nil
-	}
-
-	for _, backendOptionLineContents := range captureResult.sectionLines {
-		tokenizedBackendOpts, err := utils.TokenizeLine(backendOptionLineContents.lineContents)
+	for _, backedOptionSourceMarker := range *s.getNamedSection(backendOptionsSection) {
+		tokenizedBackendOpts, err := utils.TokenizeLine(backedOptionSourceMarker.LineContents)
 		if err != nil {
-			return newFatalMarker(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backendOptionLineContents)
+			// !! TODO !! Can parse all messages don't have to return
+			s.setFatalMessage(fmt.Sprintf("Could not parse backend-option %s", err.Error()), backedOptionSourceMarker.SourceLineIndex)
+			return backendOptions
 		}
 
-		callData.BackendOptions = append(callData.BackendOptions, tokenizedBackendOpts)
+		backendOptions = append(backendOptions, tokenizedBackendOpts)
 	}
 
-	return nil
+	return backendOptions
 }

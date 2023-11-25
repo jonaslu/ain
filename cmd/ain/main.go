@@ -11,9 +11,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/jonaslu/ain/internal/assemble"
 	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/disk"
+	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
 var version = "1.3.0"
@@ -98,7 +98,8 @@ Project home page: https://github.com/jonaslu/ain`
 		cancel()
 	}()
 
-	callData, fatal, err := assemble.Assemble(ctx, localTemplateFileNames)
+	// !! TODO !! Must return the context with timeout
+	backendInput, fatal, err := parse.Assemble(ctx, localTemplateFileNames)
 	if err != nil {
 		checkSignalRaisedAndExit(ctx, signalRaised)
 
@@ -112,7 +113,7 @@ Project home page: https://github.com/jonaslu/ain`
 		os.Exit(1)
 	}
 
-	backendOutput, err := call.CallBackend(ctx, callData, leaveTmpFile, printCommand)
+	backendOutput, err := call.CallBackend(ctx, backendInput, leaveTmpFile, printCommand)
 	if err != nil {
 		checkSignalRaisedAndExit(ctx, signalRaised)
 

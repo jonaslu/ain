@@ -1,26 +1,16 @@
 package parse
 
-import "github.com/jonaslu/ain/internal/pkg/data"
+func (s *sectionedTemplate) getMethod() string {
+	methodSourceMarkers := *s.getNamedSection(methodSection)
 
-func parseMethodSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
-	captureResult, captureFatal := captureSection("Method", template, true)
-	if captureFatal != nil {
-		return captureFatal
+	if len(methodSourceMarkers) == 0 {
+		return ""
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
-		return nil
+	if len(methodSourceMarkers) > 1 {
+		s.setFatalMessage("Found several lines under [Method]", methodSourceMarkers[0].SourceLineIndex)
+		return ""
 	}
 
-	methodLines := captureResult.sectionLines
-
-	if len(methodLines) > 1 {
-		for _, hostLine := range methodLines {
-			return newFatalMarker("Found several lines under [Method]", hostLine)
-		}
-	}
-
-	callData.Method = methodLines[0].lineContents
-
-	return nil
+	return methodSourceMarkers[0].LineContents
 }

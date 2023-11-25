@@ -5,37 +5,39 @@ import (
 	"strings"
 )
 
-type fatalMarker struct {
-	message   string
-	fatalLine sourceMarker
-}
-
-func newFatalMarker(message string, fatalLine sourceMarker) *fatalMarker {
-	return &fatalMarker{message: message, fatalLine: fatalLine}
-}
-
-func formatFatalMarker(fatalMarker *fatalMarker, templateLines []string) string {
-	if fatalMarker.fatalLine == emptyLine {
-		return fatalMarker.message
-	}
-
+func (s *sectionedTemplate) setFatalMessage(msg string, sourceLineIndex int) {
 	var templateContext []string
 
-	errorLine := fatalMarker.fatalLine.sourceLineIndex
+	errorLine := sourceLineIndex
 	lineBefore := errorLine - 1
 	if lineBefore >= 0 {
-		templateContext = append(templateContext, strconv.Itoa(lineBefore+1)+"   "+templateLines[lineBefore])
+		templateContext = append(templateContext, strconv.Itoa(lineBefore+1)+"   "+s.rawTemplateLines[lineBefore])
 	}
 
-	templateContext = append(templateContext, strconv.Itoa(errorLine+1)+" > "+templateLines[errorLine])
+	templateContext = append(templateContext, strconv.Itoa(errorLine+1)+" > "+s.rawTemplateLines[errorLine])
 
 	lineAfter := errorLine + 1
-	if lineAfter < len(templateLines) {
-		templateContext = append(templateContext, strconv.Itoa(lineAfter+1)+"   "+templateLines[lineAfter])
+	if lineAfter < len(s.rawTemplateLines) {
+		templateContext = append(templateContext, strconv.Itoa(lineAfter+1)+"   "+s.rawTemplateLines[lineAfter])
 	}
 
-	message := fatalMarker.message + " on line " + strconv.Itoa(fatalMarker.fatalLine.sourceLineIndex+1) + ":\n"
+	message := msg + " on line " + strconv.Itoa(sourceLineIndex+1) + ":\n"
 	message = message + strings.Join(templateContext, "\n")
 
-	return message
+	s.fatals = append(s.fatals, message)
+}
+
+func (s *sectionedTemplate) getFatalMessages() string {
+	fatalMessage := "Fatal error"
+	if len(s.fatals) > 1 {
+		fatalMessage = fatalMessage + "s"
+	}
+
+	fatalMessage = fatalMessage + " in file: " + s.filename + "\n"
+
+	return fatalMessage + strings.Join(s.fatals, "\n")
+}
+
+func (s *sectionedTemplate) hasFatalMessages() bool {
+	return len(s.fatals) > 0
 }

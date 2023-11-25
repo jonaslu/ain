@@ -5,41 +5,34 @@ import (
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/call"
-	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-func parseBackendSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
-	captureResult, captureFatal := captureSection("Backend", template, true)
-	if captureFatal != nil {
-		return captureFatal
+func (s *sectionedTemplate) getBackend() string {
+	backendSourceMarkers := *s.getNamedSection(backendSection)
+	if len(backendSourceMarkers) == 0 {
+		return ""
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
-		return nil
+	if len(backendSourceMarkers) > 1 {
+		s.setFatalMessage("Found several lines under [Backend]", backendSourceMarkers[0].SourceLineIndex)
+		return ""
 	}
 
-	backendLines := captureResult.sectionLines
+	backendSourceMarker := backendSourceMarkers[0]
+	backend := strings.ToLower(backendSourceMarker.LineContents)
 
-	if len(backendLines) > 1 {
-		for _, backendLine := range backendLines {
-			return newFatalMarker("Found several lines under [Backend]", backendLine)
-		}
-	}
-
-	requestedBackendName := strings.ToLower(backendLines[0].lineContents)
-
-	if !call.ValidBackend(requestedBackendName) {
-		for backendName, _ := range call.ValidBackends {
-			if utils.LevenshteinDistance(requestedBackendName, backendName) < 3 {
-				return newFatalMarker(fmt.Sprintf("Unknown backend: %s. Did you mean %s", requestedBackendName, backendName), backendLines[0])
+	if !call.ValidBackend(backend) {
+		for backendName := range call.ValidBackends {
+			if utils.LevenshteinDistance(backend, backendName) < 3 {
+				s.setFatalMessage(fmt.Sprintf("Unknown backend: %s. Did you mean %s", backend, backendName), backendSourceMarker.SourceLineIndex)
+				return ""
 			}
 		}
 
-		return newFatalMarker(fmt.Sprintf("Unknown backend %s", requestedBackendName), backendLines[0])
+		s.setFatalMessage(fmt.Sprintf("Unknown backend %s", backend), backendSourceMarker.SourceLineIndex)
+		return ""
 	}
 
-	callData.Backend = requestedBackendName
-
-	return nil
+	return backend
 }

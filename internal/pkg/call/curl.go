@@ -12,21 +12,21 @@ import (
 )
 
 type curl struct {
-	callData    *data.Call
-	tmpFileName string
-	binaryName  string
+	backendInput *data.BackendInput
+	tmpFileName  string
+	binaryName   string
 }
 
-func newCurlBackend(callData *data.Call, binaryName string) backend {
+func newCurlBackend(backendInput *data.BackendInput, binaryName string) backend {
 	return &curl{
-		callData:   callData,
-		binaryName: binaryName,
+		backendInput: backendInput,
+		binaryName:   binaryName,
 	}
 }
 
 func (curl *curl) getHeaderArguments(escape bool) [][]string {
 	args := [][]string{}
-	for _, header := range curl.callData.Headers {
+	for _, header := range curl.backendInput.Headers {
 		headerVal := header
 		if escape {
 			headerVal = utils.EscapeForShell(header)
@@ -39,8 +39,8 @@ func (curl *curl) getHeaderArguments(escape bool) [][]string {
 }
 
 func (curl *curl) getMethodArgument(escape bool) []string {
-	if curl.callData.Method != "" {
-		methodCapitalized := strings.ToUpper(curl.callData.Method)
+	if curl.backendInput.Method != "" {
+		methodCapitalized := strings.ToUpper(curl.backendInput.Method)
 		if escape {
 			methodCapitalized = utils.EscapeForShell(methodCapitalized)
 		}
@@ -52,8 +52,8 @@ func (curl *curl) getMethodArgument(escape bool) []string {
 }
 
 func (curl *curl) getBodyArgument(tmpDir string) ([]string, error) {
-	if len(curl.callData.Body) > 0 {
-		tmpFile, err := curl.callData.GetBodyAsTempFile(tmpDir)
+	if len(curl.backendInput.Body) > 0 {
+		tmpFile, err := curl.backendInput.GetBodyAsTempFile(tmpDir)
 
 		if err != nil {
 			return nil, err
@@ -68,7 +68,7 @@ func (curl *curl) getBodyArgument(tmpDir string) ([]string, error) {
 
 func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	args := []string{}
-	for _, backendOpt := range curl.callData.BackendOptions {
+	for _, backendOpt := range curl.backendInput.BackendOptions {
 		args = append(args, backendOpt...)
 	}
 
@@ -83,7 +83,7 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	}
 
 	args = append(args, bodyArgs...)
-	args = append(args, curl.callData.Host.String())
+	args = append(args, curl.backendInput.Host.String())
 
 	curlCmd := exec.CommandContext(ctx, curl.binaryName, args...)
 	output, err := curlCmd.CombinedOutput()
@@ -100,7 +100,7 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 func (curl *curl) getAsString() (string, error) {
 	args := [][]string{}
 
-	for _, optionLine := range curl.callData.BackendOptions {
+	for _, optionLine := range curl.backendInput.BackendOptions {
 		lineArguments := []string{}
 		for _, option := range optionLine {
 			lineArguments = append(lineArguments, utils.EscapeForShell(option))
@@ -123,7 +123,7 @@ func (curl *curl) getAsString() (string, error) {
 
 	args = append(args, bodyArgs)
 	args = append(args, []string{
-		utils.EscapeForShell(curl.callData.Host.String()),
+		utils.EscapeForShell(curl.backendInput.Host.String()),
 	})
 
 	output := curl.binaryName + " " + utils.PrettyPrintStringsForShell(args)

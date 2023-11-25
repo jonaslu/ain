@@ -11,20 +11,11 @@ type Config struct {
 	QueryDelim *string
 }
 
-type Parse struct {
-	Host    []string
-	Query   []string
-	Body    []string
-	Method  string
-	Headers []string
-
-	Backend        string
-	BackendOptions [][]string
-
-	Config Config
+func NewConfig() Config {
+	return Config{Timeout: TimeoutNotSet}
 }
 
-type Call struct {
+type BackendInput struct {
 	Host    *url.URL
 	Body    []string
 	Method  string

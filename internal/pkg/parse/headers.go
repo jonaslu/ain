@@ -1,25 +1,11 @@
 package parse
 
-import "github.com/jonaslu/ain/internal/pkg/data"
+func (s *sectionedTemplate) getHeaders() []string {
+	var headers []string
 
-func parseHeadersSection(template []sourceMarker, callData *data.Parse) *fatalMarker {
-	captureResult, captureFatal := captureSection("Headers", template, true)
-	if captureFatal != nil {
-		return captureFatal
+	for _, headerSourceMarker := range *s.getNamedSection(headersSection) {
+		headers = append(headers, headerSourceMarker.LineContents)
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
-		return nil
-	}
-
-	headerLines := captureResult.sectionLines
-
-	headers := []string{}
-	for _, headerLine := range headerLines {
-		headers = append(headers, headerLine.lineContents)
-	}
-
-	callData.Headers = headers
-
-	return nil
+	return headers
 }

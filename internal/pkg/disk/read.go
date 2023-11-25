@@ -68,8 +68,8 @@ func captureEditorOutput(tempFile *os.File) (string, error) {
 	return string(tempFileContents), nil
 }
 
-func readEditedTemplate(sourceTemplateFileName string) (string, error) {
-	sourceTemplate, err := os.Open(sourceTemplateFileName)
+func readEditedRawTemplateString(sourceTemplateFileName string) (string, error) {
+	rawTemplateString, err := os.Open(sourceTemplateFileName)
 	if err != nil {
 		return "", errors.Wrapf(err, "Cannot open source template file %s", sourceTemplateFileName)
 	}
@@ -92,7 +92,7 @@ func readEditedTemplate(sourceTemplateFileName string) (string, error) {
 		}
 	}()
 
-	_, err = io.Copy(tempFile, sourceTemplate)
+	_, err = io.Copy(tempFile, rawTemplateString)
 	if err != nil {
 		return "", errors.Wrap(err, "Cannot copy source template file to temp-file")
 	}
@@ -100,9 +100,9 @@ func readEditedTemplate(sourceTemplateFileName string) (string, error) {
 	return captureEditorOutput(tempFile)
 }
 
-func ReadTemplate(templateFileName string) (string, error) {
+func ReadRawTemplateString(templateFileName string) (string, error) {
 	if strings.HasSuffix(templateFileName, editFileSuffix) {
-		return readEditedTemplate(strings.TrimSuffix(templateFileName, editFileSuffix))
+		return readEditedRawTemplateString(strings.TrimSuffix(templateFileName, editFileSuffix))
 	}
 
 	fileContents, err := ioutil.ReadFile(templateFileName)

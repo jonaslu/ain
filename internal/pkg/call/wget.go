@@ -13,17 +13,17 @@ import (
 )
 
 type wget struct {
-	callData    *data.Call
-	tmpFileName string
-	binaryName  string
+	backendInput *data.BackendInput
+	tmpFileName  string
+	binaryName   string
 }
 
 var outputToStdoutRegexp = regexp.MustCompile(`-\w*O\s*-`)
 
-func prependOutputToStdin(callData *data.Call) {
+func prependOutputToStdin(backendInput *data.BackendInput) {
 	var foundOutputToStdin bool
 
-	for _, backendOptionLine := range callData.BackendOptions {
+	for _, backendOptionLine := range backendInput.BackendOptions {
 		backendOptions := strings.Join(backendOptionLine, " ")
 		if outputToStdoutRegexp.MatchString(backendOptions) {
 			foundOutputToStdin = true
@@ -32,21 +32,21 @@ func prependOutputToStdin(callData *data.Call) {
 	}
 
 	if !foundOutputToStdin {
-		callData.BackendOptions = append([][]string{{"-O-"}}, callData.BackendOptions...)
+		backendInput.BackendOptions = append([][]string{{"-O-"}}, backendInput.BackendOptions...)
 	}
 }
 
-func newWgetBackend(callData *data.Call, binaryName string) backend {
-	prependOutputToStdin(callData)
+func newWgetBackend(backendInput *data.BackendInput, binaryName string) backend {
+	prependOutputToStdin(backendInput)
 	return &wget{
-		callData:   callData,
-		binaryName: binaryName,
+		backendInput: backendInput,
+		binaryName:   binaryName,
 	}
 }
 
 func (wget *wget) getHeaderArguments(escape bool) []string {
 	args := []string{}
-	for _, header := range wget.callData.Headers {
+	for _, header := range wget.backendInput.Headers {
 		if escape {
 			args = append(args, "--header="+utils.EscapeForShell(header))
 		} else {
@@ -58,8 +58,8 @@ func (wget *wget) getHeaderArguments(escape bool) []string {
 }
 
 func (wget *wget) getMethodArgument(escape bool) string {
-	if wget.callData.Method != "" {
-		methodCapitalized := strings.ToUpper(wget.callData.Method)
+	if wget.backendInput.Method != "" {
+		methodCapitalized := strings.ToUpper(wget.backendInput.Method)
 
 		if escape {
 			return "--method=" + utils.EscapeForShell(methodCapitalized)
@@ -72,8 +72,8 @@ func (wget *wget) getMethodArgument(escape bool) string {
 }
 
 func (wget *wget) getBodyArgument(tmpDir string) (string, error) {
-	if len(wget.callData.Body) > 0 {
-		tmpFile, err := wget.callData.GetBodyAsTempFile(tmpDir)
+	if len(wget.backendInput.Body) > 0 {
+		tmpFile, err := wget.backendInput.GetBodyAsTempFile(tmpDir)
 
 		if err != nil {
 			return "", err
@@ -88,17 +88,17 @@ func (wget *wget) getBodyArgument(tmpDir string) (string, error) {
 
 func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 	args := []string{}
-	for _, backendOpt := range wget.callData.BackendOptions {
+	for _, backendOpt := range wget.backendInput.BackendOptions {
 		args = append(args, backendOpt...)
 	}
 
-	if wget.callData.Method != "" {
+	if wget.backendInput.Method != "" {
 		args = append(args, wget.getMethodArgument(false))
 	}
 
 	args = append(args, wget.getHeaderArguments(false)...)
 
-	if len(wget.callData.Body) > 0 {
+	if len(wget.backendInput.Body) > 0 {
 		bodyArgs, err := wget.getBodyArgument("")
 		if err != nil {
 			return nil, err
@@ -107,7 +107,7 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 		args = append(args, bodyArgs)
 	}
 
-	args = append(args, wget.callData.Host.String())
+	args = append(args, wget.backendInput.Host.String())
 
 	wgetCmd := exec.CommandContext(ctx, wget.binaryName, args...)
 	output, err := wgetCmd.CombinedOutput()
@@ -124,7 +124,7 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 func (wget *wget) getAsString() (string, error) {
 	args := [][]string{}
 
-	for _, optionLine := range wget.callData.BackendOptions {
+	for _, optionLine := range wget.backendInput.BackendOptions {
 		lineArguments := []string{}
 		for _, option := range optionLine {
 			lineArguments = append(lineArguments, utils.EscapeForShell(option))
@@ -132,7 +132,7 @@ func (wget *wget) getAsString() (string, error) {
 		args = append(args, lineArguments)
 	}
 
-	if wget.callData.Method != "" {
+	if wget.backendInput.Method != "" {
 		args = append(args, []string{wget.getMethodArgument(true)})
 	}
 
@@ -145,7 +145,7 @@ func (wget *wget) getAsString() (string, error) {
 		return "", errors.Wrap(err, "Could not get current working dir, cannot store any body temp-file")
 	}
 
-	if len(wget.callData.Body) > 0 {
+	if len(wget.backendInput.Body) > 0 {
 		bodyArg, err := wget.getBodyArgument(cwd)
 		if err != nil {
 			return "", err
@@ -155,7 +155,7 @@ func (wget *wget) getAsString() (string, error) {
 	}
 
 	args = append(args, []string{
-		utils.EscapeForShell(wget.callData.Host.String()),
+		utils.EscapeForShell(wget.backendInput.Host.String()),
 	})
 
 	output := wget.binaryName + " " + utils.PrettyPrintStringsForShell(args)

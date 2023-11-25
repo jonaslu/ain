@@ -1,27 +1,11 @@
 package parse
 
-import (
-	"github.com/jonaslu/ain/internal/pkg/data"
-)
+func (s *sectionedTemplate) getQuery() []string {
+	var query []string
 
-func parseQuerySection(template []sourceMarker, callData *data.Parse) *fatalMarker {
-	captureResult, captureFatal := captureSection("Query", template, true)
-	if captureFatal != nil {
-		return captureFatal
+	for _, querySourceMarker := range *s.getNamedSection(querySection) {
+		query = append(query, querySourceMarker.LineContents)
 	}
 
-	if captureResult.sectionHeaderLine == emptyLine {
-		return nil
-	}
-
-	queryLines := captureResult.sectionLines
-
-	query := []string{}
-	for _, queryLine := range queryLines {
-		query = append(query, queryLine.lineContents)
-	}
-
-	callData.Query = query
-
-	return nil
+	return query
 }

@@ -17,8 +17,6 @@ import (
 var executableExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
 var executableRe = regexp.MustCompile(`\$\(([^)]*)\)`)
 
-var emptyOutputLineRe = regexp.MustCompile(`^\s*$`)
-
 type executableAndArgs struct {
 	executable string
 	args       []string
@@ -29,43 +27,44 @@ type executableOutput struct {
 	fatalMessage string
 }
 
-func captureExecutableAndArgs(templateLines []sourceMarker) ([]executableAndArgs, []*fatalMarker) {
-	var fatals []*fatalMarker
+func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	executables := []executableAndArgs{}
 
-	for _, templateLine := range templateLines {
-		lineContents := templateLine.lineContents
+	for _, sectionName := range sectionsAllowingExecutables {
+		for _, templateLine := range *s.getNamedSection(sectionName) {
+			lineContents := templateLine.LineContents
 
-		for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
-			executableAndArgsCapture := executableRe.FindStringSubmatch(executableWithParens)
+			for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
+				executableAndArgsCapture := executableRe.FindStringSubmatch(executableWithParens)
 
-			if len(executableAndArgsCapture) != 2 {
-				fatals = append(fatals, newFatalMarker("Malformed executable", templateLine))
-				continue
+				if len(executableAndArgsCapture) != 2 {
+					s.setFatalMessage("Malformed executable", templateLine.SourceLineIndex)
+					continue
+				}
+
+				executableAndArgsStr := executableAndArgsCapture[1]
+				if executableAndArgsStr == "" {
+					s.setFatalMessage("Empty executable", templateLine.SourceLineIndex)
+					continue
+				}
+
+				tokenizedExecutableLine, err := utils.TokenizeLine(executableAndArgsStr)
+				if err != nil {
+					s.setFatalMessage(err.Error(), templateLine.SourceLineIndex)
+					continue
+				}
+
+				executable := tokenizedExecutableLine[0]
+
+				executables = append(executables, executableAndArgs{
+					executable: executable,
+					args:       tokenizedExecutableLine[1:],
+				})
 			}
-
-			executableAndArgsStr := executableAndArgsCapture[1]
-			if executableAndArgsStr == "" {
-				fatals = append(fatals, newFatalMarker("Empty executable", templateLine))
-				continue
-			}
-
-			tokenizedExecutableLine, err := utils.TokenizeLine(executableAndArgsStr)
-			if err != nil {
-				fatals = append(fatals, newFatalMarker(err.Error(), templateLine))
-				continue
-			}
-
-			executable := tokenizedExecutableLine[0]
-
-			executables = append(executables, executableAndArgs{
-				executable: executable,
-				args:       tokenizedExecutableLine[1:],
-			})
 		}
 	}
 
-	return executables, fatals
+	return executables
 }
 
 func callExecutables(ctx context.Context, config data.Config, executables []executableAndArgs) []executableOutput {
@@ -78,6 +77,11 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 
 			var stdout, stderr bytes.Buffer
 
+			// !! TODO !! Bug right here, this is now enforced
+			// per template and not for all templates.
+			// It's also set a third time for the backends.
+			// So in alles timeout*no templates + backend
+			// I e waaay to looong
 			timeoutCtx := ctx
 			if config.Timeout != data.TimeoutNotSet {
 				timeoutCtx, _ = context.WithTimeout(ctx, time.Duration(config.Timeout)*time.Second)
@@ -126,45 +130,32 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 	return executableResults
 }
 
-func insertExecutableOutput(executableResults []executableOutput, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
-	var transformedTemplateLines []sourceMarker
-	var fatals []*fatalMarker
+func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executableOutput) {
+	for _, sectionHeader := range sectionsAllowingExecutables {
+		section := s.getNamedSection(sectionHeader)
+		anythingReplaced := false
 
-	executableIndex := 0
-	for _, templateLine := range templateLines {
-		lineContents := templateLine.lineContents
+		for idx := range *section {
+			templateLine := &(*section)[idx]
+			lineContents := templateLine.LineContents
 
-		for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
-			result := executableResults[executableIndex]
-			executableIndex++
-			if result.fatalMessage != "" {
-				fatals = append(fatals, newFatalMarker(result.fatalMessage, templateLine))
-				continue
+			for _, executableWithParens := range executableExpressionRe.FindAllString(lineContents, -1) {
+				result := (*executableResults)[0]
+				*executableResults = (*executableResults)[1:]
+				if result.fatalMessage != "" {
+					s.setFatalMessage(result.fatalMessage, templateLine.SourceLineIndex)
+					continue
+				}
+
+				lineContents = strings.Replace(lineContents, executableWithParens, result.output, 1)
+				anythingReplaced = true
 			}
 
-			lineContents = strings.Replace(lineContents, executableWithParens, result.output, 1)
+			templateLine.LineContents = lineContents
 		}
 
-		multilineOutput := strings.Split(strings.ReplaceAll(lineContents, "\r\n", "\n"), "\n")
-		for _, lineOutput := range multilineOutput {
-			if emptyOutputLineRe.MatchString(lineOutput) {
-				continue
-			}
-
-			transformedTemplateLines = append(transformedTemplateLines, newSourceMarker(lineOutput, templateLine.sourceLineIndex))
+		if anythingReplaced {
+			s.splitAndTrimSection(sectionHeader)
 		}
 	}
-
-	return transformedTemplateLines, fatals
-}
-
-func transformExecutables(ctx context.Context, config data.Config, templateLines []sourceMarker) ([]sourceMarker, []*fatalMarker) {
-	executables, fatals := captureExecutableAndArgs(templateLines)
-	if len(fatals) > 0 {
-		return nil, fatals
-	}
-
-	executableResults := callExecutables(ctx, config, executables)
-
-	return insertExecutableOutput(executableResults, templateLines)
 }
