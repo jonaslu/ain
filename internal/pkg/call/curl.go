@@ -126,7 +126,7 @@ func (curl *curl) getAsString() (string, error) {
 		utils.EscapeForShell(curl.callData.Host.String()),
 	})
 
-	output := "curl " + utils.PrettyPrintStringsForShell(args)
+	output := curl.binaryName + " " + utils.PrettyPrintStringsForShell(args)
 
 	return output, nil
 }
