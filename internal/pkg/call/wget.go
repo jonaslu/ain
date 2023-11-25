@@ -86,7 +86,7 @@ func (wget *wget) getBodyArgument(tmpDir string) (string, error) {
 	return "", nil
 }
 
-func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
+func (wget *wget) generateCmd(ctx context.Context) (*exec.Cmd, error) {
 	args := []string{}
 	for _, backendOpt := range wget.callData.BackendOptions {
 		args = append(args, backendOpt...)
@@ -110,15 +110,7 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, wget.callData.Host.String())
 
 	wgetCmd := exec.CommandContext(ctx, wget.binaryName, args...)
-	output, err := wgetCmd.CombinedOutput()
-	if err != nil {
-		return output, &BackedErr{
-			Err:      err,
-			ExitCode: wgetCmd.ProcessState.ExitCode(),
-		}
-	}
-
-	return output, nil
+        return wgetCmd, nil
 }
 
 func (wget *wget) getAsString() (string, error) {

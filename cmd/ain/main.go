@@ -126,5 +126,6 @@ Project home page: https://github.com/jonaslu/ain`
 		os.Exit(1)
 	}
 
-	fmt.Fprint(os.Stdout, backendOutput)
+	fmt.Fprint(os.Stdout, string(backendOutput.StdOut))
+	fmt.Fprint(os.Stderr, string(backendOutput.StdErr))
 }

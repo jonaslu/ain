@@ -3,6 +3,8 @@ package call
 import (
 	"context"
 	"fmt"
+	"io"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -10,6 +12,11 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
 )
+
+type Output struct {
+	StdOut []byte
+	StdErr []byte
+}
 
 type BackedErr struct {
 	Err      error
@@ -41,7 +48,7 @@ func (err *BackedErr) Error() string {
 }
 
 type backend interface {
-	runAsCmd(context.Context) ([]byte, error)
+	generateCmd(context.Context) (*exec.Cmd, error)
 	getAsString() (string, error)
 	cleanUp() error
 }
@@ -64,7 +71,7 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCommand bool) (string, error) {
+func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCommand bool) (Output, error) {
 	backendTimeoutContext := ctx
 	if callData.Config.Timeout != data.TimeoutNotSet {
 		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(callData.Config.Timeout)*time.Second)
@@ -72,14 +79,23 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 
 	backend, err := getBackend(callData)
 	if err != nil {
-		return "", errors.Wrapf(err, "Could not instantiate backend: %s", callData.Backend)
+		return Output{}, errors.Wrapf(err, "Could not instantiate backend: %s", callData.Backend)
 	}
 
 	if printCommand {
-		return backend.getAsString()
+		if command, err := backend.getAsString(); err != nil {
+			return Output{StdErr: []byte(command)}, err
+		} else {
+			return Output{StdOut: []byte(command)}, nil
+		}
 	}
 
-	output, err := backend.runAsCmd(backendTimeoutContext)
+	cmd, err := backend.generateCmd(backendTimeoutContext)
+        if err != nil {
+            return Output{}, errors.Wrapf(err, "Could not generate valid command: %s", callData.Backend)
+        }
+
+        output, err := runCmd(cmd);
 
 	var removeTmpFileErr error
 	if !leaveTmpFile || err != nil {
@@ -89,22 +105,60 @@ func CallBackend(ctx context.Context, callData *data.Call, leaveTmpFile, printCo
 	}
 
 	if backendTimeoutContext.Err() == context.DeadlineExceeded {
-		return "", utils.CascadeErrorMessage(
+		return output, utils.CascadeErrorMessage(
 			errors.Errorf("Backend-call: %s timed out after %d seconds", callData.Backend, callData.Config.Timeout),
 			removeTmpFileErr,
 		)
 	}
 
 	if err != nil {
-		return "", utils.CascadeErrorMessage(
-			errors.Wrapf(err, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output))),
+		return output, utils.CascadeErrorMessage(
+			errors.Wrapf(err, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output.StdOut))),
 			removeTmpFileErr,
 		)
 	}
 
 	if removeTmpFileErr != nil {
-		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output)))
+		return output, errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", callData.Backend, strings.TrimSpace(string(output.StdOut)))
 	}
 
-	return string(output), nil
+	return output, nil
 }
+
+func runCmd(cmd *exec.Cmd) (Output, error) {
+	stdErrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return Output{}, err
+	}
+	stdOutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return Output{}, err
+	}
+	cmd.Start()
+	if err != nil {
+		return Output{}, err
+	}
+	stdOut, err := io.ReadAll(stdOutPipe)
+	if err != nil {
+		return Output{StdOut: stdOut}, &BackedErr{
+			Err:      err,
+			ExitCode: cmd.ProcessState.ExitCode(),
+		}
+	}
+	stdErr, err := io.ReadAll(stdErrPipe)
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: cmd.ProcessState.ExitCode(),
+		}
+	}
+	err = cmd.Wait()
+	if err != nil {
+		return Output{StdOut: stdOut, StdErr: stdErr}, &BackedErr{
+			Err:      err,
+			ExitCode: cmd.ProcessState.ExitCode(),
+		}
+	}
+	return Output{StdOut: stdOut, StdErr: stdErr}, nil
+}
+

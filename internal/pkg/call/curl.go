@@ -66,7 +66,7 @@ func (curl *curl) getBodyArgument(tmpDir string) ([]string, error) {
 	return []string{}, nil
 }
 
-func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
+func (curl *curl) generateCmd(ctx context.Context) (*exec.Cmd, error) {
 	args := []string{}
 	for _, backendOpt := range curl.callData.BackendOptions {
 		args = append(args, backendOpt...)
@@ -86,15 +86,7 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, curl.callData.Host.String())
 
 	curlCmd := exec.CommandContext(ctx, curl.binaryName, args...)
-	output, err := curlCmd.CombinedOutput()
-	if err != nil {
-		return output, &BackedErr{
-			Err:      err,
-			ExitCode: curlCmd.ProcessState.ExitCode(),
-		}
-	}
-
-	return output, nil
+        return  curlCmd, nil
 }
 
 func (curl *curl) getAsString() (string, error) {
