@@ -9,6 +9,11 @@ type sourceMarker struct {
 	SourceLineIndex int
 }
 
+type expandedSourceMarker struct {
+	sourceMarker
+	expanded bool
+}
+
 const (
 	configSection         = "config"
 	hostSection           = "host"
@@ -48,12 +53,15 @@ var sectionsAllowingExecutables = []string{
 }
 
 type sectionedTemplate struct {
+	// sourceMarker.LineContents points to the expandedTemplateLines slice
 	sections map[string]*[]sourceMarker
 
-	fatals []string
+	// sourceMarker.LineContents points to the rawTemplateLines slice
+	expandedTemplateLines []expandedSourceMarker
+	rawTemplateLines      []string
 
-	rawTemplateLines []string
-	filename         string
+	filename string
+	fatals   []string
 }
 
 func (s *sectionedTemplate) getNamedSection(sectionHeader string) *[]sourceMarker {
@@ -66,23 +74,31 @@ func (s *sectionedTemplate) getNamedSection(sectionHeader string) *[]sourceMarke
 
 func newSectionedTemplate(rawTemplateString, filename string) *sectionedTemplate {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
+	expandedTemplateLines := []expandedSourceMarker{}
+
+	for sourceIndex, rawTemplateLine := range rawTemplateLines {
+		if isCommentOrWhitespaceRegExp.MatchString(rawTemplateLine) {
+			continue
+		}
+
+		expandedTemplateLines = append(expandedTemplateLines, expandedSourceMarker{
+			sourceMarker: sourceMarker{
+				LineContents:    rawTemplateLine,
+				SourceLineIndex: sourceIndex,
+			},
+		})
+	}
+
 	sectionedTemplate := sectionedTemplate{
-		sections:         map[string]*[]sourceMarker{},
-		rawTemplateLines: rawTemplateLines,
-		filename:         filename,
+		sections:              map[string]*[]sourceMarker{},
+		expandedTemplateLines: expandedTemplateLines,
+		rawTemplateLines:      rawTemplateLines,
+		filename:              filename,
 	}
 
-	capturedSections, templateEmpty := getCapturedSections(rawTemplateLines)
-
-	if templateEmpty {
-		// !! TODO !! Change to no valid headings found, it can be full of stuff
+	if len(expandedTemplateLines) == 0 {
 		sectionedTemplate.fatals = []string{"Cannot process empty template"}
-	} else {
-		checkValidHeadings(capturedSections, &sectionedTemplate)
-	}
-
-	if !sectionedTemplate.hasFatalMessages() {
-		sectionedTemplate.setCapturedSections(capturedSections)
+		return &sectionedTemplate
 	}
 
 	return &sectionedTemplate

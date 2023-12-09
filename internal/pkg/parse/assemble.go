@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
@@ -171,6 +173,29 @@ func getBackendInput(allSectionRows allSectionRows, config data.Config) (*data.B
 	return &backendInput, backendInputFatals
 }
 
+func (s *sectionedTemplate) print() string {
+	retVal := "--- sections ----\n"
+	for name, val := range s.sections {
+		retVal = name + "\n"
+
+		for _, marker := range *val {
+			retVal += strconv.Itoa(marker.SourceLineIndex) + " " + marker.LineContents + "\n"
+		}
+	}
+
+	retVal += "--- expanded content ----\n"
+	for _, expanded := range s.expandedTemplateLines {
+		retVal += strconv.Itoa(expanded.SourceLineIndex) + " " + expanded.LineContents + "\n"
+	}
+
+	retVal += "---- raw template lines ----\n"
+	for index, raw := range s.rawTemplateLines {
+		retVal += strconv.Itoa(index) + " " + raw + "\n"
+	}
+
+	return retVal
+}
+
 func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
 	allSectionedTemplates, allSectionedTemplateFatals, err := getAllSectionedTemplates(filenames)
 	if err != nil {
@@ -180,6 +205,12 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 	if len(allSectionedTemplateFatals) > 0 {
 		return nil, strings.Join(allSectionedTemplateFatals, "\n\n"), nil
 	}
+
+	for _, sectionedTemplate := range allSectionedTemplates {
+		fmt.Println(sectionedTemplate.print())
+	}
+
+	os.Exit(1)
 
 	if substituteEnvVarsFatals := substituteEnvVars(allSectionedTemplates); len(substituteEnvVarsFatals) > 0 {
 		return nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
