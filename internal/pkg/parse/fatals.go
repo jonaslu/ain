@@ -5,10 +5,12 @@ import (
 	"strings"
 )
 
-func (s *sectionedTemplate) setFatalMessage(msg string, sourceLineIndex int) {
+func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex int) {
 	var templateContext []string
 
-	errorLine := sourceLineIndex
+	expandedTemplateLine := s.expandedTemplateLines[expandedSourceLineIndex]
+
+	errorLine := expandedTemplateLine.SourceLineIndex
 	lineBefore := errorLine - 1
 	if lineBefore >= 0 {
 		templateContext = append(templateContext, strconv.Itoa(lineBefore+1)+"   "+s.rawTemplateLines[lineBefore])
@@ -21,8 +23,10 @@ func (s *sectionedTemplate) setFatalMessage(msg string, sourceLineIndex int) {
 		templateContext = append(templateContext, strconv.Itoa(lineAfter+1)+"   "+s.rawTemplateLines[lineAfter])
 	}
 
-	message := msg + " on line " + strconv.Itoa(sourceLineIndex+1) + ":\n"
+	message := msg + " on line " + strconv.Itoa(errorLine+1) + ":\n"
 	message = message + strings.Join(templateContext, "\n")
+
+	// !! TODO !! Include expanded context if line has been expanded
 
 	s.fatals = append(s.fatals, message)
 }

@@ -47,50 +47,62 @@ func formatMissingEnvVarErrorMessage(missingEnvVar string) string {
 }
 
 func (s *sectionedTemplate) substituteEnvVars() {
-	for sectionHeader, section := range s.sections {
-		anythingReplaced := false
+	newExpandedTemplateLines := []expandedSourceMarker{}
 
-		for idx := range *section {
-			templateLine := &(*section)[idx]
-			lineContents := templateLine.LineContents
+	for expandedTemplateLineIndex, expandedTemplateLine := range s.expandedTemplateLines {
+		localExpandedTemplateLines := []expandedSourceMarker{}
 
-			for _, envVarWithBrackets := range envVarExpressionRe.FindAllString(lineContents, -1) {
-				envVarKeyStr := envVarKeyRe.FindStringSubmatch(envVarWithBrackets)
-				if len(envVarKeyStr) != 2 {
-					s.setFatalMessage("Malformed variable", templateLine.SourceLineIndex)
-					continue
-				}
+		lineContents := expandedTemplateLine.LineContents
+		noCommentsLineContents, _, _ := strings.Cut(expandedTemplateLine.LineContents, "#")
 
-				envVarKey := envVarKeyStr[1]
-
-				if envVarKey == "" {
-					s.setFatalMessage("Empty variable", templateLine.SourceLineIndex)
-					continue
-				}
-
-				// I'll try anything that is not empty, if the user can't set (such as a variable with spaces in bash) it we can't find it anyway.
-				// https://stackoverflow.com/questions/2821043/allowed-characters-in-linux-environment-variable-names
-				value, exists := os.LookupEnv(envVarKey)
-
-				if !exists {
-					s.setFatalMessage(formatMissingEnvVarErrorMessage(envVarKey), templateLine.SourceLineIndex)
-					continue
-				}
-
-				if value == "" {
-					s.setFatalMessage(fmt.Sprintf("Value for variable %s is empty", envVarKey), templateLine.SourceLineIndex)
-					continue
-				}
-
-				lineContents = strings.Replace(lineContents, envVarWithBrackets, value, 1)
-				anythingReplaced = true
+		for _, envVarWithBrackets := range envVarExpressionRe.FindAllString(noCommentsLineContents, -1) {
+			envVarKeyStr := envVarKeyRe.FindStringSubmatch(envVarWithBrackets)
+			if len(envVarKeyStr) != 2 {
+				s.setFatalMessage("Malformed variable", expandedTemplateLineIndex)
+				continue
 			}
 
-			templateLine.LineContents = lineContents
+			envVarKey := envVarKeyStr[1]
+
+			if envVarKey == "" {
+				s.setFatalMessage("Empty variable", expandedTemplateLineIndex)
+				continue
+			}
+
+			// I'll try anything that is not empty, if the user can't set (such as a variable with spaces in bash) it we can't find it anyway.
+			// https://stackoverflow.com/questions/2821043/allowed-characters-in-linux-environment-variable-names
+			value, exists := os.LookupEnv(envVarKey)
+
+			if !exists {
+				s.setFatalMessage(formatMissingEnvVarErrorMessage(envVarKey), expandedTemplateLineIndex)
+				continue
+			}
+
+			if value == "" {
+				s.setFatalMessage(fmt.Sprintf("Value for variable %s is empty", envVarKey), expandedTemplateLineIndex)
+				continue
+			}
+
+			expandedLines := strings.Replace(lineContents, envVarWithBrackets, value, 1)
+			splitExpandedLines := strings.Split(strings.ReplaceAll(expandedLines, "\r\n", "\n"), "\n")
+
+			for _, splitExpandedLine := range splitExpandedLines {
+				localExpandedTemplateLines = append(localExpandedTemplateLines, expandedSourceMarker{
+					sourceMarker: sourceMarker{
+						LineContents:    splitExpandedLine,
+						SourceLineIndex: expandedTemplateLine.SourceLineIndex,
+					},
+					expanded: true,
+				})
+			}
 		}
 
-		if anythingReplaced {
-			s.splitAndTrimSection(sectionHeader)
+		if len(localExpandedTemplateLines) == 0 {
+			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedTemplateLine)
+		} else {
+			newExpandedTemplateLines = append(newExpandedTemplateLines, localExpandedTemplateLines...)
 		}
 	}
+
+	s.expandedTemplateLines = newExpandedTemplateLines
 }
