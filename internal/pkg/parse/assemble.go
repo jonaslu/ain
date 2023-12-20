@@ -40,8 +40,13 @@ func getConfig(allSectionedTemplates []*sectionedTemplate) (data.Config, []strin
 
 	for i := len(allSectionedTemplates) - 1; i >= 0; i-- {
 		sectionedTemplate := allSectionedTemplates[i]
-		localConfig := sectionedTemplate.getConfig()
 
+		if sectionedTemplate.setCapturedSections(configSection); sectionedTemplate.hasFatalMessages() {
+			configFatals = append(configFatals, sectionedTemplate.getFatalMessages())
+			break
+		}
+
+		localConfig := sectionedTemplate.getConfig()
 		if sectionedTemplate.hasFatalMessages() {
 			configFatals = append(configFatals, sectionedTemplate.getFatalMessages())
 			break
@@ -210,18 +215,13 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
 	}
 
-	firstTemplate := allSectionedTemplates[0]
-	firstTemplate.setCapturedSections(hostSection, configSection)
-	if firstTemplate.hasFatalMessages() {
-		fmt.Println(firstTemplate.getFatalMessages())
-	}
-	fmt.Println(firstTemplate.print())
-	os.Exit(1)
-
 	config, configFatals := getConfig(allSectionedTemplates)
 	if len(configFatals) > 0 {
 		return nil, strings.Join(configFatals, "\n\n"), nil
 	}
+
+	fmt.Println(config)
+	os.Exit(1)
 
 	if substituteExecutablesFatals := substituteExecutables(ctx, config, allSectionedTemplates); len(substituteExecutablesFatals) > 0 {
 		return nil, strings.Join(substituteExecutablesFatals, "\n\n"), nil
