@@ -176,7 +176,7 @@ func getBackendInput(allSectionRows allSectionRows, config data.Config) (*data.B
 func (s *sectionedTemplate) print() string {
 	retVal := "--- sections ----\n"
 	for name, val := range s.sections {
-		retVal = name + "\n"
+		retVal += name + "\n"
 
 		for _, marker := range *val {
 			retVal += strconv.Itoa(marker.SourceLineIndex) + " " + marker.LineContents + "\n"
@@ -184,8 +184,8 @@ func (s *sectionedTemplate) print() string {
 	}
 
 	retVal += "--- expanded content ----\n"
-	for _, expanded := range s.expandedTemplateLines {
-		retVal += strconv.Itoa(expanded.SourceLineIndex) + " " + expanded.LineContents + "\n"
+	for index, expanded := range s.expandedTemplateLines {
+		retVal += strconv.Itoa(index) + " " + expanded.LineContents + " :" + strconv.Itoa(expanded.SourceLineIndex) + "\n"
 	}
 
 	retVal += "---- raw template lines ----\n"
@@ -206,15 +206,17 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(allSectionedTemplateFatals, "\n\n"), nil
 	}
 
-	for _, sectionedTemplate := range allSectionedTemplates {
-		fmt.Println(sectionedTemplate.print())
-	}
-
-	os.Exit(1)
-
 	if substituteEnvVarsFatals := substituteEnvVars(allSectionedTemplates); len(substituteEnvVarsFatals) > 0 {
 		return nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
 	}
+
+	firstTemplate := allSectionedTemplates[0]
+	firstTemplate.setCapturedSections(hostSection, configSection)
+	if firstTemplate.hasFatalMessages() {
+		fmt.Println(firstTemplate.getFatalMessages())
+	}
+	fmt.Println(firstTemplate.print())
+	os.Exit(1)
 
 	config, configFatals := getConfig(allSectionedTemplates)
 	if len(configFatals) > 0 {
