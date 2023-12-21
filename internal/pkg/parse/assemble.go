@@ -122,6 +122,8 @@ func getAllSectionRows(allSectionedTemplates []*sectionedTemplate) (allSectionRo
 	allSectionRows := allSectionRows{}
 
 	for _, sectionedTemplate := range allSectionedTemplates {
+		sectionedTemplate.setCapturedSections(sectionsAllowingExecutables...)
+
 		allSectionRows.host = allSectionRows.host + sectionedTemplate.getHost()
 		allSectionRows.headers = append(allSectionRows.headers, sectionedTemplate.getHeaders()...)
 		allSectionRows.query = append(allSectionRows.query, sectionedTemplate.getQuery()...)
@@ -220,12 +222,15 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		return nil, strings.Join(configFatals, "\n\n"), nil
 	}
 
-	fmt.Println(config)
-	os.Exit(1)
-
 	if substituteExecutablesFatals := substituteExecutables(ctx, config, allSectionedTemplates); len(substituteExecutablesFatals) > 0 {
 		return nil, strings.Join(substituteExecutablesFatals, "\n\n"), nil
 	}
+
+	for _, sectionedTemplate := range allSectionedTemplates {
+		fmt.Println(sectionedTemplate.print())
+	}
+
+	os.Exit(1)
 
 	allSectionRows, allSectionRowsFatals := getAllSectionRows(allSectionedTemplates)
 	if len(allSectionRowsFatals) > 0 {
