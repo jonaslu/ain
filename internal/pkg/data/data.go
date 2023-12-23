@@ -23,6 +23,6 @@ type BackendInput struct {
 
 	Backend        string
 	BackendOptions [][]string
-
-	Config Config
 }
+
+type TimeoutContextValueKey struct{}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/disk"
@@ -176,37 +177,41 @@ func getBackendInput(allSectionRows allSectionRows, config data.Config) (*data.B
 	backendInput.Headers = allSectionRows.headers
 	backendInput.Backend = allSectionRows.backend
 	backendInput.BackendOptions = allSectionRows.backendOptions
-	backendInput.Config = config
 
 	return &backendInput, backendInputFatals
 }
 
-func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, string, error) {
+func Assemble(ctx context.Context, filenames []string) (context.Context, *data.BackendInput, string, error) {
 	allSectionedTemplates, allSectionedTemplateFatals, err := getAllSectionedTemplates(filenames)
 	if err != nil {
-		return nil, "", err
+		return ctx, nil, "", err
 	}
 
 	if len(allSectionedTemplateFatals) > 0 {
-		return nil, strings.Join(allSectionedTemplateFatals, "\n\n"), nil
+		return ctx, nil, strings.Join(allSectionedTemplateFatals, "\n\n"), nil
 	}
 
 	if substituteEnvVarsFatals := substituteEnvVars(allSectionedTemplates); len(substituteEnvVarsFatals) > 0 {
-		return nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
+		return ctx, nil, strings.Join(substituteEnvVarsFatals, "\n\n"), nil
 	}
 
 	config, configFatals := getConfig(allSectionedTemplates)
 	if len(configFatals) > 0 {
-		return nil, strings.Join(configFatals, "\n\n"), nil
+		return ctx, nil, strings.Join(configFatals, "\n\n"), nil
+	}
+
+	if config.Timeout != data.TimeoutNotSet {
+		ctx, _ = context.WithTimeout(ctx, time.Duration(config.Timeout)*time.Second)
+		ctx = context.WithValue(ctx, data.TimeoutContextValueKey{}, config.Timeout)
 	}
 
 	if substituteExecutablesFatals := substituteExecutables(ctx, config, allSectionedTemplates); len(substituteExecutablesFatals) > 0 {
-		return nil, strings.Join(substituteExecutablesFatals, "\n\n"), nil
+		return ctx, nil, strings.Join(substituteExecutablesFatals, "\n\n"), nil
 	}
 
 	allSectionRows, allSectionRowsFatals := getAllSectionRows(allSectionedTemplates)
 	if len(allSectionRowsFatals) > 0 {
-		return nil, strings.Join(allSectionRowsFatals, "\n\n"), nil
+		return ctx, nil, strings.Join(allSectionRowsFatals, "\n\n"), nil
 	}
 
 	backendInput, backendInputFatals := getBackendInput(allSectionRows, config)
@@ -214,8 +219,8 @@ func Assemble(ctx context.Context, filenames []string) (*data.BackendInput, stri
 		// Since we no longer have a sectionedTemplate errors
 		// are no longer linked to a file and we separate
 		// with one newline
-		return nil, strings.Join(backendInputFatals, "\n"), nil
+		return ctx, nil, strings.Join(backendInputFatals, "\n"), nil
 	}
 
-	return backendInput, "", nil
+	return ctx, backendInput, "", nil
 }

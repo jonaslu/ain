@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
@@ -65,11 +64,6 @@ func ValidBackend(backendName string) bool {
 }
 
 func CallBackend(ctx context.Context, backendInput *data.BackendInput, leaveTmpFile, printCommand bool) (string, error) {
-	backendTimeoutContext := ctx
-	if backendInput.Config.Timeout != data.TimeoutNotSet {
-		backendTimeoutContext, _ = context.WithTimeout(ctx, time.Duration(backendInput.Config.Timeout)*time.Second)
-	}
-
 	backend, err := getBackend(backendInput)
 	if err != nil {
 		return "", errors.Wrapf(err, "Could not instantiate backend: %s", backendInput.Backend)
@@ -79,7 +73,7 @@ func CallBackend(ctx context.Context, backendInput *data.BackendInput, leaveTmpF
 		return backend.getAsString()
 	}
 
-	output, err := backend.runAsCmd(backendTimeoutContext)
+	output, err := backend.runAsCmd(ctx)
 
 	var removeTmpFileErr error
 	if !leaveTmpFile || err != nil {
@@ -88,9 +82,9 @@ func CallBackend(ctx context.Context, backendInput *data.BackendInput, leaveTmpF
 		}
 	}
 
-	if backendTimeoutContext.Err() == context.DeadlineExceeded {
+	if ctx.Err() == context.DeadlineExceeded {
 		return "", utils.CascadeErrorMessage(
-			errors.Errorf("Backend-call: %s timed out after %d seconds", backendInput.Backend, backendInput.Config.Timeout),
+			errors.Errorf("Backend-call: %s timed out after %d seconds", backendInput.Backend, ctx.Value(data.TimeoutContextValueKey{})),
 			removeTmpFileErr,
 		)
 	}

@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
@@ -75,23 +74,16 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 
 			var stdout, stderr bytes.Buffer
 
-			// !! TODO !! Bug right here, this is now enforced
-			// per template and not for all templates.
-			// It's also set a third time for the backends.
-			// So in alles timeout*no templates + backend
-			// I e waaay to looong
-			timeoutCtx := ctx
-			if config.Timeout != data.TimeoutNotSet {
-				timeoutCtx, _ = context.WithTimeout(ctx, time.Duration(config.Timeout)*time.Second)
-			}
-
-			cmd := exec.CommandContext(timeoutCtx, executable.executable, executable.args...)
+			cmd := exec.CommandContext(ctx, executable.executable, executable.args...)
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
 
 			err := cmd.Run()
-			if timeoutCtx.Err() != nil {
+			if ctx.Err() == context.DeadlineExceeded {
 				executableResults[resultIndex].fatalMessage = fmt.Sprintf("Executable %s timed out after %d seconds", cmd.String(), config.Timeout)
+			}
+
+			if ctx.Err() != nil {
 				return
 			}
 

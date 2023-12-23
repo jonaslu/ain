@@ -83,11 +83,11 @@ Project home page: https://github.com/jonaslu/ain`
 	}
 
 	if len(localTemplateFileNames) == 0 {
+		// !! TODO !! This is not an internal error
 		printInternalErrorAndExit(errors.New("Missing template file name(s)\n\nTry 'ain -h' for more information"))
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
+	cancelCtx, cancel := context.WithCancel(context.Background())
 	var signalRaised os.Signal
 
 	go func() {
@@ -98,24 +98,23 @@ Project home page: https://github.com/jonaslu/ain`
 		cancel()
 	}()
 
-	// !! TODO !! Must return the context with timeout
-	backendInput, fatal, err := parse.Assemble(ctx, localTemplateFileNames)
+	assembledCtx, backendInput, fatal, err := parse.Assemble(cancelCtx, localTemplateFileNames)
 	if err != nil {
-		checkSignalRaisedAndExit(ctx, signalRaised)
+		checkSignalRaisedAndExit(assembledCtx, signalRaised)
 
 		printInternalErrorAndExit(err)
 	}
 
 	if fatal != "" {
-		checkSignalRaisedAndExit(ctx, signalRaised)
+		checkSignalRaisedAndExit(assembledCtx, signalRaised)
 
 		fmt.Fprintln(os.Stderr, fatal)
 		os.Exit(1)
 	}
 
-	backendOutput, err := call.CallBackend(ctx, backendInput, leaveTmpFile, printCommand)
+	backendOutput, err := call.CallBackend(assembledCtx, backendInput, leaveTmpFile, printCommand)
 	if err != nil {
-		checkSignalRaisedAndExit(ctx, signalRaised)
+		checkSignalRaisedAndExit(assembledCtx, signalRaised)
 
 		fmt.Fprint(os.Stderr, err)
 
