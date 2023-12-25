@@ -77,10 +77,6 @@ func newSectionedTemplate(rawTemplateString, filename string) *sectionedTemplate
 	expandedTemplateLines := []expandedSourceMarker{}
 
 	for sourceIndex, rawTemplateLine := range rawTemplateLines {
-		if isCommentOrWhitespaceRegExp.MatchString(rawTemplateLine) {
-			continue
-		}
-
 		expandedTemplateLines = append(expandedTemplateLines, expandedSourceMarker{
 			sourceMarker: sourceMarker{
 				LineContents:    rawTemplateLine,
