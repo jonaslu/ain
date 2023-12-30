@@ -26,7 +26,22 @@ func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex 
 	message := msg + " on line " + strconv.Itoa(errorLine+1) + ":\n"
 	message = message + strings.Join(templateContext, "\n")
 
-	// !! TODO !! Include expanded context if line has been expanded
+	if expandedTemplateLine.expanded {
+		expandedMsg := "\nExpanded context:"
+		beforeLine, nextLine := expandedSourceLineIndex-1, expandedSourceLineIndex+1
+
+		if beforeLine > -1 && s.expandedTemplateLines[beforeLine].expanded {
+			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[beforeLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[beforeLine].LineContents
+		}
+
+		expandedMsg = expandedMsg + "\n" + strconv.Itoa(expandedTemplateLine.SourceLineIndex+1) + " > " + expandedTemplateLine.LineContents
+
+		if nextLine < len(s.expandedTemplateLines) && s.expandedTemplateLines[nextLine].expanded {
+			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[nextLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[nextLine].LineContents
+		}
+
+		message = message + expandedMsg
+	}
 
 	s.fatals = append(s.fatals, message)
 }
@@ -39,7 +54,7 @@ func (s *sectionedTemplate) getFatalMessages() string {
 
 	fatalMessage = fatalMessage + " in file: " + s.filename + "\n"
 
-	return fatalMessage + strings.Join(s.fatals, "\n")
+	return fatalMessage + strings.Join(s.fatals, "\n\n")
 }
 
 func (s *sectionedTemplate) hasFatalMessages() bool {
