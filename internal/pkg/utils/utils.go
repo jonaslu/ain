@@ -82,25 +82,11 @@ NextRune:
 	}
 
 	if lastQuoteRune > 0 {
-		var context string
-		preContext := lastQuotePos - unterminatedQuoteErrorMessageContext
-
-		if preContext < 1 {
-			preContext = 0
-		} else {
-			context = "..."
-		}
-
-		subContext := lastQuotePos + unterminatedQuoteErrorMessageContext + 1
-		if subContext >= len(commandLine) {
-			subContext = len(commandLine)
-		}
-
-		context = context + commandLine[preContext:subContext]
-
-		if lastQuotePos+unterminatedQuoteErrorMessageContext < len(commandLine)-1 {
-			context = context + "..."
-		}
+		context := Ellipsize(
+			lastQuotePos-unterminatedQuoteErrorMessageContext,
+			lastQuotePos+unterminatedQuoteErrorMessageContext+1,
+			commandLine,
+		)
 
 		return nil, errors.Errorf("Unterminated quote sequence: %s", context)
 	}
@@ -110,6 +96,30 @@ NextRune:
 	}
 
 	return tokenizedLines, nil
+}
+
+const threeCharacters = 3
+
+func Ellipsize(from, to int, str string) string {
+	var preContext, postContext string
+	preContextIndex := from
+
+	if preContextIndex <= threeCharacters {
+		preContextIndex = 0
+		preContext = ""
+	} else {
+		preContext = "..."
+	}
+
+	postContextIndex := to
+	if postContextIndex >= (len(str) - threeCharacters) {
+		postContextIndex = len(str)
+		postContext = ""
+	} else {
+		postContext = "..."
+	}
+
+	return preContext + str[preContextIndex:postContextIndex] + postContext
 }
 
 func CascadeErrorMessage(err1, err2 error) error {

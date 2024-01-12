@@ -78,39 +78,29 @@ func TestTokenizeLineBadCases(t *testing.T) {
 		input        string
 		errorMessage string
 	}{
-		`only quote`: {
+		`single quote`: {
 			`"`,
 			`Unterminated quote sequence: "`,
 		},
 
 		`beginning of word`: {
 			`"word`,
-			`Unterminated quote sequence: "wor...`,
+			`Unterminated quote sequence: "word`,
 		},
 
 		`end of word`: {
 			`word"`,
-			`Unterminated quote sequence: ...ord"`,
+			`Unterminated quote sequence: word"`,
 		},
 
-		`no ellipsize on three chars beginning`: {
-			`"the`,
-			`Unterminated quote sequence: "the`,
-		},
-
-		`no ellipsize on three chars end`: {
-			`the'`,
-			`Unterminated quote sequence: the'`,
-		},
-
-		`full context no ellipsize in middle of word`: {
+		`maximum context with no ellipsize`: {
 			`the'eht`,
 			`Unterminated quote sequence: the'eht`,
 		},
 
-		`full context in middle of word`: {
-			`word'drow`,
-			`Unterminated quote sequence: ...ord'dro...`,
+		`ellipsize with three chars of context on each side of the quote`: {
+			`this is a quote'with no termination`,
+			`Unterminated quote sequence: ...ote'wit...`,
 		},
 	}
 
@@ -122,6 +112,52 @@ func TestTokenizeLineBadCases(t *testing.T) {
 
 		if err.Error() != test.errorMessage {
 			t.Fatalf("Test: %s, got error message: %v, expected: %v", name, err.Error(), test.errorMessage)
+		}
+	}
+}
+
+func TestEllipsize(t *testing.T) {
+	tests := map[string]struct {
+		from     int
+		to       int
+		input    string
+		expected string
+	}{
+		"indexes out of bounds, empty string": {
+			from:     -1,
+			to:       1,
+			input:    "",
+			expected: "",
+		},
+		"indexes out of bounds, valid string": {
+			from:     -1,
+			to:       2,
+			input:    "a",
+			expected: "a",
+		},
+		"maximum length not ellipsized": {
+			from:     3,
+			to:       4,
+			input:    "abcdefg",
+			expected: "abcdefg",
+		},
+		"left side ellipsized": {
+			from:     4,
+			to:       5,
+			input:    "abcdefgh",
+			expected: "...efgh",
+		},
+		"right side ellipsized": {
+			from:     3,
+			to:       4,
+			input:    "abcdefgh",
+			expected: "abcd...",
+		},
+	}
+
+	for name, test := range tests {
+		if res := Ellipsize(test.from, test.to, test.input); res != test.expected {
+			t.Fatalf("Test: %s, got: %v, expected: %v", name, res, test.expected)
 		}
 	}
 }
