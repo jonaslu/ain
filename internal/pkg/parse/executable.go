@@ -13,17 +13,18 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
 
-var executableExpressionRe = regexp.MustCompile(`(m?)\$\([^)]*\)?`)
 var executableRe = regexp.MustCompile(`\$\(([^)]*)\)`)
 
 type executableAndArgs struct {
-	executable string
-	args       []string
+	executableExpression string
+	executableCmd        string
+	args                 []string
 }
 
 type executableOutput struct {
-	output       string
-	fatalMessage string
+	executableExpression string
+	cmdOutput            string
+	fatalMessage         string
 }
 
 func getExecutableExpr(templateLine string) ([]string, string) {
@@ -90,7 +91,13 @@ func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	for expandedTemplateLineIndex, expandedTemplateLine := range s.expandedTemplateLines {
 		noCommentsLineContents, _, _ := strings.Cut(expandedTemplateLine.LineContents, "#")
 
-		for _, executableWithParens := range executableExpressionRe.FindAllString(noCommentsLineContents, -1) {
+		executableExpressions, fatal := getExecutableExpr(noCommentsLineContents)
+		if fatal != "" {
+			s.setFatalMessage(fatal, expandedTemplateLineIndex)
+			continue
+		}
+
+		for _, executableWithParens := range executableExpressions {
 			executableAndArgsCapture := executableRe.FindStringSubmatch(executableWithParens)
 
 			if len(executableAndArgsCapture) != 2 {
@@ -113,8 +120,9 @@ func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 			executable := tokenizedExecutableLine[0]
 
 			executables = append(executables, executableAndArgs{
-				executable: executable,
-				args:       tokenizedExecutableLine[1:],
+				executableExpression: executableWithParens,
+				executableCmd:        executable,
+				args:                 tokenizedExecutableLine[1:],
 			})
 		}
 	}
@@ -130,9 +138,11 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 		go func(resultIndex int, executable executableAndArgs) {
 			defer wg.Done()
 
+			executableResults[resultIndex].executableExpression = executable.executableExpression
+
 			var stdout, stderr bytes.Buffer
 
-			cmd := exec.CommandContext(ctx, executable.executable, executable.args...)
+			cmd := exec.CommandContext(ctx, executable.executableCmd, executable.args...)
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
 
@@ -167,7 +177,7 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 				return
 			}
 
-			executableResults[resultIndex].output = stdoutStr
+			executableResults[resultIndex].cmdOutput = stdoutStr
 		}(i, executable)
 
 		wg.Add(1)
@@ -179,6 +189,11 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 }
 
 func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executableOutput) {
+	if len(*executableResults) == 0 {
+		return
+	}
+
+	nextExecutableResult := (*executableResults)[0]
 	newExpandedTemplateLines := []expandedSourceMarker{}
 
 	for expandedTemplateLineIndex, expandedTemplateLine := range s.expandedTemplateLines {
@@ -186,17 +201,27 @@ func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executab
 		noCommentsLineContents, _, _ := strings.Cut(lineContents, "#")
 
 		anythingReplaced := false
+		done := false
 
-		for _, executableWithParens := range executableExpressionRe.FindAllString(noCommentsLineContents, -1) {
-			result := (*executableResults)[0]
-			*executableResults = (*executableResults)[1:]
-			if result.fatalMessage != "" {
-				s.setFatalMessage(result.fatalMessage, expandedTemplateLineIndex)
-				continue
+		for !done && strings.Contains(noCommentsLineContents, nextExecutableResult.executableExpression) {
+			if nextExecutableResult.fatalMessage != "" {
+				s.setFatalMessage(nextExecutableResult.fatalMessage, expandedTemplateLineIndex)
+			} else {
+				lineContents = strings.Replace(lineContents, nextExecutableResult.executableExpression, nextExecutableResult.cmdOutput, 1)
+				anythingReplaced = true
 			}
 
-			lineContents = strings.Replace(lineContents, executableWithParens, result.output, 1)
-			anythingReplaced = true
+			_, noCommentsLineContents, _ = strings.Cut(noCommentsLineContents, nextExecutableResult.executableExpression)
+
+			// > 1 because we have alredy processed the head of the list.
+			// Hence at least two elements left, where the [1:] element is the
+			// next item we're trying to consume.
+			if len(*executableResults) > 1 {
+				*executableResults = (*executableResults)[1:]
+				nextExecutableResult = (*executableResults)[0]
+			} else {
+				done = true
+			}
 		}
 
 		if !anythingReplaced {
