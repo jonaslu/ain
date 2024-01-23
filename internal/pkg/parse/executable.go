@@ -5,15 +5,12 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	"regexp"
 	"strings"
 	"sync"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
 )
-
-var executableRe = regexp.MustCompile(`\$\(([^)]*)\)`)
 
 type executableAndArgs struct {
 	executableExpression string
@@ -98,14 +95,7 @@ func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 		}
 
 		for _, executableWithParens := range executableExpressions {
-			executableAndArgsCapture := executableRe.FindStringSubmatch(executableWithParens)
-
-			if len(executableAndArgsCapture) != 2 {
-				s.setFatalMessage("Malformed executable", expandedTemplateLineIndex)
-				continue
-			}
-
-			executableAndArgsStr := executableAndArgsCapture[1]
+			executableAndArgsStr := executableWithParens[2 : len(executableWithParens)-1]
 			if executableAndArgsStr == "" {
 				s.setFatalMessage("Empty executable", expandedTemplateLineIndex)
 				continue
