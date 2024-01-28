@@ -415,7 +415,7 @@ Executables are captured and replaced in the template after any environment-vari
 # Fatals
 Ain has two types of errors: fatals and errors. Errors are things internal to ain (it's not your fault) such as not finding the backend-binary.
 
-Fatals are errors in the template (it's your fault). Ain will try to parse as much of the templates as possible aggregating fatals before reporting back to you. Fatals include the template file name where the fatal occurred, line-number and a small context of the template:
+Fatals are errors in the template (it's your fault). Ain will try to parse as much of the templates as possible aggregating fatals before reporting back to you. Fatals include the template file name where the fatal occurred, the line-number and a small context of the template:
 ```
 $ ain templates/example.ain
 Fatal error in file: templates/example.ain
@@ -423,6 +423,18 @@ Cannot find value for variable PORT on line 2:
 1   [Host]
 2 > http://localhost:${PORT}
 3
+```
+
+Fatals can be hard to understand if [environment variables](#environment-variables) or [executable](#executables) substitute for values in the template. If the line with the fatal contains any substituted value a separate expanded context is printed. It contains up to three lines with the resulting substitution and a row number into the original template:
+```
+$ TIMEOUT=-1 go run cmd/ain/main.go templates/example.ain 
+Fatal error in file: templates/example.ain
+Timeout interval must be greater than 0 on line 10:
+9   [Config]
+10 > Timeout=${TIMEOUT}
+11   
+Expanded context:
+10 > Timeout=-1
 ```
 
 # Quoting
