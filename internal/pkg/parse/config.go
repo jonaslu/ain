@@ -79,6 +79,7 @@ func (s *sectionedTemplate) getConfig() data.Config {
 
 			if err != nil {
 				s.setFatalMessage(err.Error(), configLine.SourceLineIndex)
+				return config
 			}
 
 			config.QueryDelim = &queryDelimValue
