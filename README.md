@@ -207,7 +207,9 @@ Anything after a pound sign (#) is a comment and will be ignored.
 # Running ain
 `ain [options] <template-files...>[!]`
 
-Ain accepts one or more template-file(s) as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity. An example would be setting the [[Headers]](#Headers), [[Backend]](#backend) and [[BackendOptions]](#BackendOptions) in a base template file and then specifying the specific [[Host]](#Host), [[Method]](#Method) and [[Body]](#Body) in several template files, one for each API-endpoint. You can even use an `alias` for things you will always set.
+Ain accepts one or more template-file(s) as a mandatory parameter. As sections combine or overwrite where it makes sense you can better organize API-calls into hierarchical structures with increasing specificity.
+
+An example would be setting the [[Headers]](#Headers), [[Backend]](#backend) and [[BackendOptions]](#BackendOptions) in a base template file and then specifying the specific [[Host]](#Host), [[Method]](#Method) and [[Body]](#Body) in several template files, one for each API-endpoint. You can even use an [alias](https://www.gnu.org/software/bash/manual/html_node/Aliases.html) for things you will always set.
 
 Adding an exclamation-mark (!) at the end of the template file name makes ain open the file in your `$VISUAL` or `$EDITOR` editor or falls back to vim in that order so you can edit the template file. Any changes are not stored back into the template file and used only this invocation.
 
@@ -216,7 +218,7 @@ Example:
 ain templates/get-blog-post.ain!
 ```
 
-Ain waits for the editor command to exit. Any terminal editor such as vim, emacs, nano etc will be fine. If your editor of choice forks (such as [vscode](https://code.visualstudio.com/) does by default) check if there's a flag stopping it from forking. For example to stop vscode from forking use the `--wait` [flag](https://code.visualstudio.com/docs/editor/command-line#_core-cli-options):
+Ain waits for the editor command to exit. Any terminal editor such as vim, emacs, nano etc will be fine. If your editor of choice forks (e g [vscode](https://code.visualstudio.com/) does by default) check if there's a flag stopping it from forking. For example to stop vscode from forking use the `--wait` [flag](https://code.visualstudio.com/docs/editor/command-line#_core-cli-options):
 
 ```
 export EDITOR="code --wait"
@@ -247,7 +249,9 @@ Including the text above.
 ## [Host]
 Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g `base.ain`) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g `login.ain`): `/api/auth/login`.
 
-It's recommended that you use the [[Query]](#Query) section below for query-parameters as it handles joining with delimiters and trimming whitespace. You  can however put raw query-paramters in the [Host] section too. Any query-parameters added in the [[Query]](#Query) section are appended last to the URL. The whole URL is properly [url-encoded](#url-encoding) before passed to the backend. The [Host] section shall combine to one and only one valid URL. Multiple URLs is not supported.
+It's recommended that you use the [[Query]](#Query) section below for query-parameters as it handles joining with delimiters and trimming whitespace. You  can however put raw query-paramters in the [Host] section too.
+
+Any query-parameters added in the [[Query]](#Query) section are appended last to the URL. The whole URL is properly [url-encoded](#url-encoding) before passed to the backend. The [Host] section shall combine to one and only one valid URL. Multiple URLs is not supported.
 
 Ain performs no validation on the url (as backends differ on what a valid url looks like). If your call does not go through use `ain -p` as mentioned in [troubleshooting](#troubleshooting) and input that directly into the backend to see what it thinks it means.
 
@@ -478,7 +482,7 @@ ain -p base.ain create-blog-post.ain | bash
 
 Any content within the [[Body]](#Body) section when passing the flag `-p` will be written to a file in the current working directory where ain is invoked. The file is not removed after ain completes. See [[Body]](#body) for details.
 
-# Hanlding line endings
+# Handling line endings
 A note on line-endings. Ain uses line-feed (\n) when printing it's output. If you're on windows and storing ain:s result to a file, this
 may cause trouble. Instead of trying to guess what line ending we're on (WSL, docker, cygwin etc makes this a wild goose chase), you'll have to manually convert them if the receiving program complains.
 
