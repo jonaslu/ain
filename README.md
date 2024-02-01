@@ -358,7 +358,7 @@ Config format: `QueryDelim=<text>`
 
 This is the delimiter used when concatenating the lines under the [[Query]](#Query) section to form the query-string of an URL. It can be any text that does not contain a space including the empty string.
 
-It defaults to the most used query-delimiter (`&`).
+It defaults to (`&`).
 
 ## [Backend]
 The [Backend] specifies what command should be used to run the actual API call.
@@ -429,7 +429,7 @@ Cannot find value for variable PORT on line 2:
 3
 ```
 
-Fatals can be hard to understand if [environment variables](#environment-variables) or [executable](#executables) substitute for values in the template. If the line with the fatal contains any substituted value a separate expanded context is printed. It contains up to three lines with the resulting substitution and a row number into the original template:
+Fatals can be hard to understand if [environment variables](#environment-variables) or [executables](#executables) substitute for values in the template. If the line with the fatal contains any substituted value a separate expanded context is printed. It contains up to three lines with the resulting substitution and a row number into the original template:
 ```
 $ TIMEOUT=-1 go run cmd/ain/main.go templates/example.ain 
 Fatal error in file: templates/example.ain
@@ -446,7 +446,7 @@ Quoting in bash is hard and therefore ain tries avoid it. There are four places 
 
 The canonical example of when quoting is needed is doing more complex things involving pipes. E g `$(sh -c 'find . | fzf -m | xargs echo')`.
 
-Quoting is kept simple, you can use ' or ". There is only one escape-sequence (\' and \" respectively) to insert a quote inside a quoted string of the same type. You can avoid when possible by selecting the other quote character (e g 'I need a " inside this string').
+Quoting is kept simple, you can use ' or ". There is only one escape-sequence (`\'` and `\"` respectively) to insert a quote inside a quoted string of the same type. You can avoid when possible by selecting the other quote character (e g 'I need a " inside this string').
 
 # URL-encoding
 [URL-encoding](https://en.wikipedia.org/wiki/Percent-encoding) is something ain tries hard to take care of for you. Both the path and the query-section of an url is scanned and any non-valid charaters are encoded while already legal encodings (format `%<hex><hex>` and `+` for the query string) are kept as is.
