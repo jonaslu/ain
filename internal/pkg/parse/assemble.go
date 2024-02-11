@@ -79,7 +79,7 @@ func substituteEnvVars(allSectionedTemplates []*sectionedTemplate) []string {
 	return substituteEnvVarsFatals
 }
 
-func substituteExecutables(ctx context.Context, config data.Config, allSectionedTemplates []*sectionedTemplate) []string {
+func substituteExecutables(ctx context.Context, config data.Config, allSectionedTemplates []*sectionedTemplate) ([]string, error) {
 	substituteExecutablesFatals := []string{}
 	allExecutableAndArgs := []executableAndArgs{}
 
@@ -92,10 +92,13 @@ func substituteExecutables(ctx context.Context, config data.Config, allSectioned
 	}
 
 	if len(substituteExecutablesFatals) > 0 {
-		return substituteExecutablesFatals
+		return substituteExecutablesFatals, nil
 	}
 
 	allExecutablesOutput := callExecutables(ctx, config, allExecutableAndArgs)
+	if ctx.Err() == context.Canceled {
+		return nil, ctx.Err()
+	}
 
 	for _, sectionedTemplate := range allSectionedTemplates {
 		if sectionedTemplate.insertExecutableOutput(&allExecutablesOutput); sectionedTemplate.hasFatalMessages() {
@@ -103,7 +106,7 @@ func substituteExecutables(ctx context.Context, config data.Config, allSectioned
 		}
 	}
 
-	return substituteExecutablesFatals
+	return substituteExecutablesFatals, nil
 }
 
 type allSectionRows struct {
@@ -205,7 +208,12 @@ func Assemble(ctx context.Context, filenames []string) (context.Context, *data.B
 		ctx = context.WithValue(ctx, data.TimeoutContextValueKey{}, config.Timeout)
 	}
 
-	if substituteExecutablesFatals := substituteExecutables(ctx, config, allSectionedTemplates); len(substituteExecutablesFatals) > 0 {
+	substituteExecutablesFatals, err := substituteExecutables(ctx, config, allSectionedTemplates)
+	if err != nil {
+		return ctx, nil, "", err
+	}
+
+	if len(substituteExecutablesFatals) > 0 {
 		return ctx, nil, strings.Join(substituteExecutablesFatals, "\n\n"), nil
 	}
 

@@ -142,6 +142,7 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 			}
 
 			if ctx.Err() != nil {
+				// Can't return an error, we're in a go-routine
 				return
 			}
 
