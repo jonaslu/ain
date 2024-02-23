@@ -324,15 +324,31 @@ If the API call needs a body (as in the POST or PATCH http methods) the content 
 
 The file passed to the backend is removed after the API call unless you pass the `-l` (as in leave) flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPFILE` if you'd like them elsewhere.
 
+Passing print command `-p` (as in print) flag will cause ain to write out the file named ain-body<random-digits> in the directory where ain is invoked (`cwd`) and leave the file after completion. The `-p` flag is for [[sharing]](#sharing-is-caring) and for [[troubleshooting]](#troubleshooting). Leaving the body file makes the resulting printed command shareable and runnable.
+
+The [Body] section removes any trailing whitespace and keeps empty newlines between the first and last non-empty line.
+
 Example:
 ```
 [Body]
+
 {
-  "some": "json"
+  "some": "json",  # ain removes comments
+
+  "more": "jayson"
 }
+
 ```
 
-Passing print command `-p` (as in print) flag will cause ain to write out the file in the directory where ain is invoked (`cwd`) and leave the file after completion. The `-p` flag is for [[sharing]](#sharing-is-caring) and for [[troubleshooting]](#troubleshooting). Leaving the body file makes the resulting printed command shareable and runnable. 
+Is passed as this in the tmp-file:
+```
+{
+
+  "some": "json",
+
+  "more": "jayson"
+}
+```
 
 The [Body] section is overridden by latter template files.
 
