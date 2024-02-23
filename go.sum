@@ -1,4 +1,4 @@
-github.com/hashicorp/go-envparse v0.0.0-20200406174449-d9cfd743a15e h1:v1d9+AJMP6i4p8BSKNU0InuvmIAdZjQLNN19V86AG4Q=
-github.com/hashicorp/go-envparse v0.0.0-20200406174449-d9cfd743a15e/go.mod h1:/NlxCzN2D4C4L2uDE6ux/h6jM+n98VFQM14nnCIfHJU=
+github.com/hashicorp/go-envparse v0.1.0 h1:bE++6bhIsNCPLvgDZkYqo3nA+/PFI51pkrHdmPSDFPY=
+github.com/hashicorp/go-envparse v0.1.0/go.mod h1:OHheN1GoygLlAkTlXLXvAdnXdZxy8JUweQ1rAXx1xnc=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
