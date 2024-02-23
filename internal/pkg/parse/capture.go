@@ -77,6 +77,25 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 		trailingCommentsRemoved, _, _ := strings.Cut(lineContents, "#")
 
 		if sectionHeading := getSectionHeading(trailingCommentsRemoved); sectionHeading != "" {
+
+			if currentSectionHeader == bodySection {
+				firstNonEmptyLine := 0
+				for ; firstNonEmptyLine < len(*currentSectionLines); firstNonEmptyLine++ {
+					if !isCommentOrWhitespaceRegExp.MatchString((*currentSectionLines)[firstNonEmptyLine].LineContents) {
+						break
+					}
+				}
+
+				lastNonEnptyLine := len(*currentSectionLines) - 1
+				for ; lastNonEnptyLine > firstNonEmptyLine; lastNonEnptyLine-- {
+					if !isCommentOrWhitespaceRegExp.MatchString((*currentSectionLines)[lastNonEnptyLine].LineContents) {
+						break
+					}
+				}
+
+				*currentSectionLines = (*currentSectionLines)[firstNonEmptyLine : lastNonEnptyLine+1]
+			}
+
 			if !containsHeader(sectionHeading, wantedSectionHeadings) {
 				currentSectionLines = nil
 				currentSectionHeader = ""
