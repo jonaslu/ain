@@ -15,20 +15,23 @@ builds:
       - windows
       - darwin
 archives:
-  - replacements:
-      darwin: mac_os
-      386: i386
-      amd64: x86_64
+  - id: default
+    name_template: >-
+          {{- .ProjectName }}_
+          {{- .Tag }}_
+          {{- if eq .Os "darwin"}}mac_os
+          {{- else }}{{ tolower .Os }}{{ end }}_
+          {{- if eq .Arch "amd64" }}x86_64
+          {{- else if eq .Arch "386" }}i386
+          {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
         format: zip
     files:
-      - README.md
-      - LICENSE*
       - assets/*
     wrap_in_directory: true
 brews:
-  - tap:
+  - repository:
       owner: jonaslu
       name: homebrew-tools
     commit_author:
@@ -37,13 +40,13 @@ brews:
     homepage: "https://github.com/jonaslu/ain"
     description: "Ain is a terminal API client. It's an alternative to postman, paw or insomnia."
     license: MIT
-scoop:
-  bucket:
-    owner: jonaslu
-    name: scoop-tools
-  homepage: "https://github.com/jonaslu/ain"
-  description: "Ain is a terminal API client. It's an alternative to postman, paw or insomnia."
-  license: MIT
+scoops:
+  - repository:
+      owner: jonaslu
+      name: scoop-tools
+    homepage: "https://github.com/jonaslu/ain"
+    description: "Ain is a terminal API client. It's an alternative to postman, paw or insomnia."
+    license: MIT
 release:
   draft: true
 checksum:
