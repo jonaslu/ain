@@ -18,7 +18,7 @@ archives:
   - id: default
     name_template: >-
           {{- .ProjectName }}_
-          {{- .Tag }}_
+          {{- .Version }}_
           {{- if eq .Os "darwin"}}mac_os
           {{- else }}{{ tolower .Os }}{{ end }}_
           {{- if eq .Arch "amd64" }}x86_64
@@ -29,6 +29,8 @@ archives:
         format: zip
     files:
       - assets/*
+      - README.md
+      - LICENSE
     wrap_in_directory: true
 brews:
   - repository:
@@ -52,7 +54,7 @@ release:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  name_template: "{{ .Version }}"
 changelog:
   sort: asc
   filters:
