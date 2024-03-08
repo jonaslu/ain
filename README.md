@@ -426,7 +426,7 @@ Authorization: Bearer $(bash -c "./get-login.sh | jq -r '.token'")
 
 If shell features such as pipes are needed this can be done via a command string (e g [bash -c](https://man7.org/linux/man-pages/man1/bash.1.html#OPTIONS) in bash.
 
-If an parentheses are needed as arguments they must be within quotes (e g $(node -e 'console.log("Hi")')") to not end the executable expression.
+If parentheses are needed as arguments they must be within quotes (e g $(node -e 'console.log("Hi")')") to not end the executable expression.
 
 Ain expects the first word in an executable to be on your $PATH and the rest to be arguments (hence the need for quotes to bash -c as this is passed as one argument).
 
