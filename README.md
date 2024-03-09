@@ -3,7 +3,7 @@
 # Introduction
 Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomnia.
 
-![Show and tell](/assets/show-and-tell.gif?raw=true)
+![Show and tell](assets/show-and-tell.gif?raw=true)
 
 * Flexible organization of API:s using files and folders.
 * Use shell-scripts and executables for common tasks.
