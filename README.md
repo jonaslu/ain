@@ -72,7 +72,6 @@ go install github.com/jonaslu/ain/cmd/ain@latest
 ## Via homebrew
 Using the package-manager [homebrew](https://brew.sh)
 ```
-brew tap jonaslu/tools
 brew install ain
 ```
 
