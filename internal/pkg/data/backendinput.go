@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (data BackendInput) GetBodyAsTempFile(tmpDir string) (*os.File, error) {
-	bodyStr := strings.Join(data.Body, "\n")
+func (bi BackendInput) GetBodyAsTempFile(tmpDir string) (*os.File, error) {
+	bodyStr := strings.Join(bi.Body, "\n")
 
 	tmpFile, err := ioutil.TempFile(tmpDir, "ain-body")
 	if err != nil {
