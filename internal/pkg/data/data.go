@@ -23,6 +23,8 @@ type BackendInput struct {
 
 	Backend        string
 	BackendOptions [][]string
+
+	PrintCommand bool
 }
 
 type TimeoutContextValueKey struct{}

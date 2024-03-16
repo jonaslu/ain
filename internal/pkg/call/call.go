@@ -63,13 +63,13 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, backendInput *data.BackendInput, leaveTmpFile, printCommand bool) (string, error) {
+func CallBackend(ctx context.Context, backendInput *data.BackendInput, leaveTmpFile bool) (string, error) {
 	backend, err := getBackend(backendInput)
 	if err != nil {
 		return "", errors.Wrapf(err, "Could not instantiate backend: %s", backendInput.Backend)
 	}
 
-	if printCommand {
+	if backendInput.PrintCommand {
 		return backend.getAsString()
 	}
 

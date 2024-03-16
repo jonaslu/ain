@@ -112,7 +112,9 @@ Project home page: https://github.com/jonaslu/ain`
 		os.Exit(1)
 	}
 
-	backendOutput, err := call.CallBackend(assembledCtx, backendInput, leaveTmpFile, printCommand)
+	backendInput.PrintCommand = printCommand
+
+	backendOutput, err := call.CallBackend(assembledCtx, backendInput, leaveTmpFile)
 	if err != nil {
 		checkSignalRaisedAndExit(assembledCtx, signalRaised)
 
