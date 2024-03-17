@@ -24,7 +24,10 @@ type BackendInput struct {
 	Backend        string
 	BackendOptions [][]string
 
-	PrintCommand bool
+	PrintCommand  bool
+	LeaveTempFile bool
+
+	TempFileName string
 }
 
 type TimeoutContextValueKey struct{}
