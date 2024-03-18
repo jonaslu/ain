@@ -79,6 +79,10 @@ func CallBackend(ctx context.Context, backendInput *data.BackendInput) (string, 
 	output, err := backend.runAsCmd(ctx)
 	removeTmpFileErr := backendInput.RemoveBodyTempFile(err != nil)
 
+	if ctx.Err() == context.Canceled {
+		return "", removeTmpFileErr
+	}
+
 	if ctx.Err() == context.DeadlineExceeded {
 		return "", utils.CascadeErrorMessage(
 			errors.Errorf("Backend-call: %s timed out after %d seconds", backendInput.Backend, ctx.Value(data.TimeoutContextValueKey{})),
