@@ -113,8 +113,10 @@ Project home page: https://github.com/jonaslu/ain`
 	}
 
 	backendInput.PrintCommand = printCommand
+	backendInput.LeaveTempFile = leaveTmpFile
 
-	backendOutput, err := call.CallBackend(assembledCtx, backendInput, leaveTmpFile)
+	backendOutput, err := call.CallBackend(assembledCtx, backendInput)
+
 	if err != nil {
 		checkSignalRaisedAndExit(assembledCtx, signalRaised)
 

@@ -2,19 +2,16 @@ package call
 
 import (
 	"context"
-	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
-	"github.com/pkg/errors"
 )
 
 type wget struct {
 	backendInput *data.BackendInput
-	tmpFileName  string
 	binaryName   string
 }
 
@@ -71,19 +68,12 @@ func (wget *wget) getMethodArgument(escape bool) string {
 	return ""
 }
 
-func (wget *wget) getBodyArgument(tmpDir string) (string, error) {
-	if len(wget.backendInput.Body) > 0 {
-		tmpFile, err := wget.backendInput.GetBodyAsTempFile(tmpDir)
-
-		if err != nil {
-			return "", err
-		}
-
-		wget.tmpFileName = tmpFile.Name()
-		return "--body-file=" + tmpFile.Name(), nil
+func (wget *wget) getBodyArgument() []string {
+	if wget.backendInput.TempFileName != "" {
+		return []string{"--body-file=" + wget.backendInput.TempFileName}
 	}
 
-	return "", nil
+	return []string{}
 }
 
 func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
@@ -97,15 +87,7 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 	}
 
 	args = append(args, wget.getHeaderArguments(false)...)
-
-	if len(wget.backendInput.Body) > 0 {
-		bodyArgs, err := wget.getBodyArgument("")
-		if err != nil {
-			return nil, err
-		}
-
-		args = append(args, bodyArgs)
-	}
+	args = append(args, wget.getBodyArgument()...)
 
 	args = append(args, wget.backendInput.Host.String())
 
@@ -121,7 +103,7 @@ func (wget *wget) runAsCmd(ctx context.Context) ([]byte, error) {
 	return output, nil
 }
 
-func (wget *wget) getAsString() (string, error) {
+func (wget *wget) getAsString() string {
 	args := [][]string{}
 
 	for _, optionLine := range wget.backendInput.BackendOptions {
@@ -140,19 +122,7 @@ func (wget *wget) getAsString() (string, error) {
 		args = append(args, []string{header})
 	}
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", errors.Wrap(err, "Could not get current working dir, cannot store any body temp-file")
-	}
-
-	if len(wget.backendInput.Body) > 0 {
-		bodyArg, err := wget.getBodyArgument(cwd)
-		if err != nil {
-			return "", err
-		}
-
-		args = append(args, []string{bodyArg})
-	}
+	args = append(args, wget.getBodyArgument())
 
 	args = append(args, []string{
 		utils.EscapeForShell(wget.backendInput.Host.String()),
@@ -160,13 +130,5 @@ func (wget *wget) getAsString() (string, error) {
 
 	output := wget.binaryName + " " + utils.PrettyPrintStringsForShell(args)
 
-	return output, nil
-}
-
-func (wget *wget) cleanUp() error {
-	if wget.tmpFileName != "" {
-		return os.Remove(wget.tmpFileName)
-	}
-
-	return nil
+	return output
 }

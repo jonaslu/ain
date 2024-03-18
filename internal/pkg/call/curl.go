@@ -2,18 +2,15 @@ package call
 
 import (
 	"context"
-	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
 	"github.com/jonaslu/ain/internal/pkg/utils"
-	"github.com/pkg/errors"
 )
 
 type curl struct {
 	backendInput *data.BackendInput
-	tmpFileName  string
 	binaryName   string
 }
 
@@ -51,19 +48,12 @@ func (curl *curl) getMethodArgument(escape bool) []string {
 	return []string{}
 }
 
-func (curl *curl) getBodyArgument(tmpDir string) ([]string, error) {
-	if len(curl.backendInput.Body) > 0 {
-		tmpFile, err := curl.backendInput.GetBodyAsTempFile(tmpDir)
-
-		if err != nil {
-			return nil, err
-		}
-
-		curl.tmpFileName = tmpFile.Name()
-		return []string{"-d", "@" + tmpFile.Name()}, nil
+func (curl *curl) getBodyArgument() []string {
+	if curl.backendInput.TempFileName != "" {
+		return []string{"-d", "@" + curl.backendInput.TempFileName}
 	}
 
-	return []string{}, nil
+	return []string{}
 }
 
 func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
@@ -77,12 +67,7 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 		args = append(args, headerArgs...)
 	}
 
-	bodyArgs, err := curl.getBodyArgument("")
-	if err != nil {
-		return nil, err
-	}
-
-	args = append(args, bodyArgs...)
+	args = append(args, curl.getBodyArgument()...)
 	args = append(args, curl.backendInput.Host.String())
 
 	curlCmd := exec.CommandContext(ctx, curl.binaryName, args...)
@@ -94,10 +79,10 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 		}
 	}
 
-	return output, nil
+	return output, err
 }
 
-func (curl *curl) getAsString() (string, error) {
+func (curl *curl) getAsString() string {
 	args := [][]string{}
 
 	for _, optionLine := range curl.backendInput.BackendOptions {
@@ -111,30 +96,12 @@ func (curl *curl) getAsString() (string, error) {
 	args = append(args, curl.getMethodArgument(true))
 	args = append(args, curl.getHeaderArguments(true)...)
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", errors.Wrap(err, "Could not get current working dir, cannot store any body temp-file")
-	}
-
-	bodyArgs, err := curl.getBodyArgument(cwd)
-	if err != nil {
-		return "", err
-	}
-
-	args = append(args, bodyArgs)
+	args = append(args, curl.getBodyArgument())
 	args = append(args, []string{
 		utils.EscapeForShell(curl.backendInput.Host.String()),
 	})
 
 	output := curl.binaryName + " " + utils.PrettyPrintStringsForShell(args)
 
-	return output, nil
-}
-
-func (curl *curl) cleanUp() error {
-	if curl.tmpFileName != "" {
-		return os.Remove(curl.tmpFileName)
-	}
-
-	return nil
+	return output
 }

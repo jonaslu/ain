@@ -41,8 +41,7 @@ func (err *BackedErr) Error() string {
 
 type backend interface {
 	runAsCmd(context.Context) ([]byte, error)
-	getAsString() (string, error)
-	cleanUp() error
+	getAsString() string
 }
 
 func getBackend(backendInput *data.BackendInput) (backend, error) {
@@ -63,24 +62,22 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, backendInput *data.BackendInput, leaveTmpFile bool) (string, error) {
+func CallBackend(ctx context.Context, backendInput *data.BackendInput) (string, error) {
 	backend, err := getBackend(backendInput)
 	if err != nil {
 		return "", errors.Wrapf(err, "Could not instantiate backend: %s", backendInput.Backend)
 	}
 
+	if err := backendInput.CreateBodyTempFile(); err != nil {
+		return "", err
+	}
+
 	if backendInput.PrintCommand {
-		return backend.getAsString()
+		return backend.getAsString(), nil
 	}
 
 	output, err := backend.runAsCmd(ctx)
-
-	var removeTmpFileErr error
-	if !leaveTmpFile || err != nil {
-		if err := backend.cleanUp(); err != nil {
-			removeTmpFileErr = errors.Wrap(err, "Could not remove file with [Body] contents")
-		}
-	}
+	removeTmpFileErr := backendInput.RemoveBodyTempFile(err != nil)
 
 	if ctx.Err() == context.DeadlineExceeded {
 		return "", utils.CascadeErrorMessage(
