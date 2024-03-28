@@ -321,7 +321,7 @@ The [Method] section is overridden by latter template files.
 ## [Body]
 If the API call needs a body (as in the POST or PATCH http methods) the content of this section is passed as a file to the backend with the formatting retained from the [Body] section. Ain uses files to pass the [Body] contents because white-space may be important (e g yaml) and this section tends to be long.
 
-The file passed to the backend is removed after the API call unless you pass the `-l` (as in leave) flag. Ain places the file in the $TMPFILE directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPFILE` if you'd like them elsewhere.
+The file passed to the backend is removed after the API call unless you pass the `-l` (as in leave) flag. Ain places the file in the $TMPDIR directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting `$TMPDIR` if you'd like them elsewhere.
 
 Passing print command `-p` (as in print) flag will cause ain to write out the file named ain-body<random-digits> in the directory where ain is invoked (`cwd`) and leave the file after completion. The `-p` flag is for [[sharing]](#sharing-is-caring) and for [[troubleshooting]](#troubleshooting). Leaving the body file makes the resulting printed command shareable and runnable.
 
