@@ -106,6 +106,7 @@ Project home page: https://github.com/jonaslu/ain`
 	}
 
 	if fatal != "" {
+		// Is this valid?
 		checkSignalRaisedAndExit(assembledCtx, signalRaised)
 
 		fmt.Fprintln(os.Stderr, fatal)
@@ -113,21 +114,43 @@ Project home page: https://github.com/jonaslu/ain`
 	}
 
 	backendInput.PrintCommand = printCommand
-	backendInput.LeaveTempFile = leaveTmpFile
 
-	backendOutput, err := call.CallBackend(assembledCtx, backendInput)
-
+	call, err := call.Setup(backendInput)
 	if err != nil {
-		fmt.Fprint(os.Stderr, err)
-		checkSignalRaisedAndExit(assembledCtx, signalRaised)
-
-		var backendErr *call.BackedErr
-		if errors.As(err, &backendErr) {
-			os.Exit(backendErr.ExitCode)
-		}
-
+		fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
-	fmt.Fprint(os.Stdout, backendOutput)
+	if printCommand {
+		// Tempfile always left when calling as string
+		fmt.Fprint(os.Stdout, call.CallAsString())
+		return
+	}
+
+	backendInput.LeaveTempFile = leaveTmpFile
+	backendOutput, err := call.CallAsCmd(assembledCtx)
+
+	teardownErr := call.Teardown()
+	if teardownErr != nil {
+		fmt.Fprint(os.Stderr, teardownErr.Error())
+	}
+
+	if err != nil && assembledCtx.Err() != context.Canceled {
+		fmt.Fprint(os.Stderr, err.Error())
+	}
+
+	if backendOutput != nil {
+		// It's customary to print stderr first
+		// to get the users attention on the error
+		fmt.Fprint(os.Stderr, backendOutput.Stderr)
+		fmt.Fprint(os.Stdout, backendOutput.Stdout)
+	}
+
+	checkSignalRaisedAndExit(assembledCtx, signalRaised)
+
+	if assembledCtx.Err() == context.DeadlineExceeded || teardownErr != nil {
+		os.Exit(1)
+	}
+
+	os.Exit(backendOutput.ExitCode)
 }

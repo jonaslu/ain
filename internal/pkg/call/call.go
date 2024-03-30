@@ -1,19 +1,13 @@
 package call
 
 import (
+	"bytes"
 	"context"
-	"fmt"
-	"strings"
+	"os/exec"
 
 	"github.com/jonaslu/ain/internal/pkg/data"
-	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
 )
-
-type BackedErr struct {
-	Err      error
-	ExitCode int
-}
 
 type backendConstructor struct {
 	BinaryName  string
@@ -35,13 +29,15 @@ var ValidBackends = map[string]backendConstructor{
 	},
 }
 
-func (err *BackedErr) Error() string {
-	return fmt.Sprintf("Error: %v, exit code: %d\n", err.Err, err.ExitCode)
+type backend interface {
+	getAsCmd(context.Context) *exec.Cmd
+	getAsString() string
 }
 
-type backend interface {
-	runAsCmd(context.Context) ([]byte, error)
-	getAsString() string
+type BackendOutput struct {
+	Stderr   string
+	Stdout   string
+	ExitCode int
 }
 
 func getBackend(backendInput *data.BackendInput) (backend, error) {
@@ -62,44 +58,65 @@ func ValidBackend(backendName string) bool {
 	return false
 }
 
-func CallBackend(ctx context.Context, backendInput *data.BackendInput) (string, error) {
+type Call struct {
+	backendInput        *data.BackendInput
+	backend             backend
+	forceRemoveTempFile bool
+}
+
+func Setup(backendInput *data.BackendInput) (*Call, error) {
+	call := Call{backendInput: backendInput}
+
 	backend, err := getBackend(backendInput)
 	if err != nil {
-		return "", errors.Wrapf(err, "Could not instantiate backend: %s", backendInput.Backend)
+		return nil, err
 	}
+
+	call.backend = backend
 
 	if err := backendInput.CreateBodyTempFile(); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if backendInput.PrintCommand {
-		return backend.getAsString(), nil
-	}
+	return &call, nil
+}
 
-	output, err := backend.runAsCmd(ctx)
-	removeTmpFileErr := backendInput.RemoveBodyTempFile(err != nil)
+func (c *Call) CallAsString() string {
+	return c.backend.getAsString()
+}
 
-	if ctx.Err() == context.Canceled {
-		return "", removeTmpFileErr
+func (c *Call) CallAsCmd(ctx context.Context) (*BackendOutput, error) {
+	backendCmd := c.backend.getAsCmd(ctx)
+
+	var stdout, stderr bytes.Buffer
+	backendCmd.Stdout = &stdout
+	backendCmd.Stderr = &stderr
+
+	err := backendCmd.Run()
+
+	c.forceRemoveTempFile = err != nil
+
+	backendOutput := &BackendOutput{
+		Stderr:   stderr.String(),
+		Stdout:   stdout.String(),
+		ExitCode: backendCmd.ProcessState.ExitCode(),
 	}
 
 	if ctx.Err() == context.DeadlineExceeded {
-		return "", utils.CascadeErrorMessage(
-			errors.Errorf("Backend-call: %s timed out after %d seconds", backendInput.Backend, ctx.Value(data.TimeoutContextValueKey{})),
-			removeTmpFileErr,
-		)
+		err = errors.Errorf("Backend-call: %s timed out after %d seconds",
+			c.backendInput.Backend,
+			ctx.Value(data.TimeoutContextValueKey{}))
+
+		return backendOutput, err
 	}
 
 	if err != nil {
-		return "", utils.CascadeErrorMessage(
-			errors.Wrapf(err, "Error running: %s\n%s", backendInput.Backend, strings.TrimSpace(string(output))),
-			removeTmpFileErr,
-		)
+		return backendOutput, errors.Wrapf(err, "Error running: %s", c.backendInput.Backend)
 	}
 
-	if removeTmpFileErr != nil {
-		return "", errors.Wrapf(removeTmpFileErr, "Error running: %s\n%s", backendInput.Backend, strings.TrimSpace(string(output)))
-	}
+	return backendOutput, nil
+}
 
-	return string(output), nil
+func (c *Call) Teardown() error {
+	return c.backendInput.RemoveBodyTempFile(c.forceRemoveTempFile)
 }

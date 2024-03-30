@@ -51,7 +51,7 @@ func (httpie *httpie) getBodyArgument() []string {
 	return []string{}
 }
 
-func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
+func (httpie *httpie) getAsCmd(ctx context.Context) *exec.Cmd {
 	args := []string{}
 	for _, backendOpt := range httpie.backendInput.BackendOptions {
 		args = append(args, backendOpt...)
@@ -66,16 +66,7 @@ func (httpie *httpie) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, httpie.getBodyArgument()...)
 
 	httpCmd := exec.CommandContext(ctx, httpie.binaryName, args...)
-	output, err := httpCmd.CombinedOutput()
-
-	if err != nil {
-		return output, &BackedErr{
-			Err:      err,
-			ExitCode: httpCmd.ProcessState.ExitCode(),
-		}
-	}
-
-	return output, nil
+	return httpCmd
 }
 
 func (httpie *httpie) getAsString() string {

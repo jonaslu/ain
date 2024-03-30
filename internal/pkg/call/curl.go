@@ -56,7 +56,7 @@ func (curl *curl) getBodyArgument() []string {
 	return []string{}
 }
 
-func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
+func (curl *curl) getAsCmd(ctx context.Context) *exec.Cmd {
 	args := []string{}
 	for _, backendOpt := range curl.backendInput.BackendOptions {
 		args = append(args, backendOpt...)
@@ -70,16 +70,7 @@ func (curl *curl) runAsCmd(ctx context.Context) ([]byte, error) {
 	args = append(args, curl.getBodyArgument()...)
 	args = append(args, curl.backendInput.Host.String())
 
-	curlCmd := exec.CommandContext(ctx, curl.binaryName, args...)
-	output, err := curlCmd.CombinedOutput()
-	if err != nil {
-		return output, &BackedErr{
-			Err:      err,
-			ExitCode: curlCmd.ProcessState.ExitCode(),
-		}
-	}
-
-	return output, err
+	return exec.CommandContext(ctx, curl.binaryName, args...)
 }
 
 func (curl *curl) getAsString() string {
@@ -101,7 +92,7 @@ func (curl *curl) getAsString() string {
 		utils.EscapeForShell(curl.backendInput.Host.String()),
 	})
 
-	output := curl.binaryName + " " + utils.PrettyPrintStringsForShell(args)
+	cmdAsString := curl.binaryName + " " + utils.PrettyPrintStringsForShell(args)
 
-	return output
+	return cmdAsString
 }
