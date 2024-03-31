@@ -34,12 +34,6 @@ type backend interface {
 	getAsString() string
 }
 
-type BackendOutput struct {
-	Stderr   string
-	Stdout   string
-	ExitCode int
-}
-
 func getBackend(backendInput *data.BackendInput) (backend, error) {
 	requestedBackend := backendInput.Backend
 
@@ -85,7 +79,7 @@ func (c *Call) CallAsString() string {
 	return c.backend.getAsString()
 }
 
-func (c *Call) CallAsCmd(ctx context.Context) (*BackendOutput, error) {
+func (c *Call) CallAsCmd(ctx context.Context) (*data.BackendOutput, error) {
 	backendCmd := c.backend.getAsCmd(ctx)
 
 	var stdout, stderr bytes.Buffer
@@ -96,7 +90,7 @@ func (c *Call) CallAsCmd(ctx context.Context) (*BackendOutput, error) {
 
 	c.forceRemoveTempFile = err != nil
 
-	backendOutput := &BackendOutput{
+	backendOutput := &data.BackendOutput{
 		Stderr:   stderr.String(),
 		Stdout:   stdout.String(),
 		ExitCode: backendCmd.ProcessState.ExitCode(),

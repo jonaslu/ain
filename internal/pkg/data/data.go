@@ -31,3 +31,9 @@ type BackendInput struct {
 }
 
 type TimeoutContextValueKey struct{}
+
+type BackendOutput struct {
+	Stderr   string
+	Stdout   string
+	ExitCode int
+}
