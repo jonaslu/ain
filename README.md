@@ -232,6 +232,8 @@ Template file names specified on the command line are read before any names from
 
 Ain functions as bash when it comes to file names: if they contain white-space the name should be quoted.
 
+When making the call ain mimics how data is returned by the backend. After printing any internal errors of it's own, ain echoes back output from the backend: first the standard error (stderr) and then the standard out (stdout). It then returns the exit code from the backend command as it's own unless there are error specific to ain in which it returns status 1.
+
 # Supported sections
 Sections are case-insensitive and whitespace ignored but by convention uses CamelCase and are left indented. A section cannot be defined twice in a file. A section ends where the next begins or the file ends.
 
