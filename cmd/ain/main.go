@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -126,16 +127,29 @@ Project home page: https://github.com/jonaslu/ain`
 		return
 	}
 
+	var errors []string
 	backendInput.LeaveTempFile = leaveTmpFile
 	backendOutput, err := call.CallAsCmd(assembledCtx)
 
 	teardownErr := call.Teardown()
 	if teardownErr != nil {
-		fmt.Fprint(os.Stderr, teardownErr.Error())
+		errors = append(errors, teardownErr.Error())
 	}
 
 	if err != nil && assembledCtx.Err() != context.Canceled {
-		fmt.Fprint(os.Stderr, err.Error())
+		errors = append(errors, err.Error())
+	}
+
+	if len(errors) > 0 {
+		errorMsg := "Error"
+		if len(errors) > 1 {
+			errorMsg += "s:\n"
+		} else {
+			errorMsg += ": "
+		}
+
+		errorMsg += strings.Join(errors, "\n") + "\n"
+		fmt.Fprintln(os.Stderr, errorMsg)
 	}
 
 	if backendOutput != nil {
