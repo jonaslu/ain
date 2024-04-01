@@ -117,8 +117,7 @@ Project home page: https://github.com/jonaslu/ain`
 
 	call, err := call.Setup(backendInput)
 	if err != nil {
-		fmt.Fprint(os.Stderr, err.Error())
-		os.Exit(1)
+		printInternalErrorAndExit(err)
 	}
 
 	if printCommand {
