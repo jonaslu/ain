@@ -448,7 +448,7 @@ Cannot find value for variable PORT on line 2:
 
 Fatals can be hard to understand if [environment variables](#environment-variables) or [executables](#executables) substitute for values in the template. If the line with the fatal contains any substituted value a separate expanded context is printed. It contains up to three lines with the resulting substitution and a row number into the original template:
 ```
-$ TIMEOUT=-1 go run cmd/ain/main.go templates/example.ain 
+$ TIMEOUT=-1 ain templates/example.ain 
 Fatal error in file: templates/example.ain
 Timeout interval must be greater than 0 on line 10:
 9   [Config]
