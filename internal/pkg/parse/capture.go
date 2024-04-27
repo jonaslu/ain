@@ -68,13 +68,11 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 	var currentSectionLines *[]sourceMarker
 
 	for expandedSourceIndex, expandedTemplateLine := range s.expandedTemplateLines {
-		lineContents := expandedTemplateLine.LineContents
+		trailingCommentsRemoved := expandedTemplateLine.getTextContent()
 
-		if currentSectionHeader != bodySection && isCommentOrWhitespaceRegExp.MatchString(lineContents) {
+		if currentSectionHeader != bodySection && strings.TrimSpace(trailingCommentsRemoved) == "" {
 			continue
 		}
-
-		trailingCommentsRemoved, _, _ := strings.Cut(lineContents, "#")
 
 		if sectionHeading := getSectionHeading(trailingCommentsRemoved); sectionHeading != "" {
 

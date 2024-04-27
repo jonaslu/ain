@@ -31,13 +31,13 @@ func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex 
 		beforeLine, nextLine := expandedSourceLineIndex-1, expandedSourceLineIndex+1
 
 		if beforeLine > -1 && s.expandedTemplateLines[beforeLine].expanded {
-			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[beforeLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[beforeLine].LineContents
+			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[beforeLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[beforeLine].String()
 		}
 
-		expandedMsg = expandedMsg + "\n" + strconv.Itoa(expandedTemplateLine.SourceLineIndex+1) + " > " + expandedTemplateLine.LineContents
+		expandedMsg = expandedMsg + "\n" + strconv.Itoa(expandedTemplateLine.SourceLineIndex+1) + " > " + expandedTemplateLine.String()
 
 		if nextLine < len(s.expandedTemplateLines) && s.expandedTemplateLines[nextLine].expanded {
-			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[nextLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[nextLine].LineContents
+			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[nextLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[nextLine].String()
 		}
 
 		message = message + expandedMsg

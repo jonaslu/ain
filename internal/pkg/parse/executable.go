@@ -13,15 +13,13 @@ import (
 )
 
 type executableAndArgs struct {
-	executableExpression string
-	executableCmd        string
-	args                 []string
+	executableCmd string
+	args          []string
 }
 
 type executableOutput struct {
-	executableExpression string
-	cmdOutput            string
-	fatalMessage         string
+	cmdOutput    string
+	fatalMessage string
 }
 
 func getExecutableExpr(templateLine string) ([]string, string) {
@@ -86,16 +84,16 @@ func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	executables := []executableAndArgs{}
 
 	for expandedTemplateLineIndex, expandedTemplateLine := range s.expandedTemplateLines {
-		noCommentsLineContents, _, _ := strings.Cut(expandedTemplateLine.LineContents, "#")
+		for _, token := range expandedTemplateLine.Tokens {
+			if token.tokenType == commentToken {
+				break
+			}
 
-		executableExpressions, fatal := getExecutableExpr(noCommentsLineContents)
-		if fatal != "" {
-			s.setFatalMessage(fatal, expandedTemplateLineIndex)
-			continue
-		}
+			if token.tokenType != executableToken {
+				continue
+			}
 
-		for _, executableWithParens := range executableExpressions {
-			executableAndArgsStr := executableWithParens[2 : len(executableWithParens)-1]
+			executableAndArgsStr := token.content
 			if executableAndArgsStr == "" {
 				s.setFatalMessage("Empty executable", expandedTemplateLineIndex)
 				continue
@@ -110,9 +108,8 @@ func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 			executable := tokenizedExecutableLine[0]
 
 			executables = append(executables, executableAndArgs{
-				executableExpression: executableWithParens,
-				executableCmd:        executable,
-				args:                 tokenizedExecutableLine[1:],
+				executableCmd: executable,
+				args:          tokenizedExecutableLine[1:],
 			})
 		}
 	}
@@ -127,8 +124,6 @@ func callExecutables(ctx context.Context, config data.Config, executables []exec
 	for i, executable := range executables {
 		go func(resultIndex int, executable executableAndArgs) {
 			defer wg.Done()
-
-			executableResults[resultIndex].executableExpression = executable.executableExpression
 
 			var stdout, stderr bytes.Buffer
 
@@ -185,52 +180,20 @@ func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executab
 	}
 
 	nextExecutableResult := (*executableResults)[0]
-	newExpandedTemplateLines := []expandedSourceMarker{}
 
-	for expandedTemplateLineIndex, expandedTemplateLine := range s.expandedTemplateLines {
-		lineContents := expandedTemplateLine.LineContents
-		noCommentsLineContents, _, _ := strings.Cut(lineContents, "#")
+	s.iterate(executableToken, func(c token) (string, string) {
+		fatalMessage := nextExecutableResult.fatalMessage
+		output := nextExecutableResult.cmdOutput
 
-		anythingReplaced := false
-		done := false
-
-		for !done && strings.Contains(noCommentsLineContents, nextExecutableResult.executableExpression) {
-			if nextExecutableResult.fatalMessage != "" {
-				s.setFatalMessage(nextExecutableResult.fatalMessage, expandedTemplateLineIndex)
-			} else {
-				lineContents = strings.Replace(lineContents, nextExecutableResult.executableExpression, nextExecutableResult.cmdOutput, 1)
-				anythingReplaced = true
-			}
-
-			_, noCommentsLineContents, _ = strings.Cut(noCommentsLineContents, nextExecutableResult.executableExpression)
-
-			// > 1 because we have alredy processed the head of the list.
-			// Hence at least two elements left, where the [1:] element is the
-			// next item we're trying to consume.
-			if len(*executableResults) > 1 {
-				*executableResults = (*executableResults)[1:]
-				nextExecutableResult = (*executableResults)[0]
-			} else {
-				done = true
-			}
+		// > 1 because we have already processed the head of the list.
+		// Hence at least two elements left, where the [1:] element is the
+		// next item we're trying to consume.
+		if len(*executableResults) > 1 {
+			*executableResults = (*executableResults)[1:]
+			nextExecutableResult = (*executableResults)[0]
 		}
 
-		if !anythingReplaced {
-			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedTemplateLine)
-			continue
-		}
+		return output, fatalMessage
 
-		splitExpandedLines := strings.Split(strings.ReplaceAll(lineContents, "\r\n", "\n"), "\n")
-		for _, splitExpandedLine := range splitExpandedLines {
-			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
-				sourceMarker: sourceMarker{
-					LineContents:    splitExpandedLine,
-					SourceLineIndex: expandedTemplateLine.SourceLineIndex,
-				},
-				expanded: true,
-			})
-		}
-	}
-
-	s.expandedTemplateLines = newExpandedTemplateLines
+	})
 }
