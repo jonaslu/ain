@@ -60,6 +60,7 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 
 	currentContent := ""
 	var currentTokenType tokenType = textToken
+	var executableQuoteRune rune
 
 	idx := 0
 	for idx < len(inputRunes) {
@@ -133,24 +134,36 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 			continue
 		}
 
-		if currentTokenType == executableToken && isStartOfToken(")", prev, rest) {
-			unescapedContent := strings.ReplaceAll(currentContent, "`)", ")")
-
-			if strings.HasSuffix(unescapedContent, "\\`") {
-				unescapedContent = strings.TrimSuffix(unescapedContent, "\\`") + "`"
+		if currentTokenType == executableToken {
+			nextRune := []rune(rest)[0]
+			switch nextRune {
+			case '"', '\'':
+				if executableQuoteRune == 0 {
+					executableQuoteRune = nextRune
+				} else if !strings.HasSuffix(prev, `\`) && executableQuoteRune == nextRune {
+					executableQuoteRune = 0
+				}
 			}
 
-			result = append(result, token{
-				tokenType:    executableToken,
-				content:      unescapedContent,
-				fatalContent: executablePrefix + currentContent + ")",
-			})
+			if executableQuoteRune == 0 && isStartOfToken(")", prev, rest) {
+				unescapedContent := strings.ReplaceAll(currentContent, "`)", ")")
 
-			currentTokenType = textToken
-			currentContent = ""
+				if strings.HasSuffix(unescapedContent, "\\`") {
+					unescapedContent = strings.TrimSuffix(unescapedContent, "\\`") + "`"
+				}
 
-			idx += 1
-			continue
+				result = append(result, token{
+					tokenType:    executableToken,
+					content:      unescapedContent,
+					fatalContent: executablePrefix + currentContent + ")",
+				})
+
+				currentTokenType = textToken
+				currentContent = ""
+
+				idx += 1
+				continue
+			}
 		}
 
 		currentContent += rest[:1]
@@ -171,6 +184,10 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 			tokenType:    errorToken,
 			fatalContent: executablePrefix + currentContent,
 		})
+
+		if executableQuoteRune != 0 {
+			return result, fmt.Sprintf("Unterminated quote sequence for executable: %s%s", executablePrefix, currentContent)
+		}
 
 		return result, fmt.Sprintf("Missing closing parenthesis for executable: %s%s", executablePrefix, currentContent)
 	}

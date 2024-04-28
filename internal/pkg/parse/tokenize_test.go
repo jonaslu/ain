@@ -267,6 +267,15 @@ func Test_TokenizeGoodCases(t *testing.T) {
 				fatalContent: "$(echo `)yo`)\\`)",
 			}},
 		},
+		"Executable no need to escape ) when quoting": {
+			input:          "$(echo \")\\\")\"`) '))')",
+			allowedContent: envVarToken,
+			expectedResult: []token{{
+				tokenType:    executableToken,
+				content:      "echo \")\\\")\") '))'",
+				fatalContent: "$(echo \")\\\")\"`) '))')",
+			}},
+		},
 	}
 
 	for name, test := range tests {
@@ -303,6 +312,16 @@ func Test_TokenizeBasCases(t *testing.T) {
 			input:          "$(executable arg1 arg2 `)",
 			allowedContent: executableToken,
 			expectedFatal:  "Missing closing parenthesis for executable: $(executable arg1 arg2 `)",
+		},
+		`Missing end " quote for executable`: {
+			input:          `$(executable ")`,
+			allowedContent: envVarToken,
+			expectedFatal:  `Unterminated quote sequence for executable: $(executable ")`,
+		},
+		`Missing end ' quote for executable`: {
+			input:          `$(executable ')`,
+			allowedContent: envVarToken,
+			expectedFatal:  `Unterminated quote sequence for executable: $(executable ')`,
 		},
 	}
 
