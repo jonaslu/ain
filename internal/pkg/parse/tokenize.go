@@ -113,37 +113,44 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 			}
 		}
 
-		if currentTokenType == envVarToken {
-			if strings.HasPrefix(rest, "}") {
-				result = append(result, token{
-					tokenType:    envVarToken,
-					content:      currentContent,
-					fatalContent: envVarPrefix + currentContent + "}",
-				})
+		if currentTokenType == envVarToken && isStartOfToken("}", prev, rest) {
+			unescapedContent := strings.ReplaceAll(currentContent, "`}", "}")
 
-				currentTokenType = textToken
-				currentContent = ""
-
-				idx += 1
-				continue
+			if strings.HasSuffix(unescapedContent, "\\`") {
+				unescapedContent = strings.TrimSuffix(unescapedContent, "\\`") + "`"
 			}
+
+			result = append(result, token{
+				tokenType:    envVarToken,
+				content:      unescapedContent,
+				fatalContent: envVarPrefix + currentContent + "}",
+			})
+
+			currentTokenType = textToken
+			currentContent = ""
+
+			idx += 1
+			continue
 		}
 
-		if currentTokenType == executableToken {
-			// Check for quotes, can even tokenize stuff here?
-			if strings.HasPrefix(rest, ")") {
-				result = append(result, token{
-					tokenType:    executableToken,
-					content:      currentContent,
-					fatalContent: executablePrefix + currentContent + ")",
-				})
+		if currentTokenType == executableToken && isStartOfToken(")", prev, rest) {
+			unescapedContent := strings.ReplaceAll(currentContent, "`)", ")")
 
-				currentTokenType = textToken
-				currentContent = ""
-
-				idx += 1
-				continue
+			if strings.HasSuffix(unescapedContent, "\\`") {
+				unescapedContent = strings.TrimSuffix(unescapedContent, "\\`") + "`"
 			}
+
+			result = append(result, token{
+				tokenType:    executableToken,
+				content:      unescapedContent,
+				fatalContent: executablePrefix + currentContent + ")",
+			})
+
+			currentTokenType = textToken
+			currentContent = ""
+
+			idx += 1
+			continue
 		}
 
 		currentContent += rest[:1]

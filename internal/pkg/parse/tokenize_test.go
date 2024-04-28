@@ -249,6 +249,24 @@ func Test_TokenizeGoodCases(t *testing.T) {
 				},
 			},
 		},
+		"Escaped end bracket inside envvar": {
+			input:          "${yeti`}`}\\`}",
+			allowedContent: envVarToken,
+			expectedResult: []token{{
+				tokenType:    envVarToken,
+				content:      "yeti}}`",
+				fatalContent: "${yeti`}`}\\`}",
+			}},
+		},
+		"Escaped end parenthesis inside executable": {
+			input:          "$(echo `)yo`)\\`)",
+			allowedContent: envVarToken,
+			expectedResult: []token{{
+				tokenType:    executableToken,
+				content:      "echo )yo)`",
+				fatalContent: "$(echo `)yo`)\\`)",
+			}},
+		},
 	}
 
 	for name, test := range tests {
@@ -277,14 +295,14 @@ func Test_TokenizeBasCases(t *testing.T) {
 			expectedFatal:  "Missing closing parenthesis for executable: $(",
 		},
 		"Missing bracket for envvar with content": {
-			input:          "${envvar",
+			input:          "${envvar `}",
 			allowedContent: envVarToken,
-			expectedFatal:  "Missing closing bracket for environment variable: ${envvar",
+			expectedFatal:  "Missing closing bracket for environment variable: ${envvar `}",
 		},
 		"Missing parenthesis for executable with content": {
-			input:          "$(executable arg1 arg2",
+			input:          "$(executable arg1 arg2 `)",
 			allowedContent: executableToken,
-			expectedFatal:  "Missing closing parenthesis for executable: $(executable arg1 arg2",
+			expectedFatal:  "Missing closing parenthesis for executable: $(executable arg1 arg2 `)",
 		},
 	}
 
