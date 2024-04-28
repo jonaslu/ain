@@ -469,7 +469,7 @@ The canonical example of when quoting is needed is doing more complex things inv
 Quoting is kept simple, you can use ' or ". There is only one escape-sequence (`\'` and `\"` respectively) to insert a quote inside a quoted string of the same type. You can avoid when possible by selecting the other quote character (e g 'I need a " inside this string').
 
 # Escaping
-TL;DR: To escape a comment `#` precede it with a backtick: ```#``.
+TL;DR: To escape a comment `#` precede it with a backtick: `` `#``.
 
 Escaping is hard and therefore ain tries to avoid it. The symbols that have special meaning to ain are: 
 ```
