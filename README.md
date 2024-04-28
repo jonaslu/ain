@@ -465,6 +465,54 @@ The canonical example of when quoting is needed is doing more complex things inv
 
 Quoting is kept simple, you can use ' or ". There is only one escape-sequence (`\'` and `\"` respectively) to insert a quote inside a quoted string of the same type. You can avoid when possible by selecting the other quote character (e g 'I need a " inside this string').
 
+# Escaping
+TL;DR: To escape a comment `#` precede it with a backtick: ```#``.
+
+Escaping is hard and therefore ain tries to avoid it. The symbols that have special meaning to ain are: 
+```
+Symbol -> meaning
+#      -> comment
+${     -> environment variable
+$(     -> executable
+```
+
+Should you need these literal symbols in your output you prefix them with a backtick:
+```
+Symbol -> output
+`#     -> #
+`${    -> ${
+`$(    -> $(
+```
+
+And in the unlikely event that you need a backtick right before, you precede the backtick with a slash to escape the escaping:
+```
+\`#
+\`${
+\`$(
+```
+
+If you need a literal `}` while inside an environment variable you escape it with a backtick:
+```
+Template    -> Environment variable
+${VA`}RZ}   -> VA`RZ
+```
+
+And if you need a literal `)` inside an executable you can either escape it with a backtick, put it inside quotes. These are equivalent:
+```
+$(node -e console.log('Hi'`))
+$(node -e 'console.log("Hi")')
+```
+
+If you need a literal backtick right before closing the envvar or executable you escape the backtick with a slash:
+```
+$(echo \`)
+${VAR\`}
+```
+
+Since environment variables are only expanded once, `${` doesn't need escaping when returned from an environment variable. E g `VAR='${GOAT}'`, `${GOAT}` is passed literally to the output. Same for executables, any returned value containing `${` does not need escaping. E g `$(echo $(yo )`, `$(yo ` is passed literally to the output.
+
+Comments needs escaping when returned both in environment variables and executables.
+
 # URL-encoding
 [URL-encoding](https://en.wikipedia.org/wiki/Percent-encoding) is something ain tries hard to take care of for you. Both the path and the query-section of an url is scanned and any non-valid charaters are encoded while already legal encodings (format `%<hex><hex>` and `+` for the query string) are kept as is.
 
