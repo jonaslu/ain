@@ -22,64 +22,6 @@ type executableOutput struct {
 	fatalMessage string
 }
 
-func getExecutableExpr(templateLine string) ([]string, string) {
-	retVal := []string{}
-
-	templateLineRunes := []rune(templateLine)
-
-	idx := 0
-	for idx < len(templateLineRunes) {
-		substr := string(templateLineRunes[idx:])
-
-		if !strings.HasPrefix(substr, "$(") {
-			idx += 1
-			continue
-		}
-
-		startIdx := idx
-		idx += 2
-
-		var quoteRune rune
-		var quoteStartIdx int
-
-		done := false
-
-		for !done && idx < len(templateLineRunes) {
-			currChar := templateLineRunes[idx]
-
-			switch currChar {
-			case '"', '\'':
-				prevRune := templateLineRunes[idx-1]
-				if prevRune != '\\' && quoteRune == currChar {
-					quoteRune = 0
-				} else if quoteRune == 0 {
-					quoteRune = currChar
-					quoteStartIdx = idx
-				}
-
-			case ')':
-				if quoteRune == 0 {
-					done = true
-				}
-			}
-
-			idx += 1
-		}
-
-		if quoteRune > 0 {
-			return retVal, fmt.Sprintf("Unterminated quote sequence: %s", utils.Ellipsize(quoteStartIdx-3, quoteStartIdx+4, templateLine))
-		}
-
-		if !done {
-			return retVal, fmt.Sprintf("Missing end parenthesis on executable: %s", utils.Ellipsize(startIdx-3, startIdx+4, templateLine))
-		}
-
-		retVal = append(retVal, string(templateLineRunes[startIdx:idx]))
-	}
-
-	return retVal, ""
-}
-
 func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	executables := []executableAndArgs{}
 
