@@ -500,7 +500,7 @@ Template    -> Environment variable
 ${VA`}RZ}   -> VA`RZ
 ```
 
-And if you need a literal `)` inside an executable you can either escape it with a backtick, put it inside quotes. These are equivalent:
+And if you need a literal `)` inside an executable you can either escape it with a backtick, or put it inside quotes. These are equivalent:
 ```
 $(node -e console.log('Hi'`))
 $(node -e 'console.log("Hi")')

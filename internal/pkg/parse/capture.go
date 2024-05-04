@@ -62,6 +62,24 @@ func containsHeader(sectionHeading string, wantedSectionHeadings []string) bool 
 	return false
 }
 
+func emptyBodySection(currentSectionLines *[]sourceMarker) {
+	firstNonEmptyLine := 0
+	for ; firstNonEmptyLine < len(*currentSectionLines); firstNonEmptyLine++ {
+		if (*currentSectionLines)[firstNonEmptyLine].LineContents != "" {
+			break
+		}
+	}
+
+	lastNonEmptyLine := len(*currentSectionLines) - 1
+	for ; lastNonEmptyLine > firstNonEmptyLine; lastNonEmptyLine-- {
+		if (*currentSectionLines)[lastNonEmptyLine].LineContents != "" {
+			break
+		}
+	}
+
+	*currentSectionLines = (*currentSectionLines)[firstNonEmptyLine : lastNonEmptyLine+1]
+}
+
 func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string) {
 	capturedSections := []capturedSection{}
 	var currentSectionHeader string
@@ -75,23 +93,8 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 		}
 
 		if sectionHeading := getSectionHeading(trailingCommentsRemoved); sectionHeading != "" {
-
 			if currentSectionHeader == bodySection {
-				firstNonEmptyLine := 0
-				for ; firstNonEmptyLine < len(*currentSectionLines); firstNonEmptyLine++ {
-					if !isCommentOrWhitespaceRegExp.MatchString((*currentSectionLines)[firstNonEmptyLine].LineContents) {
-						break
-					}
-				}
-
-				lastNonEnptyLine := len(*currentSectionLines) - 1
-				for ; lastNonEnptyLine > firstNonEmptyLine; lastNonEnptyLine-- {
-					if !isCommentOrWhitespaceRegExp.MatchString((*currentSectionLines)[lastNonEnptyLine].LineContents) {
-						break
-					}
-				}
-
-				*currentSectionLines = (*currentSectionLines)[firstNonEmptyLine : lastNonEnptyLine+1]
+				emptyBodySection(currentSectionLines)
 			}
 
 			if !containsHeader(sectionHeading, wantedSectionHeadings) {
@@ -132,6 +135,10 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 		}
 
 		*currentSectionLines = append(*currentSectionLines, sourceMarker)
+	}
+
+	if currentSectionHeader == bodySection {
+		emptyBodySection(currentSectionLines)
 	}
 
 	if s.checkValidHeadings(capturedSections); s.hasFatalMessages() {
