@@ -41,9 +41,9 @@ Timeout=3
 {{BackendOptions}}
 
 # Short help:
-# Comments start with hash-sign (#) and are ignored.
+# Comments start with hash-sign (#) and are ignored
 # ${VARIABLES} are replaced with the .env-file or environment variable value
-# $(executables.sh) are replaced with the output of that executable
+# $(executables.sh) are replaced with the output of the executable
 # More in depth help here: https://github.com/jonaslu/ain`
 
 func getUsefulBackendOptions(backendBinary string) string {

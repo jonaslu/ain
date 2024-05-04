@@ -81,10 +81,10 @@ var sectionsAllowingExecutables = []string{
 }
 
 type sectionedTemplate struct {
-	// sourceMarker.LineContents points to the expandedTemplateLines slice
+	// sourceMarker.SourceLineIndex points to the expandedTemplateLines slice
 	sections map[string]*[]sourceMarker
 
-	// sourceMarker.LineContents points to the rawTemplateLines slice
+	// sourceMarker.SourceLineIndex points to the rawTemplateLines slice
 	expandedTemplateLines []expandedSourceMarker
 	rawTemplateLines      []string
 
