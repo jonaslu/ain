@@ -14,10 +14,9 @@ type capturedSection struct {
 }
 
 var knownSectionHeadersStr = strings.Join(allSectionHeaders, "|")
+
 var knownSectionsRe = regexp.MustCompile(`(?i)^\s*\[(` + knownSectionHeadersStr + `)\]\s*$`)
 var unescapeKnownSectionsRe = regexp.MustCompile(`(?i)^\s*\\\[(` + knownSectionHeadersStr + `)\]\s*$`)
-
-var isCommentOrWhitespaceRegExp = regexp.MustCompile(`^\s*#|^\s*$`)
 
 func getSectionHeading(rawTemplateLine string) string {
 	matchedLine := knownSectionsRe.FindStringSubmatch(rawTemplateLine)
@@ -52,7 +51,7 @@ func (s *sectionedTemplate) checkValidHeadings(capturedSections []capturedSectio
 	}
 }
 
-func containsHeader(sectionHeading string, wantedSectionHeadings []string) bool {
+func containsSectionHeader(sectionHeading string, wantedSectionHeadings []string) bool {
 	for _, val := range wantedSectionHeadings {
 		if sectionHeading == val {
 			return true
@@ -62,7 +61,7 @@ func containsHeader(sectionHeading string, wantedSectionHeadings []string) bool 
 	return false
 }
 
-func emptyBodySection(currentSectionLines *[]sourceMarker) {
+func compactBodySection(currentSectionLines *[]sourceMarker) {
 	firstNonEmptyLine := 0
 	for ; firstNonEmptyLine < len(*currentSectionLines); firstNonEmptyLine++ {
 		if (*currentSectionLines)[firstNonEmptyLine].LineContents != "" {
@@ -82,29 +81,33 @@ func emptyBodySection(currentSectionLines *[]sourceMarker) {
 
 func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string) {
 	capturedSections := []capturedSection{}
+
 	var currentSectionHeader string
 	var currentSectionLines *[]sourceMarker
 
 	for expandedSourceIndex, expandedTemplateLine := range s.expandedTemplateLines {
-		trailingCommentsRemoved := expandedTemplateLine.getTextContent()
+		templateLineText := expandedTemplateLine.getTextContent()
 
-		if currentSectionHeader != bodySection && strings.TrimSpace(trailingCommentsRemoved) == "" {
+		// Discard empty lines, except if it's the [Body] section
+		if currentSectionHeader != bodySection && strings.TrimSpace(templateLineText) == "" {
 			continue
 		}
 
-		if sectionHeading := getSectionHeading(trailingCommentsRemoved); sectionHeading != "" {
+		if sectionHeading := getSectionHeading(templateLineText); sectionHeading != "" {
+			// Compact [Body] section
 			if currentSectionHeader == bodySection {
-				emptyBodySection(currentSectionLines)
+				compactBodySection(currentSectionLines)
 			}
 
-			if !containsHeader(sectionHeading, wantedSectionHeadings) {
+			if !containsSectionHeader(sectionHeading, wantedSectionHeadings) {
 				currentSectionLines = nil
 				currentSectionHeader = ""
 				continue
 			}
 
-			currentSectionLines = &[]sourceMarker{}
 			currentSectionHeader = sectionHeading
+			currentSectionLines = &[]sourceMarker{}
+
 			capturedSections = append(capturedSections, capturedSection{
 				heading:                sectionHeading,
 				headingSourceLineIndex: expandedSourceIndex,
@@ -114,23 +117,24 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 			continue
 		}
 
+		// Not a section we're interested in
 		if currentSectionLines == nil {
 			continue
 		}
 
-		if unescapeKnownSectionsRe.MatchString(trailingCommentsRemoved) {
-			trailingCommentsRemoved = strings.Replace(trailingCommentsRemoved, `\`, "", 1)
+		if unescapeKnownSectionsRe.MatchString(templateLineText) {
+			templateLineText = strings.Replace(templateLineText, `\`, "", 1)
 		}
 
-		var lineContentsTrimmed string
+		var templateLineTextTrimmed string
 		if currentSectionHeader == bodySection {
-			lineContentsTrimmed = strings.TrimRightFunc(trailingCommentsRemoved, func(r rune) bool { return unicode.IsSpace(r) })
+			templateLineTextTrimmed = strings.TrimRightFunc(templateLineText, func(r rune) bool { return unicode.IsSpace(r) })
 		} else {
-			lineContentsTrimmed = strings.TrimSpace(trailingCommentsRemoved)
+			templateLineTextTrimmed = strings.TrimSpace(templateLineText)
 		}
 
 		sourceMarker := sourceMarker{
-			LineContents:    lineContentsTrimmed,
+			LineContents:    templateLineTextTrimmed,
 			SourceLineIndex: expandedSourceIndex,
 		}
 
@@ -138,7 +142,7 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 	}
 
 	if currentSectionHeader == bodySection {
-		emptyBodySection(currentSectionLines)
+		compactBodySection(currentSectionLines)
 	}
 
 	if s.checkValidHeadings(capturedSections); s.hasFatalMessages() {
