@@ -41,13 +41,13 @@ func (s *sectionedTemplate) checkValidHeadings(capturedSections []capturedSectio
 		headingDefinitionSourceLines[capturedSection.heading] = append(headingDefinitionSourceLines[capturedSection.heading], capturedSection.headingSourceLineIndex)
 	}
 
-	// !! TODO !! We now know the sourceLineIndex where multiple headings
-	// are defined so we can print this more nicely
-	for heading, headingSourceLineIndex := range headingDefinitionSourceLines {
-		if len(headingSourceLineIndex) > 1 {
-			s.fatals = append(
-				s.fatals,
-				fmt.Sprintf("Several %s sections found on line %d and %d", heading, headingSourceLineIndex[0]+1, headingSourceLineIndex[1]+1))
+	for heading, headingSourceLineIndexes := range headingDefinitionSourceLines {
+		if len(headingSourceLineIndexes) == 1 {
+			continue
+		}
+
+		for _, headingSourceLineIndex := range headingSourceLineIndexes[1:] {
+			s.setFatalMessage(fmt.Sprintf("Section %s on line %d redeclared", heading, headingSourceLineIndexes[0]), headingSourceLineIndex)
 		}
 	}
 }
