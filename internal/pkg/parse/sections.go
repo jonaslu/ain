@@ -43,14 +43,14 @@ func (e expandedSourceMarker) getTextContent() string {
 }
 
 const (
-	configSection         = "config"
-	hostSection           = "host"
-	querySection          = "query"
-	headersSection        = "headers"
-	methodSection         = "method"
-	bodySection           = "body"
-	backendSection        = "backend"
-	backendOptionsSection = "backendoptions"
+	configSection         = "[config]"
+	hostSection           = "[host]"
+	querySection          = "[query]"
+	headersSection        = "[headers]"
+	methodSection         = "[method]"
+	bodySection           = "[body]"
+	backendSection        = "[backend]"
+	backendOptionsSection = "[backendoptions]"
 	// As above, so below
 	// If you add one here then add it to the slice below.
 	// AND IF

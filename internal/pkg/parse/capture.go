@@ -2,7 +2,6 @@ package parse
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"unicode"
 )
@@ -13,16 +12,12 @@ type capturedSection struct {
 	sectionLines           *[]sourceMarker
 }
 
-var knownSectionHeadersStr = strings.Join(allSectionHeaders, "|")
-
-var knownSectionsRe = regexp.MustCompile(`(?i)^\s*\[(` + knownSectionHeadersStr + `)\]\s*$`)
-var unescapeKnownSectionsRe = regexp.MustCompile(`(?i)^\s*\\\[(` + knownSectionHeadersStr + `)\]\s*$`)
-
-func getSectionHeading(rawTemplateLine string) string {
-	matchedLine := knownSectionsRe.FindStringSubmatch(rawTemplateLine)
-
-	if len(matchedLine) == 2 {
-		return strings.ToLower(matchedLine[1])
+func getSectionHeading(templateLineTextTrimmed string) string {
+	templateLineTextTrimmedLower := strings.ToLower(templateLineTextTrimmed)
+	for _, knownSectionHeader := range allSectionHeaders {
+		if templateLineTextTrimmedLower == knownSectionHeader {
+			return knownSectionHeader
+		}
 	}
 
 	return ""
@@ -34,6 +29,7 @@ func (s *sectionedTemplate) checkValidHeadings(capturedSections []capturedSectio
 
 	for _, capturedSection := range capturedSections {
 		if len(*capturedSection.sectionLines) == 0 {
+			// !! TODO !! Can I use capturedSectionLine or so
 			s.setFatalMessage(fmt.Sprintf("Empty %s section", capturedSection.heading), capturedSection.headingSourceLineIndex)
 		}
 
@@ -79,6 +75,37 @@ func compactBodySection(currentSectionLines *[]sourceMarker) {
 	*currentSectionLines = (*currentSectionLines)[firstNonEmptyLine : lastNonEmptyLine+1]
 }
 
+func unescapeSectionHeading(templateLineTextTrimmed, templateLineText string) string {
+	templateLineTextTrimmedLower := strings.ToLower(templateLineTextTrimmed)
+
+	// !! DEPRECATE !! Old way (e g  \[Body])
+	if strings.HasPrefix(templateLineTextTrimmed, `\`) {
+		for _, knownSectionHeader := range allSectionHeaders {
+			if templateLineTextTrimmedLower == `\`+knownSectionHeader {
+				return strings.Replace(templateLineText, `\`, "", 1)
+			}
+		}
+	}
+
+	if strings.HasPrefix(templateLineTextTrimmed, "`") {
+		for _, knownSectionHeader := range allSectionHeaders {
+			if templateLineTextTrimmedLower == "`"+knownSectionHeader {
+				return strings.Replace(templateLineText, "`", "", 1)
+			}
+		}
+	}
+
+	if strings.HasPrefix(templateLineTextTrimmed, "\\`") {
+		for _, knownSectionHeader := range allSectionHeaders {
+			if templateLineTextTrimmedLower == "\\`"+knownSectionHeader {
+				return strings.Replace(templateLineText, "\\`", "`", 1)
+			}
+		}
+	}
+
+	return templateLineText
+}
+
 func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string) {
 	capturedSections := []capturedSection{}
 
@@ -94,7 +121,7 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 			continue
 		}
 
-		if sectionHeading := getSectionHeading(templateLineText); sectionHeading != "" {
+		if sectionHeading := getSectionHeading(templateLineTextTrimmed); sectionHeading != "" {
 			// Compact [Body] section
 			if currentSectionHeader == bodySection {
 				compactBodySection(currentSectionLines)
@@ -123,19 +150,16 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 			continue
 		}
 
-		if unescapeKnownSectionsRe.MatchString(templateLineText) {
-			templateLineText = strings.Replace(templateLineText, `\`, "", 1)
+		templateLineText = unescapeSectionHeading(templateLineTextTrimmed, templateLineText)
+
+		sourceMarker := sourceMarker{
+			SourceLineIndex: expandedSourceIndex,
 		}
 
 		if currentSectionHeader == bodySection {
-			templateLineTextTrimmed = strings.TrimRightFunc(templateLineText, func(r rune) bool { return unicode.IsSpace(r) })
+			sourceMarker.LineContents = strings.TrimRightFunc(templateLineText, func(r rune) bool { return unicode.IsSpace(r) })
 		} else {
-			templateLineTextTrimmed = strings.TrimSpace(templateLineText)
-		}
-
-		sourceMarker := sourceMarker{
-			LineContents:    templateLineTextTrimmed,
-			SourceLineIndex: expandedSourceIndex,
+			sourceMarker.LineContents = strings.TrimSpace(templateLineText)
 		}
 
 		*currentSectionLines = append(*currentSectionLines, sourceMarker)
