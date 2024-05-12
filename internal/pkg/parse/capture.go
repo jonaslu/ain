@@ -87,9 +87,10 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 
 	for expandedSourceIndex, expandedTemplateLine := range s.expandedTemplateLines {
 		templateLineText := expandedTemplateLine.getTextContent()
+		templateLineTextTrimmed := strings.TrimSpace(templateLineText)
 
 		// Discard empty lines, except if it's the [Body] section
-		if currentSectionHeader != bodySection && strings.TrimSpace(templateLineText) == "" {
+		if currentSectionHeader != bodySection && templateLineTextTrimmed == "" {
 			continue
 		}
 
@@ -126,7 +127,6 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 			templateLineText = strings.Replace(templateLineText, `\`, "", 1)
 		}
 
-		var templateLineTextTrimmed string
 		if currentSectionHeader == bodySection {
 			templateLineTextTrimmed = strings.TrimRightFunc(templateLineText, func(r rune) bool { return unicode.IsSpace(r) })
 		} else {
