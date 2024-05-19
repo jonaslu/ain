@@ -240,15 +240,7 @@ When making the call ain mimics how data is returned by the backend. After print
 # Supported sections
 Sections are case-insensitive and whitespace ignored but by convention uses CamelCase and are left indented. A section cannot be defined twice in a file. A section ends where the next begins or the file ends.
 
-In the unlikely event that the contents of a section must contain the exact same text as a valid section (one of the eight below) on one line you can escape that text with a `\` and it will be passed as text.
-
-E g:
-```
-[Body]
-All of this will be passed as the body!
-\[Body]
-Including the text above.
-```
+See [escaping](#escaping) If you need a literal supported section heading on a new line.
 
 ## [Host]
 Contains the URL to the API. This section appends the lines from one template file to the next. This neat little feature allows you to specify a base-url in one file (e g `base.ain`) as such: `http://localhost:3000` and in the next template file specify the endpoint (e g `login.ain`): `/api/auth/login`.
@@ -471,7 +463,7 @@ Quoting is kept simple, you can use ' or ". There is only one escape-sequence (`
 # Escaping
 TL;DR: To escape a comment `#` precede it with a backtick: `` `#``.
 
-Escaping is hard and therefore ain tries to avoid it. The symbols that have special meaning to ain are: 
+Escaping is hard and therefore ain tries to avoid it. These symbols have special meaning to ain: 
 ```
 Symbol -> meaning
 #      -> comment
@@ -479,7 +471,7 @@ ${     -> environment variable
 $(     -> executable
 ```
 
-Should you need these literal symbols in your output you prefix them with a backtick:
+If you need these symbols literally in your output, escape with a backtick:
 ```
 Symbol -> output
 `#     -> #
@@ -487,7 +479,7 @@ Symbol -> output
 `$(    -> $(
 ```
 
-And in the unlikely event that you need a backtick right before, you precede the backtick with a slash to escape the escaping:
+If you need a literal backtick a symbol, you escape the escaping with a slash:
 ```
 \`#
 \`${
@@ -497,10 +489,10 @@ And in the unlikely event that you need a backtick right before, you precede the
 If you need a literal `}` while inside an environment variable you escape it with a backtick:
 ```
 Template    -> Environment variable
-${VA`}RZ}   -> VA`RZ
+${VA`}RZ}   -> VA}RZ
 ```
 
-And if you need a literal `)` inside an executable you can either escape it with a backtick, or put it inside quotes. These are equivalent:
+If you need a literal `)` inside an executable, either escape it with a backtick or put it inside quotes:
 ```
 $(node -e console.log('Hi'`))
 $(node -e 'console.log("Hi")')
@@ -515,6 +507,22 @@ ${VAR\`}
 Since environment variables are only expanded once, `${` doesn't need escaping when returned from an environment variable. E g `VAR='${GOAT}'`, `${GOAT}` is passed literally to the output. Same for executables, any returned value containing `${` does not need escaping. E g `$(echo $(yo )`, `$(yo ` is passed literally to the output.
 
 Comments needs escaping when returned both in environment variables and executables.
+
+A section header (one of the eight listed under [supported sections](#supported-sections)) needs escaping if it's the only text a separate line. It is escaped with a backtick. Example:
+```
+[Body]
+I'm part of the
+`[Body]
+and included in the output.
+```
+
+If you need a literal backtick followed by a valid section heading you escape that backtick with a slash. Example:
+```
+[Body]
+This text is outputted as
+\`[Body]
+backtick [Body].
+```
 
 # URL-encoding
 [URL-encoding](https://en.wikipedia.org/wiki/Percent-encoding) is something ain tries hard to take care of for you. Both the path and the query-section of an url is scanned and any non-valid charaters are encoded while already legal encodings (format `%<hex><hex>` and `+` for the query string) are kept as is.
