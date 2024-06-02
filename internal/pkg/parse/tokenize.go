@@ -61,6 +61,7 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 	currentContent := ""
 	var currentTokenType tokenType = textToken
 	var executableQuoteRune rune
+	var executableQuoteEnd int
 
 	idx := 0
 	for idx < len(inputRunes) {
@@ -140,21 +141,27 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 			case '"', '\'':
 				if executableQuoteRune == 0 {
 					executableQuoteRune = nextRune
+
+					unescapedContentTillNow := currentContent[executableQuoteEnd:]
+					currentContent = currentContent[:executableQuoteEnd] + strings.ReplaceAll(unescapedContentTillNow, "`)", ")")
 				} else if !strings.HasSuffix(prev, `\`) && executableQuoteRune == nextRune {
 					executableQuoteRune = 0
+					executableQuoteEnd = len(currentContent) - 1
 				}
 			}
 
 			if executableQuoteRune == 0 && isStartOfToken(")", prev, rest) {
-				unescapedContent := strings.ReplaceAll(currentContent, "`)", ")")
+				unescapedContentTillNow := currentContent[executableQuoteEnd:]
+				currentContent = currentContent[:executableQuoteEnd] + strings.ReplaceAll(unescapedContentTillNow, "`)", ")")
+				executableQuoteEnd = 0
 
-				if strings.HasSuffix(unescapedContent, "\\`") {
-					unescapedContent = strings.TrimSuffix(unescapedContent, "\\`") + "`"
+				if strings.HasSuffix(currentContent, "\\`") {
+					currentContent = strings.TrimSuffix(currentContent, "\\`") + "`"
 				}
 
 				result = append(result, token{
 					tokenType:    executableToken,
-					content:      unescapedContent,
+					content:      currentContent,
 					fatalContent: executablePrefix + currentContent + ")",
 				})
 
