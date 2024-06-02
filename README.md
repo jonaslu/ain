@@ -479,20 +479,21 @@ Symbol -> output
 `$(    -> $(
 ```
 
-If you need a literal backtick a symbol, you escape the escaping with a slash:
+If you need a literal backtick just before a symbol, you escape the escaping with a slash:
 ```
 \`#
 \`${
 \`$(
 ```
 
-If you need a literal `}` while inside an environment variable you escape it with a backtick:
+If you need a literal `}` in an environment variable you escape it with a backtick:
 ```
 Template    -> Environment variable
 ${VA`}RZ}   -> VA}RZ
 ```
 
-If you need a literal `)` inside an executable, either escape it with a backtick or put it inside quotes:
+If you need a literal `)` in an executable, either escape it with a backtick or enclose it in quotes.
+These two examples are equivalent and inserts the string Hi:
 ```
 $(node -e console.log('Hi'`))
 $(node -e 'console.log("Hi")')
