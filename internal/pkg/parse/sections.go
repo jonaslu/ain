@@ -197,11 +197,6 @@ func newSectionedTemplate(rawTemplateString, filename string) *sectionedTemplate
 		filename:              filename,
 	}
 
-	if len(expandedTemplateLines) == 0 {
-		sectionedTemplate.fatals = []string{"Cannot process empty template"}
-		return &sectionedTemplate
-	}
-
 	for _, aggregatedFatal := range aggregatedFatals {
 		sectionedTemplate.setFatalMessage(aggregatedFatal.fatal, aggregatedFatal.expandedTemplateLineIndex)
 	}
