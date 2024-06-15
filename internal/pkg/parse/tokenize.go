@@ -173,7 +173,7 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 			}
 		}
 
-		currentContent += rest[:1]
+		currentContent += string(inputRunes[idx : idx+1])
 		idx += 1
 	}
 
