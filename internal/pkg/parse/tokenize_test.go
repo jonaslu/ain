@@ -287,7 +287,7 @@ func Test_TokenizeGoodCases(t *testing.T) {
 	}
 }
 
-func Test_TokenizeBasCases(t *testing.T) {
+func Test_TokenizeBadCases(t *testing.T) {
 	tests := map[string]struct {
 		input          string
 		allowedContent tokenType
