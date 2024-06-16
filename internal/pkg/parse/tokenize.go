@@ -59,6 +59,7 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 	inputRunes := []rune(input)
 
 	currentContent := ""
+
 	var currentTokenType tokenType = textToken
 	var executableQuoteRune rune
 	var executableQuoteEnd int
@@ -104,7 +105,7 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 				if currentTokenType == commentToken {
 					result = append(result, token{
 						tokenType:    commentToken,
-						fatalContent: commentPrefix + string(inputRunes[idx:]),
+						fatalContent: rest,
 					})
 
 					return result, ""
