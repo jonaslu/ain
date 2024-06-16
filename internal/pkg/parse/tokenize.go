@@ -164,10 +164,9 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 				}
 
 				result = append(result, token{
-					tokenType: executableToken,
-					content:   currentContent,
-					// fatalContent: string(inputRunes[executableStartIdx : idx+1]),
-					fatalContent: currentContent,
+					tokenType:    executableToken,
+					content:      currentContent,
+					fatalContent: string(inputRunes[executableStartIdx : idx+1]),
 				})
 
 				currentTokenType = textToken
