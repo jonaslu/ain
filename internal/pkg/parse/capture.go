@@ -42,7 +42,7 @@ func (s *sectionedTemplate) checkValidHeadings(capturedSections []capturedSectio
 		}
 
 		for _, headingSourceLineIndex := range headingSourceLineIndexes[1:] {
-			s.setFatalMessage(fmt.Sprintf("Section %s on line %d redeclared", heading, headingSourceLineIndexes[0]), headingSourceLineIndex)
+			s.setFatalMessage(fmt.Sprintf("Section %s on line %d redeclared", heading, headingSourceLineIndexes[0]+1), headingSourceLineIndex)
 		}
 	}
 }
