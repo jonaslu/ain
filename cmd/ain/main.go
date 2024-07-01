@@ -17,7 +17,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/parse"
 )
 
-var version = "1.4.1"
+var version = "1.5.0"
 var gitSha = "develop"
 
 const bashSignalCaughtBase = 128
