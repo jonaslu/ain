@@ -2,7 +2,7 @@ package disk
 
 import (
 	"flag"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/jonaslu/ain/internal/pkg/utils"
@@ -22,7 +22,7 @@ func GetTemplateFilenames() ([]string, error) {
 	}
 
 	if (fi.Mode() & os.ModeCharDevice) == 0 {
-		fileNameBytes, err := ioutil.ReadAll(os.Stdin)
+		fileNameBytes, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			return nil, errors.Wrap(err, "Could not read pipe stdin")
 		}

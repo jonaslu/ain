@@ -60,7 +60,7 @@ func captureEditorOutput(tempFile *os.File) (string, error) {
 		return "", errors.Wrap(err, "Cannot seek template temp-file to 0")
 	}
 
-	tempFileContents, err := ioutil.ReadAll(tempFile)
+	tempFileContents, err := io.ReadAll(tempFile)
 	if err != nil {
 		return "", errors.Wrap(err, "Cannot read from template temp-file")
 	}
