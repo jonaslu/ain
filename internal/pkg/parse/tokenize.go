@@ -197,10 +197,10 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 		})
 
 		if executableQuoteRune != 0 {
-			return result, fmt.Sprintf("Unterminated quote sequence for executable: %s", string(inputRunes[executableStartIdx:idx+1]))
+			return result, fmt.Sprintf("Unterminated quote sequence for executable: %s", string(inputRunes[executableStartIdx:]))
 		}
 
-		return result, fmt.Sprintf("Missing closing parenthesis for executable: %s", string(inputRunes[executableStartIdx:idx+1]))
+		return result, fmt.Sprintf("Missing closing parenthesis for executable: %s", string(inputRunes[executableStartIdx:]))
 	}
 
 	if len(currentContent) > 0 && currentTokenType == textToken {
