@@ -60,14 +60,14 @@ func containsSectionHeader(sectionHeading string, wantedSectionHeadings []string
 func compactBodySection(currentSectionLines *[]sourceMarker) {
 	firstNonEmptyLine := 0
 	for ; firstNonEmptyLine < len(*currentSectionLines); firstNonEmptyLine++ {
-		if (*currentSectionLines)[firstNonEmptyLine].LineContents != "" {
+		if (*currentSectionLines)[firstNonEmptyLine].lineContents != "" {
 			break
 		}
 	}
 
 	lastNonEmptyLine := len(*currentSectionLines) - 1
 	for ; lastNonEmptyLine > firstNonEmptyLine; lastNonEmptyLine-- {
-		if (*currentSectionLines)[lastNonEmptyLine].LineContents != "" {
+		if (*currentSectionLines)[lastNonEmptyLine].lineContents != "" {
 			break
 		}
 	}
@@ -153,13 +153,13 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 		templateLineText = unescapeSectionHeading(templateLineTextTrimmed, templateLineText)
 
 		sourceMarker := sourceMarker{
-			SourceLineIndex: expandedSourceIndex,
+			sourceLineIndex: expandedSourceIndex,
 		}
 
 		if currentSectionHeader == bodySection {
-			sourceMarker.LineContents = strings.TrimRightFunc(templateLineText, func(r rune) bool { return unicode.IsSpace(r) })
+			sourceMarker.lineContents = strings.TrimRightFunc(templateLineText, func(r rune) bool { return unicode.IsSpace(r) })
 		} else {
-			sourceMarker.LineContents = strings.TrimSpace(templateLineText)
+			sourceMarker.lineContents = strings.TrimSpace(templateLineText)
 		}
 
 		*currentSectionLines = append(*currentSectionLines, sourceMarker)

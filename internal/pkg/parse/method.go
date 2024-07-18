@@ -8,9 +8,9 @@ func (s *sectionedTemplate) getMethod() string {
 	}
 
 	if len(methodSourceMarkers) > 1 {
-		s.setFatalMessage("Found several lines under [Method]", methodSourceMarkers[0].SourceLineIndex)
+		s.setFatalMessage("Found several lines under [Method]", methodSourceMarkers[0].sourceLineIndex)
 		return ""
 	}
 
-	return methodSourceMarkers[0].LineContents
+	return methodSourceMarkers[0].lineContents
 }

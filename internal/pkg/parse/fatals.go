@@ -10,7 +10,7 @@ func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex 
 
 	expandedTemplateLine := s.expandedTemplateLines[expandedSourceLineIndex]
 
-	errorLine := expandedTemplateLine.SourceLineIndex
+	errorLine := expandedTemplateLine.sourceLineIndex
 	lineBefore := errorLine - 1
 	if lineBefore >= 0 {
 		templateContext = append(templateContext, strconv.Itoa(lineBefore+1)+"   "+s.rawTemplateLines[lineBefore])
@@ -31,13 +31,13 @@ func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex 
 		beforeLine, nextLine := expandedSourceLineIndex-1, expandedSourceLineIndex+1
 
 		if beforeLine > -1 && s.expandedTemplateLines[beforeLine].expanded {
-			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[beforeLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[beforeLine].String()
+			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[beforeLine].sourceLineIndex+1) + "   " + s.expandedTemplateLines[beforeLine].String()
 		}
 
-		expandedMsg = expandedMsg + "\n" + strconv.Itoa(expandedTemplateLine.SourceLineIndex+1) + " > " + expandedTemplateLine.String()
+		expandedMsg = expandedMsg + "\n" + strconv.Itoa(expandedTemplateLine.sourceLineIndex+1) + " > " + expandedTemplateLine.String()
 
 		if nextLine < len(s.expandedTemplateLines) && s.expandedTemplateLines[nextLine].expanded {
-			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[nextLine].SourceLineIndex+1) + "   " + s.expandedTemplateLines[nextLine].String()
+			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[nextLine].sourceLineIndex+1) + "   " + s.expandedTemplateLines[nextLine].String()
 		}
 
 		message = message + expandedMsg

@@ -54,15 +54,15 @@ func (s *sectionedTemplate) getConfig() data.Config {
 	config := data.NewConfig()
 
 	for _, configLine := range *s.getNamedSection(configSection) {
-		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.LineContents); isTimeoutConfig {
+		if isTimeoutConfig, timeoutValue, err := parseTimeoutConfig(configLine.lineContents); isTimeoutConfig {
 			if config.Timeout > 0 {
 				// !! TODO !! Can have Query delimiter set n times
-				s.setFatalMessage("Timeout config set twice", configLine.SourceLineIndex)
+				s.setFatalMessage("Timeout config set twice", configLine.sourceLineIndex)
 				return config
 			}
 
 			if err != nil {
-				s.setFatalMessage(err.Error(), configLine.SourceLineIndex)
+				s.setFatalMessage(err.Error(), configLine.sourceLineIndex)
 				return config
 			}
 
@@ -70,15 +70,15 @@ func (s *sectionedTemplate) getConfig() data.Config {
 			continue
 		}
 
-		if isQueryDelim, queryDelimValue, err := parseQueryDelim(configLine.LineContents); isQueryDelim {
+		if isQueryDelim, queryDelimValue, err := parseQueryDelim(configLine.lineContents); isQueryDelim {
 			if config.QueryDelim != nil {
 				// !! TODO !! Can have Query delimiter set n times
-				s.setFatalMessage("Query delimiter set twice", configLine.SourceLineIndex)
+				s.setFatalMessage("Query delimiter set twice", configLine.sourceLineIndex)
 				return config
 			}
 
 			if err != nil {
-				s.setFatalMessage(err.Error(), configLine.SourceLineIndex)
+				s.setFatalMessage(err.Error(), configLine.sourceLineIndex)
 				return config
 			}
 

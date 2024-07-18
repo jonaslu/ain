@@ -26,7 +26,7 @@ func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	executables := []executableAndArgs{}
 
 	for expandedTemplateLineIndex, expandedTemplateLine := range s.expandedTemplateLines {
-		for _, token := range expandedTemplateLine.Tokens {
+		for _, token := range expandedTemplateLine.tokens {
 			if token.tokenType == commentToken {
 				break
 			}

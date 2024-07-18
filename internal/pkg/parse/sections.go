@@ -5,23 +5,23 @@ import (
 )
 
 type sourceMarker struct {
-	LineContents    string
-	SourceLineIndex int
+	lineContents    string
+	sourceLineIndex int
 }
 
 type expandedSourceMarker struct {
-	Tokens          []token
-	SourceLineIndex int
+	tokens          []token
+	sourceLineIndex int
 	expanded        bool
 }
 
 func (e expandedSourceMarker) String() string {
-	if len(e.Tokens) == 0 {
+	if len(e.tokens) == 0 {
 		return ""
 	}
 
 	result := ""
-	for _, content := range e.Tokens {
+	for _, content := range e.tokens {
 		result += content.fatalContent
 	}
 
@@ -31,7 +31,7 @@ func (e expandedSourceMarker) String() string {
 func (e expandedSourceMarker) getTextContent() string {
 	result := ""
 
-	for _, token := range e.Tokens {
+	for _, token := range e.tokens {
 		if token.tokenType == commentToken {
 			break
 		}
@@ -111,11 +111,11 @@ func (s *sectionedTemplate) iterate(iterationType tokenType, iterator func(token
 
 	for expandedTemplateLineIdx, expandedTemplateLine := range s.expandedTemplateLines {
 		newExpandedTemplateIdx := len(newExpandedTemplateLines)
-		newExpandedTemplateLine := expandedSourceMarker{expanded: false, SourceLineIndex: expandedTemplateLine.SourceLineIndex}
+		newExpandedTemplateLine := expandedSourceMarker{expanded: false, sourceLineIndex: expandedTemplateLine.sourceLineIndex}
 
-		for _, token := range expandedTemplateLine.Tokens {
+		for _, token := range expandedTemplateLine.tokens {
 			if token.tokenType != iterationType {
-				newExpandedTemplateLine.Tokens = append(newExpandedTemplateLine.Tokens, token)
+				newExpandedTemplateLine.tokens = append(newExpandedTemplateLine.tokens, token)
 				continue
 			}
 
@@ -132,7 +132,7 @@ func (s *sectionedTemplate) iterate(iterationType tokenType, iterator func(token
 			newLines := strings.Split(newContentStr, "\n")
 
 			newLineTokens, fatal := Tokenize(newLines[0], iterationType-1)
-			newExpandedTemplateLine.Tokens = append(newExpandedTemplateLine.Tokens, newLineTokens...)
+			newExpandedTemplateLine.tokens = append(newExpandedTemplateLine.tokens, newLineTokens...)
 
 			if fatal != "" {
 				aggregatedFatals = append(aggregatedFatals, aggregatedFatal{
@@ -145,8 +145,8 @@ func (s *sectionedTemplate) iterate(iterationType tokenType, iterator func(token
 				newLineTokens, fatal := Tokenize(newLine, iterationType-1)
 				newExpandedTemplateLines = append(newExpandedTemplateLines, newExpandedTemplateLine)
 
-				newExpandedTemplateLine = expandedSourceMarker{expanded: true, SourceLineIndex: expandedTemplateLine.SourceLineIndex}
-				newExpandedTemplateLine.Tokens = append(newExpandedTemplateLine.Tokens, newLineTokens...)
+				newExpandedTemplateLine = expandedSourceMarker{expanded: true, sourceLineIndex: expandedTemplateLine.sourceLineIndex}
+				newExpandedTemplateLine.tokens = append(newExpandedTemplateLine.tokens, newLineTokens...)
 
 				if fatal != "" {
 					aggregatedFatals = append(aggregatedFatals, aggregatedFatal{
@@ -177,8 +177,8 @@ func newSectionedTemplate(rawTemplateString, filename string) *sectionedTemplate
 		tokens, fatal := Tokenize(rawTemplateLine, envVarToken)
 
 		expandedTemplateLines = append(expandedTemplateLines, expandedSourceMarker{
-			Tokens:          tokens,
-			SourceLineIndex: sourceIndex,
+			tokens:          tokens,
+			sourceLineIndex: sourceIndex,
 			expanded:        false,
 		})
 
