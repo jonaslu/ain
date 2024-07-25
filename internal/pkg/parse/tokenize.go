@@ -213,3 +213,24 @@ func Tokenize(input string, allowedToken tokenType) ([]token, string) {
 
 	return result, ""
 }
+
+func splitTextOnComment(input string) (string, string) {
+	inputRunes := []rune(input)
+
+	currentContent := ""
+	idx := 0
+
+	for idx < len(inputRunes) {
+		rest := string(inputRunes[idx:])
+		prev := string(inputRunes[:idx])
+
+		if isStartOfToken(commentPrefix, prev, rest) {
+			return currentContent, rest
+		}
+
+		currentContent += string(inputRunes[idx])
+		idx++
+	}
+
+	return currentContent, ""
+}

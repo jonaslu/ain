@@ -333,3 +333,48 @@ func Test_TokenizeBadCases(t *testing.T) {
 		}
 	}
 }
+
+func Test_splitTextOnComment(t *testing.T) {
+	tests := map[string]struct {
+		input           string
+		expectedContent string
+		expectedComment string
+	}{
+		"Only content": {
+			input:           "abc 123",
+			expectedContent: "abc 123",
+			expectedComment: "",
+		},
+		"Only comment": {
+			input:           "# uh comment yo",
+			expectedContent: "",
+			expectedComment: "# uh comment yo",
+		},
+		"Mixed content and comment": {
+			input:           "abc123 # uh comment yo # more",
+			expectedContent: "abc123 ",
+			expectedComment: "# uh comment yo # more",
+		},
+		"Escaped comment": {
+			input:           "abc123 `# still content",
+			expectedContent: "abc123 `# still content",
+			expectedComment: "",
+		},
+		"Backtick followed by comment": {
+			input:           "abc123 \\`# comment",
+			expectedContent: "abc123 \\`",
+			expectedComment: "# comment",
+		},
+	}
+
+	for name, test := range tests {
+		content, comment := splitTextOnComment(test.input)
+		if content != test.expectedContent {
+			t.Errorf("Test: %s, Expected content: %v, Got: %v", name, test.expectedContent, content)
+		}
+
+		if comment != test.expectedComment {
+			t.Errorf("Test: %s, Expected comment: %v, Got: %v", name, test.expectedComment, comment)
+		}
+	}
+}
