@@ -384,13 +384,11 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 		input             string
 		expectedTokens    []token
 		expectedHasTokens bool
-		expectedFatal     string
 	}{
 		"Empty input": {
 			input:             "",
 			expectedTokens:    []token{},
 			expectedHasTokens: false,
-			expectedFatal:     "",
 		},
 		"Only envvars": {
 			input: "${VAR1}${VAR2}",
@@ -407,7 +405,6 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 				},
 			},
 			expectedHasTokens: true,
-			expectedFatal:     "",
 		},
 		"Text and envvars (comments are not handled)": {
 			input: "Ugh ${VAR1}",
@@ -421,7 +418,6 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 				fatalContent: "${VAR1}",
 			}},
 			expectedHasTokens: true,
-			expectedFatal:     "",
 		},
 		"Escaped envvars converted to text": {
 			input: "`${VAR1}\\`${VAR2}",
@@ -439,7 +435,6 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 			},
 
 			expectedHasTokens: true,
-			expectedFatal:     "",
 		},
 		"Escaped backtick is literal at end of input": {
 			input: "${VAR1}\\`",
@@ -456,7 +451,6 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 				},
 			},
 			expectedHasTokens: true,
-			expectedFatal:     "",
 		},
 		"Escaped end bracket in envvar": {
 			input: "${VAR1`}}",
@@ -466,12 +460,15 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 				fatalContent: "${VAR1`}}",
 			}},
 			expectedHasTokens: true,
-			expectedFatal:     "",
 		},
 	}
 
 	for name, test := range tests {
-		tokens, hasEnvVarTokens, _ := tokenizeEnvVars(test.input)
+		tokens, hasEnvVarTokens, fatal := tokenizeEnvVars(test.input)
+		if fatal != "" {
+			t.Errorf("Test: %s, Unexpected fatal: %s", name, fatal)
+		}
+
 		if test.expectedHasTokens != hasEnvVarTokens {
 			t.Errorf("Test: %s, Expected hasEnvVarTokens: %v, Got: %v", name, test.expectedHasTokens, hasEnvVarTokens)
 		}
