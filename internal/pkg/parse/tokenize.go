@@ -234,3 +234,85 @@ func splitTextOnComment(input string) (string, string) {
 
 	return currentContent, ""
 }
+
+func unescapeEnvVars(content string, hasNextToken bool) string {
+	content = strings.ReplaceAll(content, "`"+envVarPrefix, envVarPrefix)
+
+	// Handle escaped backtick at the end
+	if hasNextToken && strings.HasSuffix(content, "\\`") {
+		content = strings.TrimSuffix(content, "\\`") + "`"
+	}
+
+	return content
+}
+
+// tokenizeEnvVars does not handle comments, input
+// is the content of an expandedSectionLine
+func tokenizeEnvVars(input string) ([]token, bool, string) {
+	result := []token{}
+	inputRunes := []rune(input)
+	hasEnvVarTokens := false
+
+	currentContent := ""
+	isEnvVar := false
+	idx := 0
+
+	for idx < len(inputRunes) {
+		rest := string(inputRunes[idx:])
+		prev := string(inputRunes[:idx])
+
+		if !isEnvVar && isStartOfToken(envVarPrefix, prev, rest) {
+			if len(currentContent) > 0 {
+				result = append(result, token{
+					tokenType:    textToken,
+					content:      unescapeEnvVars(currentContent, true),
+					fatalContent: currentContent,
+				})
+
+				currentContent = ""
+			}
+
+			idx += len(envVarPrefix)
+			isEnvVar = true
+			hasEnvVarTokens = true
+			continue
+		}
+
+		if isEnvVar && isStartOfToken("}", prev, rest) {
+			unescapedContent := strings.ReplaceAll(currentContent, "`}", "}")
+
+			if strings.HasSuffix(unescapedContent, "\\`") {
+				unescapedContent = strings.TrimSuffix(unescapedContent, "\\`") + "`"
+			}
+
+			result = append(result, token{
+				tokenType:    envVarToken,
+				content:      unescapedContent,
+				fatalContent: envVarPrefix + currentContent + "}",
+			})
+
+			isEnvVar = false
+			currentContent = ""
+
+			idx += 1
+			continue
+		}
+
+		currentContent += string(inputRunes[idx : idx+1])
+		idx += 1
+	}
+
+	if isEnvVar {
+		return nil, false, fmt.Sprintf("Missing closing bracket for environment variable: %s%s", envVarPrefix, currentContent)
+	}
+
+	if len(currentContent) > 0 {
+		result = append(result, token{
+			tokenType:    textToken,
+			content:      unescapeEnvVars(currentContent, false),
+			fatalContent: currentContent,
+		})
+	}
+
+	return result, hasEnvVarTokens, ""
+}

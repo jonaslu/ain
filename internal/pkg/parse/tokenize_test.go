@@ -378,3 +378,125 @@ func Test_splitTextOnComment(t *testing.T) {
 		}
 	}
 }
+
+func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
+	tests := map[string]struct {
+		input             string
+		expectedTokens    []token
+		expectedHasTokens bool
+		expectedFatal     string
+	}{
+		"Empty input": {
+			input:             "",
+			expectedTokens:    []token{},
+			expectedHasTokens: false,
+			expectedFatal:     "",
+		},
+		"Only envvars": {
+			input: "${VAR1}${VAR2}",
+			expectedTokens: []token{
+				{
+					tokenType:    envVarToken,
+					content:      "VAR1",
+					fatalContent: "${VAR1}",
+				},
+				{
+					tokenType:    envVarToken,
+					content:      "VAR2",
+					fatalContent: "${VAR2}",
+				},
+			},
+			expectedHasTokens: true,
+			expectedFatal:     "",
+		},
+		"Text and envvars (comments are not handled)": {
+			input: "Ugh ${VAR1}",
+			expectedTokens: []token{{
+				tokenType:    textToken,
+				content:      "Ugh ",
+				fatalContent: "Ugh ",
+			}, {
+				tokenType:    envVarToken,
+				content:      "VAR1",
+				fatalContent: "${VAR1}",
+			}},
+			expectedHasTokens: true,
+			expectedFatal:     "",
+		},
+		"Escaped envvars converted to text": {
+			input: "`${VAR1}\\`${VAR2}",
+			expectedTokens: []token{
+				{
+					tokenType:    textToken,
+					content:      "${VAR1}`",
+					fatalContent: "`${VAR1}\\`",
+				},
+				{
+					tokenType:    envVarToken,
+					content:      "VAR2",
+					fatalContent: "${VAR2}",
+				},
+			},
+
+			expectedHasTokens: true,
+			expectedFatal:     "",
+		},
+		"Escaped backtick is literal at end of input": {
+			input: "${VAR1}\\`",
+			expectedTokens: []token{
+				{
+					tokenType:    envVarToken,
+					content:      "VAR1",
+					fatalContent: "${VAR1}",
+				},
+				{
+					tokenType:    textToken,
+					content:      "\\`",
+					fatalContent: "\\`",
+				},
+			},
+			expectedHasTokens: true,
+			expectedFatal:     "",
+		},
+		"Escaped end bracket in envvar": {
+			input: "${VAR1`}}",
+			expectedTokens: []token{{
+				tokenType:    envVarToken,
+				content:      "VAR1}",
+				fatalContent: "${VAR1`}}",
+			}},
+			expectedHasTokens: true,
+			expectedFatal:     "",
+		},
+	}
+
+	for name, test := range tests {
+		tokens, hasEnvVarTokens, _ := tokenizeEnvVars(test.input)
+		if test.expectedHasTokens != hasEnvVarTokens {
+			t.Errorf("Test: %s, Expected hasEnvVarTokens: %v, Got: %v", name, test.expectedHasTokens, hasEnvVarTokens)
+		}
+
+		if !reflect.DeepEqual(test.expectedTokens, tokens) {
+			t.Errorf("Test: %s, Expected tokens: %v, Got: %v", name, test.expectedTokens, tokens)
+		}
+	}
+}
+
+func Test_tokenizeEnvVarsBadCases(t *testing.T) {
+	tests := map[string]struct {
+		input         string
+		expectedFatal string
+	}{
+		"Missing closing bracket for envvar": {
+			input:         "${VAR ${VAR",
+			expectedFatal: "Missing closing bracket for environment variable: ${VAR ${VAR",
+		},
+	}
+
+	for name, test := range tests {
+		_, _, fatal := tokenizeEnvVars(test.input)
+		if fatal != test.expectedFatal {
+			t.Errorf("Test: %s, Expected fatal: %v, Got: %v", name, test.expectedFatal, fatal)
+		}
+	}
+}
