@@ -390,6 +390,15 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 			expectedTokens:    []token{},
 			expectedHasTokens: false,
 		},
+		"Only text": {
+			input: "teeext",
+			expectedTokens: []token{{
+				tokenType:    textToken,
+				content:      "teeext",
+				fatalContent: "teeext",
+			}},
+			expectedHasTokens: false,
+		},
 		"Only envvars": {
 			input: "${VAR1}${VAR2}",
 			expectedTokens: []token{
@@ -458,6 +467,15 @@ func Test_tokenizeEnvVarsGoodCases(t *testing.T) {
 				tokenType:    envVarToken,
 				content:      "VAR1}",
 				fatalContent: "${VAR1`}}",
+			}},
+			expectedHasTokens: true,
+		},
+		"Escaped backtick last in envvar": {
+			input: "${ENV\\`}",
+			expectedTokens: []token{{
+				tokenType:    envVarToken,
+				content:      "ENV`",
+				fatalContent: "${ENV\\`}",
 			}},
 			expectedHasTokens: true,
 		},
