@@ -515,3 +515,141 @@ func Test_tokenizeEnvVarsBadCases(t *testing.T) {
 		}
 	}
 }
+
+func Test_tokenizeExecutablesGoodCases(t *testing.T) {
+	tests := map[string]struct {
+		input             string
+		expectedTokens    []token
+		expectedHasTokens bool
+	}{
+		"Empty input": {
+			input:             "",
+			expectedTokens:    []token{},
+			expectedHasTokens: false,
+		},
+		"Only text": {
+			input: "teeext",
+			expectedTokens: []token{{
+				tokenType:    textToken,
+				content:      "teeext",
+				fatalContent: "teeext",
+			}},
+			expectedHasTokens: false,
+		},
+		"Only executables": {
+			input: "$(cmd1 arg1 arg2)$(cmd2 arg3 arg4)",
+			expectedTokens: []token{{
+				tokenType:    executableToken,
+				content:      "cmd1 arg1 arg2",
+				fatalContent: "$(cmd1 arg1 arg2)",
+			}, {
+				tokenType:    executableToken,
+				content:      "cmd2 arg3 arg4",
+				fatalContent: "$(cmd2 arg3 arg4)",
+			}},
+			expectedHasTokens: true,
+		},
+		"Text and executables (comments are not handled)": {
+			input: "text $(cmd1 arg1 arg2)",
+			expectedTokens: []token{
+				{
+					tokenType:    textToken,
+					content:      "text ",
+					fatalContent: "text ",
+				},
+				{
+					tokenType:    executableToken,
+					content:      "cmd1 arg1 arg2",
+					fatalContent: "$(cmd1 arg1 arg2)",
+				},
+			},
+			expectedHasTokens: true,
+		},
+		"Escaped executables converted to text": {
+			input: "`$(cmd1)\\`$(cmd2)",
+			expectedTokens: []token{{
+				tokenType:    textToken,
+				content:      "$(cmd1)`",
+				fatalContent: "`$(cmd1)\\`",
+			}, {
+				tokenType:    executableToken,
+				content:      "cmd2",
+				fatalContent: "$(cmd2)",
+			}},
+			expectedHasTokens: true,
+		},
+		"Escaped backtick is literal at end of input": {
+			input: "$(cmd1)\\`",
+			expectedTokens: []token{{
+				tokenType:    executableToken,
+				content:      "cmd1",
+				fatalContent: "$(cmd1)",
+			}, {
+				tokenType:    textToken,
+				content:      "\\`",
+				fatalContent: "\\`",
+			}},
+			expectedHasTokens: true,
+		},
+		"Escaped end parenthesis inside executable": {
+			input: "$(echo `)yo`)\\`)",
+			expectedTokens: []token{{
+				tokenType:    executableToken,
+				content:      "echo )yo)`",
+				fatalContent: "$(echo `)yo`)\\`)",
+			}},
+			expectedHasTokens: true,
+		},
+		"Executable no need to escape ) when quoting": {
+			input: "$(echo \")\\\")\"`) '))')",
+			expectedTokens: []token{{
+				tokenType:    executableToken,
+				content:      "echo \")\\\")\") '))'",
+				fatalContent: "$(echo \")\\\")\"`) '))')",
+			}},
+			expectedHasTokens: true,
+		},
+	}
+
+	for name, test := range tests {
+		tokens, hasExecutableTokens, fatal := tokenizeExecutables(test.input)
+		if fatal != "" {
+			t.Errorf("Test: %s, Unexpected fatal: %s", name, fatal)
+		}
+
+		if test.expectedHasTokens != hasExecutableTokens {
+			t.Errorf("Test: %s, Expected hasEnvVarTokens: %v, Got: %v", name, test.expectedHasTokens, hasExecutableTokens)
+		}
+
+		if !reflect.DeepEqual(test.expectedTokens, tokens) {
+			t.Errorf("Test: %s, Expected tokens: %v, Got: %v", name, test.expectedTokens, tokens)
+		}
+	}
+}
+
+func Test_tokenizeExecutablesBadCases(t *testing.T) {
+	tests := map[string]struct {
+		input         string
+		expectedFatal string
+	}{
+		"Missing closing parenthesis for executable": {
+			input:         "$(cmd1 $(cmd2",
+			expectedFatal: "Missing closing parenthesis for executable: $(cmd1 $(cmd2",
+		},
+		"Unterminated quote sequence single quote": {
+			input:         "$(node -e 'console.log(\"Yo yo\"))",
+			expectedFatal: "Unterminated quote sequence for executable: $(node -e 'console.log(\"Yo yo\"))",
+		},
+		"Unterminated quote sequence double quote": {
+			input:         "$(node -e \"console.log('Yo yo'))",
+			expectedFatal: "Unterminated quote sequence for executable: $(node -e \"console.log('Yo yo'))",
+		},
+	}
+
+	for name, test := range tests {
+		_, _, fatal := tokenizeExecutables(test.input)
+		if fatal != test.expectedFatal {
+			t.Errorf("Test: %s, Expected fatal: %v, Got: %v", name, test.expectedFatal, fatal)
+		}
+	}
+}

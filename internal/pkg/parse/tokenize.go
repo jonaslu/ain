@@ -316,3 +316,107 @@ func tokenizeEnvVars(input string) ([]token, bool, string) {
 
 	return result, hasEnvVarTokens, ""
 }
+
+func unescapeExecutables(content string, hasNextToken bool) string {
+	content = strings.ReplaceAll(content, "`"+executablePrefix, executablePrefix)
+
+	if hasNextToken && strings.HasSuffix(content, "\\`") {
+		content = strings.TrimSuffix(content, "\\`") + "`"
+	}
+
+	return content
+}
+
+func tokenizeExecutables(input string) ([]token, bool, string) {
+	result := []token{}
+	inputRunes := []rune(input)
+	hasExecutableTokens := false
+
+	var executableQuoteRune rune
+	var executableQuoteEnd int
+	executableStartIdx := -1
+
+	currentContent := ""
+	idx := 0
+
+	for idx < len(inputRunes) {
+		rest := string(inputRunes[idx:])
+		prev := string(inputRunes[:idx])
+
+		if executableStartIdx == -1 && isStartOfToken(executablePrefix, prev, rest) {
+			if len(currentContent) > 0 {
+				result = append(result, token{
+					tokenType:    textToken,
+					content:      unescapeExecutables(currentContent, true),
+					fatalContent: currentContent,
+				})
+
+				currentContent = ""
+			}
+
+			executableStartIdx = idx
+
+			idx += len(envVarPrefix)
+			hasExecutableTokens = true
+			continue
+		}
+
+		if executableStartIdx >= 0 {
+			nextRune := []rune(rest)[0]
+			switch nextRune {
+			case '"', '\'':
+				if executableQuoteRune == 0 {
+					executableQuoteRune = nextRune
+
+					unescapedContentTillNow := currentContent[executableQuoteEnd:]
+					currentContent = currentContent[:executableQuoteEnd] + strings.ReplaceAll(unescapedContentTillNow, "`)", ")")
+				} else if !strings.HasSuffix(prev, `\`) && executableQuoteRune == nextRune {
+					executableQuoteRune = 0
+					executableQuoteEnd = len(currentContent) - 1
+				}
+			}
+
+			if executableQuoteRune == 0 && isStartOfToken(")", prev, rest) {
+				unescapedContentTillNow := currentContent[executableQuoteEnd:]
+				currentContent = currentContent[:executableQuoteEnd] + strings.ReplaceAll(unescapedContentTillNow, "`)", ")")
+				executableQuoteEnd = 0
+
+				if strings.HasSuffix(currentContent, "\\`") {
+					currentContent = strings.TrimSuffix(currentContent, "\\`") + "`"
+				}
+
+				result = append(result, token{
+					tokenType:    executableToken,
+					content:      currentContent,
+					fatalContent: string(inputRunes[executableStartIdx : idx+1]),
+				})
+
+				executableStartIdx = -1
+				currentContent = ""
+
+				idx += 1
+				continue
+			}
+		}
+
+		currentContent += string(inputRunes[idx : idx+1])
+		idx += 1
+	}
+
+	if executableStartIdx >= 0 {
+		if executableQuoteRune != 0 {
+			return nil, false, fmt.Sprintf("Unterminated quote sequence for executable: %s", string(inputRunes[executableStartIdx:]))
+		}
+		return nil, false, fmt.Sprintf("Missing closing parenthesis for executable: %s", string(inputRunes[executableStartIdx:]))
+	}
+
+	if len(currentContent) > 0 {
+		result = append(result, token{
+			tokenType:    textToken,
+			content:      unescapeExecutables(currentContent, false),
+			fatalContent: currentContent,
+		})
+	}
+
+	return result, hasExecutableTokens, ""
+}
