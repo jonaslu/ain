@@ -95,7 +95,7 @@ func Test_sectionedTemplate_expandTemplateLinesGoodCases(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		s := newSectionedTemplate2(test.inputTemplate, "testing")
+		s := newSectionedTemplate2(test.inputTemplate, "")
 
 		if s.expandTemplateLines(tokenizeEnvVars, echoIterator); s.hasFatalMessages() {
 			t.Errorf("Got unexpected fatals, %s ", s.getFatalMessages())
