@@ -11,6 +11,8 @@ type sourceMarker struct {
 
 type expandedSourceMarker struct {
 	tokens          []token
+	content         string
+	comment         string
 	sourceLineIndex int
 	expanded        bool
 }
@@ -168,6 +170,96 @@ func (s *sectionedTemplate) iterate(iterationType tokenType, iterator func(token
 	}
 }
 
+func (s *sectionedTemplate) expandTemplateLines(
+	tokenize func(string) ([]token, bool, string),
+	iterator func(t token) (string, string),
+) {
+	newExpandedTemplateLines := []expandedSourceMarker{}
+
+	for _, expandedTemplateLine := range s.expandedTemplateLines {
+		tokens, hasTokens, fatal := tokenize(expandedTemplateLine.content)
+
+		if fatal != "" {
+			s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)
+			continue
+		}
+
+		if !hasTokens {
+			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedTemplateLine)
+			continue
+		}
+
+		content := ""
+		comment := ""
+
+		for tokenIdx, token := range tokens {
+			if token.tokenType == textToken {
+				// Remove the escaping of `${ - because now it's ok to return
+				// `${ and it'll be verbatim this from now on. So if a script
+				// (or an env-var) contains that sequence it should not be erased
+				// anymore.
+				content += token.content
+				continue
+			}
+
+			value, fatal := iterator(token)
+
+			if fatal != "" {
+				s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)
+				continue
+			}
+
+			if s.hasFatalMessages() {
+				// If there are errors the stuff below is busywork
+				// Since we won't set any new expanded template lines
+				// if there are fatals
+				continue
+			}
+
+			value = strings.ReplaceAll(value, "\r\n", "\n")
+			newLines := strings.Split(value, "\n")
+
+			valueText, valueComment := splitTextOnComment(newLines[0])
+
+			content += valueText
+			comment = valueComment
+
+			for _, newLine := range newLines[1:] {
+				newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
+					content:         content,
+					comment:         valueComment,
+					sourceLineIndex: expandedTemplateLine.sourceLineIndex,
+					expanded:        true,
+				})
+
+				valueText, valueComment := splitTextOnComment(newLine)
+
+				content = valueText
+				comment = valueComment
+			}
+
+			if comment != "" {
+				for _, restToken := range tokens[tokenIdx+1:] {
+					comment += restToken.fatalContent
+				}
+
+				break
+			}
+		}
+
+		newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
+			content:         content,
+			comment:         comment + expandedTemplateLine.comment,
+			sourceLineIndex: expandedTemplateLine.sourceLineIndex,
+			expanded:        true,
+		})
+	}
+
+	if !s.hasFatalMessages() {
+		s.expandedTemplateLines = newExpandedTemplateLines
+	}
+}
+
 func newSectionedTemplate(rawTemplateString, filename string) *sectionedTemplate {
 	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
 	expandedTemplateLines := []expandedSourceMarker{}
@@ -199,6 +291,33 @@ func newSectionedTemplate(rawTemplateString, filename string) *sectionedTemplate
 
 	for _, aggregatedFatal := range aggregatedFatals {
 		sectionedTemplate.setFatalMessage(aggregatedFatal.fatal, aggregatedFatal.expandedTemplateLineIndex)
+	}
+
+	return &sectionedTemplate
+}
+
+func newSectionedTemplate2(rawTemplateString, filename string) *sectionedTemplate {
+	rawTemplateLines := strings.Split(strings.ReplaceAll(rawTemplateString, "\r\n", "\n"), "\n")
+
+	expandedTemplateLines := []expandedSourceMarker{}
+
+	for sourceIndex, rawTemplateLine := range rawTemplateLines {
+		content, comment := splitTextOnComment(rawTemplateLine)
+
+		expandedTemplateLines = append(expandedTemplateLines, expandedSourceMarker{
+			content: content,
+			comment: comment,
+
+			sourceLineIndex: sourceIndex,
+			expanded:        false,
+		})
+	}
+
+	sectionedTemplate := sectionedTemplate{
+		sections:              map[string]*[]sourceMarker{},
+		expandedTemplateLines: expandedTemplateLines,
+		rawTemplateLines:      rawTemplateLines,
+		filename:              filename,
 	}
 
 	return &sectionedTemplate
