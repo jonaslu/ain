@@ -64,3 +64,26 @@ func (s *sectionedTemplate) substituteEnvVars() {
 		return value, ""
 	})
 }
+
+func (s *sectionedTemplate) substituteEnvVars2() {
+	s.expandTemplateLines(tokenizeEnvVars, func(c token) (string, string) {
+		envVarKey := c.content
+		if envVarKey == "" {
+			return "", "Empty variable"
+		}
+
+		// I'll try anything that is not empty, if the user can't set (such as a variable with spaces in bash) it we can't find it anyway.
+		// https://stackoverflow.com/questions/2821043/allowed-characters-in-linux-environment-variable-names
+		value, exists := os.LookupEnv(envVarKey)
+
+		if !exists {
+			return "", formatMissingEnvVarErrorMessage(envVarKey)
+		}
+
+		if value == "" {
+			return "", fmt.Sprintf("Value for variable %s is empty", envVarKey)
+		}
+
+		return value, ""
+	})
+}
