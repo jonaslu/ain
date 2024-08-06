@@ -29,7 +29,7 @@ func Test_sectionedTemplate_expandEnvVars2_GoodCases(t *testing.T) {
 	}
 	for name, test := range tests {
 		test.beforeTest()
-		s := newSectionedTemplate2(test.inputTemplate, "testing")
+		s := newSectionedTemplate2(test.inputTemplate, "")
 
 		if s.substituteEnvVars2(); s.hasFatalMessages() {
 			t.Errorf("Got unexpected fatals, %s ", s.getFatalMessages())
@@ -45,26 +45,26 @@ func Test_sectionedTemplate_expandEnvVars2_BadCases(t *testing.T) {
 	tests := map[string]struct {
 		beforeTest           func()
 		input                string
-		expectedErrorMessage string
+		expectedFatalMessage string
 	}{
 		"Empty variable": {
 			beforeTest:           func() {},
 			input:                "${}",
-			expectedErrorMessage: "Empty variable",
+			expectedFatalMessage: "Empty variable",
 		},
 		"Cannot find value for variable": {
 			beforeTest: func() {
 				os.Unsetenv("VAR")
 			},
 			input:                "${VAR}",
-			expectedErrorMessage: "Cannot find value for variable VAR",
+			expectedFatalMessage: "Cannot find value for variable VAR",
 		},
 		"Value for variable is empty": {
 			beforeTest: func() {
 				os.Setenv("VAR", "")
 			},
 			input:                "${VAR}",
-			expectedErrorMessage: "Value for variable VAR is empty",
+			expectedFatalMessage: "Value for variable VAR is empty",
 		},
 	}
 
@@ -77,7 +77,7 @@ func Test_sectionedTemplate_expandEnvVars2_BadCases(t *testing.T) {
 			t.Errorf("Test: %s. Wrong number of fatals", name)
 		}
 
-		if !strings.Contains(s.fatals[0], test.expectedErrorMessage) {
+		if !strings.Contains(s.fatals[0], test.expectedFatalMessage) {
 			t.Errorf("Test: %s. Unexpected error message: %s", name, s.fatals[0])
 		}
 	}
