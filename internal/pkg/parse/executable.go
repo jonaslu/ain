@@ -139,3 +139,26 @@ func (s *sectionedTemplate) insertExecutableOutput(executableResults *[]executab
 
 	})
 }
+
+func (s *sectionedTemplate) insertExecutableOutput2(executableResults *[]executableOutput) {
+	if len(*executableResults) == 0 {
+		return
+	}
+
+	nextExecutableResult := (*executableResults)[0]
+
+	s.expandTemplateLines(tokenizeExecutables, func(c token) (string, string) {
+		fatalMessage := nextExecutableResult.fatalMessage
+		output := nextExecutableResult.cmdOutput
+
+		// > 1 because we have already processed the head of the list.
+		// Hence at least two elements left, where the [1:] element is the
+		// next item we're trying to consume.
+		if len(*executableResults) > 1 {
+			*executableResults = (*executableResults)[1:]
+			nextExecutableResult = (*executableResults)[0]
+		}
+
+		return output, fatalMessage
+	})
+}
