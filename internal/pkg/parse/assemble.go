@@ -23,6 +23,7 @@ func getAllSectionedTemplates(filenames []string) ([]*sectionedTemplate, []strin
 			return nil, newSectionedTemplateFatals, err
 		}
 
+		// !! TODO !! newSectionedTemplate does not set fatals anymore
 		if sectionedTemplate := newSectionedTemplate(rawTemplateString, filename); sectionedTemplate.hasFatalMessages() {
 			newSectionedTemplateFatals = append(newSectionedTemplateFatals, sectionedTemplate.getFatalMessages())
 		} else {

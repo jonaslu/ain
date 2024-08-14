@@ -1,0 +1,15 @@
+$(unclosed
+
+$(unclosed
+
+# ain
+# stderr:
+# Fatal errors in file: tests/nok-executable-tokenizing-errors-stop-execution.ain
+# Missing closing parenthesis for executable: $(unclosed on line 1:
+# 1 > $(unclosed
+# 2   
+# 
+# Missing closing parenthesis for executable: $(unclosed on line 3:
+# 2   
+# 3 > $(unclosed
+# 4   

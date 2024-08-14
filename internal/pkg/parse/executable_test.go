@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_sectionedTemplate_insertExecutableOutput2GoodCases(t *testing.T) {
+func Test_sectionedTemplate_insertExecutableOutputGoodCases(t *testing.T) {
 	tests := map[string]struct {
 		inputTemplate     string
 		executableResults *[]executableOutput
@@ -19,17 +19,31 @@ func Test_sectionedTemplate_insertExecutableOutput2GoodCases(t *testing.T) {
 				fatalMessage: "",
 			}},
 			expectedResult: []expandedSourceMarker{{
-				tokens:          nil,
 				content:         "cmd output",
+				fatalContent:    "cmd output",
 				comment:         "",
 				sourceLineIndex: 0,
 				expanded:        true,
 			}}},
+		"Escaped quoting kept in fatal context": {
+			inputTemplate: "$(cmd1) `$(cmd2)",
+			executableResults: &[]executableOutput{{
+				cmdOutput:    "cmd1 output",
+				fatalMessage: "",
+			}},
+			expectedResult: []expandedSourceMarker{{
+				content:         "cmd1 output $(cmd2)",
+				fatalContent:    "cmd1 output `$(cmd2)",
+				comment:         "",
+				sourceLineIndex: 0,
+				expanded:        true,
+			}},
+		},
 	}
 	for name, test := range tests {
-		s := newSectionedTemplate2(test.inputTemplate, "")
+		s := newSectionedTemplate(test.inputTemplate, "")
 
-		if s.insertExecutableOutput2(test.executableResults); s.hasFatalMessages() {
+		if s.insertExecutableOutput(test.executableResults); s.hasFatalMessages() {
 			t.Errorf("Got unexpected fatals, %s ", s.getFatalMessages())
 		} else {
 			if !reflect.DeepEqual(test.expectedResult, s.expandedTemplateLines) {
@@ -39,7 +53,7 @@ func Test_sectionedTemplate_insertExecutableOutput2GoodCases(t *testing.T) {
 	}
 }
 
-func Test_sectionedTemplate_insertExecutableOutput2BadCases(t *testing.T) {
+func Test_sectionedTemplate_insertExecutableOutputBadCases(t *testing.T) {
 	tests := map[string]struct {
 		inputTemplate        string
 		executableResults    *[]executableOutput
@@ -55,8 +69,8 @@ func Test_sectionedTemplate_insertExecutableOutput2BadCases(t *testing.T) {
 		},
 	}
 	for name, test := range tests {
-		s := newSectionedTemplate2(test.inputTemplate, "")
-		s.insertExecutableOutput2(test.executableResults)
+		s := newSectionedTemplate(test.inputTemplate, "")
+		s.insertExecutableOutput(test.executableResults)
 
 		if len(s.fatals) != 1 {
 			t.Errorf("Test: %s. Wrong number of fatals", name)

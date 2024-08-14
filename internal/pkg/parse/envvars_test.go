@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func Test_sectionedTemplate_expandEnvVars2_GoodCases(t *testing.T) {
+func Test_sectionedTemplate_expandEnvVars_GoodCases(t *testing.T) {
 	tests := map[string]struct {
 		beforeTest     func()
 		inputTemplate  string
@@ -20,18 +20,31 @@ func Test_sectionedTemplate_expandEnvVars2_GoodCases(t *testing.T) {
 			},
 			inputTemplate: "${VAR1} ${VAR2}",
 			expectedResult: []expandedSourceMarker{{
-				tokens:          nil,
 				content:         "value1 value2",
+				fatalContent:    "value1 value2",
 				comment:         "",
 				sourceLineIndex: 0,
 				expanded:        true,
 			}}},
+		"Fatal context keeps quoted envvars": {
+			beforeTest: func() {
+				os.Setenv("VAR1", "value1")
+			},
+			inputTemplate: "${VAR1} `${VAR2}",
+			expectedResult: []expandedSourceMarker{{
+				content:         "value1 ${VAR2}",
+				fatalContent:    "value1 `${VAR2}",
+				comment:         "",
+				sourceLineIndex: 0,
+				expanded:        true,
+			}},
+		},
 	}
 	for name, test := range tests {
 		test.beforeTest()
-		s := newSectionedTemplate2(test.inputTemplate, "")
+		s := newSectionedTemplate(test.inputTemplate, "")
 
-		if s.substituteEnvVars2(); s.hasFatalMessages() {
+		if s.substituteEnvVars(); s.hasFatalMessages() {
 			t.Errorf("Got unexpected fatals, %s ", s.getFatalMessages())
 		} else {
 			if !reflect.DeepEqual(test.expectedResult, s.expandedTemplateLines) {
@@ -41,7 +54,7 @@ func Test_sectionedTemplate_expandEnvVars2_GoodCases(t *testing.T) {
 	}
 }
 
-func Test_sectionedTemplate_expandEnvVars2_BadCases(t *testing.T) {
+func Test_sectionedTemplate_expandEnvVars_BadCases(t *testing.T) {
 	tests := map[string]struct {
 		beforeTest           func()
 		input                string
@@ -70,8 +83,8 @@ func Test_sectionedTemplate_expandEnvVars2_BadCases(t *testing.T) {
 
 	for name, test := range tests {
 		test.beforeTest()
-		s := newSectionedTemplate2(test.input, "")
-		s.substituteEnvVars2()
+		s := newSectionedTemplate(test.input, "")
+		s.substituteEnvVars()
 
 		if len(s.fatals) != 1 {
 			t.Errorf("Test: %s. Wrong number of fatals", name)

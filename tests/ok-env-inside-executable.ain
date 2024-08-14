@@ -1,0 +1,13 @@
+[Host]
+localhost
+
+[Backend]
+curl
+
+[Headers]
+Test: $(printf ${VAR})
+
+# VAR=1 ain -p
+# stdout:
+# curl -H 'Test: 1' \
+# localhost
