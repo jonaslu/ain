@@ -5,6 +5,22 @@ import (
 	"strings"
 )
 
+func getLineWithNumberAndContent(lineIndex int, lineContents string, addCaret bool) string {
+	line := strconv.Itoa(lineIndex)
+
+	if lineContents != "" {
+		if addCaret {
+			line = line + " > "
+		} else {
+			line = line + "   "
+		}
+
+		line = line + lineContents
+	}
+
+	return line
+}
+
 func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex int) {
 	var templateContext []string
 
@@ -13,14 +29,14 @@ func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex 
 	errorLine := expandedTemplateLine.sourceLineIndex
 	lineBefore := errorLine - 1
 	if lineBefore >= 0 {
-		templateContext = append(templateContext, strconv.Itoa(lineBefore+1)+"   "+s.rawTemplateLines[lineBefore])
+		templateContext = append(templateContext, getLineWithNumberAndContent(lineBefore+1, s.rawTemplateLines[lineBefore], false))
 	}
 
-	templateContext = append(templateContext, strconv.Itoa(errorLine+1)+" > "+s.rawTemplateLines[errorLine])
+	templateContext = append(templateContext, getLineWithNumberAndContent(errorLine+1, s.rawTemplateLines[errorLine], true))
 
 	lineAfter := errorLine + 1
 	if lineAfter < len(s.rawTemplateLines) {
-		templateContext = append(templateContext, strconv.Itoa(lineAfter+1)+"   "+s.rawTemplateLines[lineAfter])
+		templateContext = append(templateContext, getLineWithNumberAndContent(lineAfter+1, s.rawTemplateLines[lineAfter], false))
 	}
 
 	message := msg + " on line " + strconv.Itoa(errorLine+1) + ":\n"
@@ -31,13 +47,13 @@ func (s *sectionedTemplate) setFatalMessage(msg string, expandedSourceLineIndex 
 		beforeLine, nextLine := expandedSourceLineIndex-1, expandedSourceLineIndex+1
 
 		if beforeLine > -1 && s.expandedTemplateLines[beforeLine].expanded {
-			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[beforeLine].sourceLineIndex+1) + "   " + s.expandedTemplateLines[beforeLine].String()
+			expandedMsg = expandedMsg + "\n" + getLineWithNumberAndContent(s.expandedTemplateLines[beforeLine].sourceLineIndex+1, s.expandedTemplateLines[beforeLine].String(), false)
 		}
 
-		expandedMsg = expandedMsg + "\n" + strconv.Itoa(expandedTemplateLine.sourceLineIndex+1) + " > " + expandedTemplateLine.String()
+		expandedMsg = expandedMsg + "\n" + getLineWithNumberAndContent(expandedTemplateLine.sourceLineIndex+1, expandedTemplateLine.String(), true)
 
 		if nextLine < len(s.expandedTemplateLines) && s.expandedTemplateLines[nextLine].expanded {
-			expandedMsg = expandedMsg + "\n" + strconv.Itoa(s.expandedTemplateLines[nextLine].sourceLineIndex+1) + "   " + s.expandedTemplateLines[nextLine].String()
+			expandedMsg = expandedMsg + "\n" + getLineWithNumberAndContent(s.expandedTemplateLines[nextLine].sourceLineIndex+1, s.expandedTemplateLines[nextLine].String(), false)
 		}
 
 		message = message + expandedMsg
