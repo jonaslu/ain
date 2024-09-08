@@ -26,8 +26,14 @@ type testDirectives struct {
 }
 
 func buildGoBinary() error {
-	// cmd := exec.Command("go", "build", "-cover", "-o", testBinaryPath, "../cmd/ain/main.go")
-	cmd := exec.Command("go", "build", "-o", testBinaryPath, "../cmd/ain/main.go")
+	args := []string{"build"}
+	if os.Getenv("E2EGOCOVERDIR") != "" {
+		args = append(args, "-cover")
+	}
+	args = append(args, "-o", testBinaryPath, "../cmd/ain/main.go")
+
+	cmd := exec.Command("go", args...)
+
 	err := cmd.Run()
 	if err != nil {
 		return errors.New("could not build binary")
@@ -75,7 +81,9 @@ func runTest(filename string, templateContents []byte) error {
 	cmd := exec.CommandContext(ctx, "./ain_test", append(testDirectives.Args, filename)...)
 	cmd.Env = testDirectives.Env
 	cmd.Env = append(cmd.Env, "PATH="+os.Getenv("PATH"))
-	// cmd.Env = append(cmd.Env, "GOCOVERDIR=templates/gcov")
+	if os.Getenv("E2EGOCOVERDIR") != "" {
+		cmd.Env = append(cmd.Env, "GOCOVERDIR="+os.Getenv("E2EGOCOVERDIR"))
+	}
 
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

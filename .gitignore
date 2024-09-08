@@ -3,3 +3,4 @@ ain-body*
 dist/
 .env
 main
+/cov/

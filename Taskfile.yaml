@@ -4,3 +4,14 @@ tasks:
   test:
     cmds:
       - go test ./...
+
+  test:cover:
+    env:
+      E2EGOCOVERDIR: "{{.PWD}}/cov/e2e"
+    cmds:
+      - rm -r {{.PWD}}/cov/
+      - mkdir -p {{.PWD}}/cov/unit {{.PWD}}/cov/e2e
+      - go test -cover ./... -args -test.gocoverdir="{{.PWD}}/cov/unit"
+      - go tool covdata textfmt -i=./cov/unit,./cov/e2e -o cov/profile.out
+      - go tool cover -html=cov/profile.out -o cov/coverage.html
+      - xdg-open cov/coverage.html
