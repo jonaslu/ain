@@ -1,0 +1,22 @@
+[Host]
+localhost
+
+[Backend]
+`${VAR} ${VAR} # comment
+
+# This proves that expanded fatals retains the quoting
+# but the content has it removed (see the error-message lacks a `) 
+
+# env: 
+#   - VAR=1
+# args:
+#   - -p
+# stderr: |
+#   Fatal error in file: templates/nok-env-fatals-include-quotes.ain
+#   Unknown backend ${var} 1 on line 5:
+#   4   [Backend]
+#   5 > `${VAR} ${VAR} # comment
+#   6
+#   Expanded context:
+#   5 > `${VAR} 1 # comment
+# exitcode: 1

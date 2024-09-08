@@ -1,0 +1,21 @@
+[Host]
+localhost
+
+[Backend]
+`$(nope) $(printf 1) `# # comment
+
+# This proves that expanded fatals retains the quoting
+# but the content has it removed (see the error-message lacks a `) 
+
+# args:
+#   - -p
+# stderr: |
+#   Fatal error in file: templates/nok-executables-fatals-include-quotes.ain
+#   Unknown backend $(nope) 1 # on line 5:
+#   4   [Backend]
+#   5 > `$(nope) $(printf 1) `# # comment
+#   6
+#   Expanded context:
+#   5 > `$(nope) 1 `# # comment
+#   
+# exitcode: 1
