@@ -30,7 +30,8 @@ func buildGoBinary() error {
 	if os.Getenv("E2EGOCOVERDIR") != "" {
 		args = append(args, "-cover")
 	}
-	args = append(args, "-o", testBinaryPath, "../cmd/ain/main.go")
+
+	args = append(args, "-o", testBinaryPath, "../../cmd/ain/main.go")
 
 	cmd := exec.Command("go", args...)
 
