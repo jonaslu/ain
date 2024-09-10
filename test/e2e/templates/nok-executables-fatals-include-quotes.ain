@@ -7,8 +7,6 @@ localhost
 # This proves that expanded fatals retains the quoting
 # but the content has it removed (see the error-message lacks a `) 
 
-# args:
-#   - -p
 # stderr: |
 #   Fatal error in file: templates/nok-executables-fatals-include-quotes.ain
 #   Unknown backend $(nope) 1 # on line 5:
