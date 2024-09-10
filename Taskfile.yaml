@@ -2,10 +2,12 @@ version: '3'
 
 tasks:
   test:
+    desc: Run tests
     cmds:
       - go test ./...
 
   test:cover:
+    desc: Run tests with coverage
     env:
       E2EGOCOVERDIR: "{{.PWD}}/cov/e2e"
     cmds:
@@ -15,3 +17,8 @@ tasks:
       - go tool covdata textfmt -i=./cov/unit,./cov/e2e -o cov/profile.out
       - go tool cover -html=cov/profile.out -o cov/coverage.html
       - xdg-open cov/coverage.html
+
+  update:docs:
+    desc: Update README.md toc
+    cmds:
+      - npx doctoc --github --notitle --maxlevel=2 --update-only README.md
