@@ -1,0 +1,18 @@
+[Host]
+localhost
+
+[Backend]
+wget
+
+[Config]
+Timeout=$(printf 1)
+
+# env: 
+#   - VAR=1
+# stderr: |
+#   Fatal error in file: templates/nok-executable-in-config-not-expanded.ain
+#   Malformed timeout value, must be digit > 0 on line 8:
+#   7   [Config]
+#   8 > Timeout=$(printf 1)
+#   9
+# exitcode: 1

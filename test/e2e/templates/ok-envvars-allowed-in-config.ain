@@ -1,0 +1,23 @@
+[Host]
+localhost
+
+[Backend]
+httpie
+
+[Config]
+Timeout=${VAR}
+
+# Setting var to -1 will result in an error, proving that the
+# envvar is expanded in a config section to it's (invalid) value
+
+# env:
+#   - VAR=-1
+# stderr: |
+#   Fatal error in file: templates/ok-envvars-allowed-in-config.ain
+#   Timeout interval must be greater than 0 on line 8:
+#   7   [Config]
+#   8 > Timeout=${VAR}
+#   9
+#   Expanded context:
+#   8 > Timeout=-1
+# exitcode: 1
