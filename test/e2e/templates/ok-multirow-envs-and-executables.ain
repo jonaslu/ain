@@ -1,0 +1,24 @@
+[Host]
+localhost
+
+[Headers]
+$(printf "Header: 1\nHeader:") 2
+${VAR}4
+
+[Backend]
+httpie
+
+# Proves that returned results with multilines push content down
+
+# env:
+#   - "VAR=Header: 3\nHeader: "
+# args:
+#   - -p
+# stdout: |
+#   http '--ignore-stdin' \
+#     'localhost' \
+#     'Header: 1' \
+#     'Header: 2' \
+#     'Header: 3' \
+#     'Header: 4' \
+#     

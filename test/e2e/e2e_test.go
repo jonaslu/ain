@@ -25,6 +25,18 @@ type testDirectives struct {
 	ExitCode int
 }
 
+func addBarsBeforeNewlines(s string) string {
+	bars := ""
+	for _, c := range s {
+		if c == '\n' {
+			bars += "|"
+		}
+		bars += string(c)
+	}
+
+	return bars + "|"
+}
+
 func buildGoBinary() error {
 	args := []string{"build"}
 	if os.Getenv("E2EGOCOVERDIR") != "" {
@@ -108,11 +120,11 @@ func runTest(filename string, templateContents []byte) error {
 	}
 
 	if stderr.String() != testDirectives.Stderr {
-		return fmt.Errorf("stderr %s did not match %s", stderr.String(), testDirectives.Stderr)
+		return fmt.Errorf("stderr %s did not match %s", addBarsBeforeNewlines(stderr.String()), addBarsBeforeNewlines(testDirectives.Stderr))
 	}
 
 	if stdout.String() != testDirectives.Stdout {
-		return fmt.Errorf("stdout %s did not match %s", stdout.String(), testDirectives.Stdout)
+		return fmt.Errorf("stdout %s did not match %s", addBarsBeforeNewlines(stdout.String()), addBarsBeforeNewlines(testDirectives.Stdout))
 	}
 
 	exitCode := cmd.ProcessState.ExitCode()
