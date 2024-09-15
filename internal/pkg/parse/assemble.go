@@ -11,8 +11,7 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
 
-func getAllSectionedTemplates(filenames []string) ([]*sectionedTemplate, []string, error) {
-	newSectionedTemplateFatals := []string{}
+func getAllSectionedTemplates(filenames []string) ([]*sectionedTemplate, error) {
 	allSectionedTemplates := []*sectionedTemplate{}
 
 	for _, filename := range filenames {
@@ -20,18 +19,13 @@ func getAllSectionedTemplates(filenames []string) ([]*sectionedTemplate, []strin
 		// when setting the file-name2.
 		rawTemplateString, err := disk.ReadRawTemplateString(filename)
 		if err != nil {
-			return nil, newSectionedTemplateFatals, err
+			return nil, err
 		}
 
-		// !! TODO !! newSectionedTemplate does not set fatals anymore
-		if sectionedTemplate := newSectionedTemplate(rawTemplateString, filename); sectionedTemplate.hasFatalMessages() {
-			newSectionedTemplateFatals = append(newSectionedTemplateFatals, sectionedTemplate.getFatalMessages())
-		} else {
-			allSectionedTemplates = append(allSectionedTemplates, sectionedTemplate)
-		}
+		allSectionedTemplates = append(allSectionedTemplates, newSectionedTemplate(rawTemplateString, filename))
 	}
 
-	return allSectionedTemplates, newSectionedTemplateFatals, nil
+	return allSectionedTemplates, nil
 }
 
 func getConfig(allSectionedTemplates []*sectionedTemplate) (data.Config, []string) {
@@ -186,13 +180,9 @@ func getBackendInput(allSectionRows allSectionRows, config data.Config) (*data.B
 }
 
 func Assemble(ctx context.Context, filenames []string) (context.Context, *data.BackendInput, string, error) {
-	allSectionedTemplates, allSectionedTemplateFatals, err := getAllSectionedTemplates(filenames)
+	allSectionedTemplates, err := getAllSectionedTemplates(filenames)
 	if err != nil {
 		return ctx, nil, "", err
-	}
-
-	if len(allSectionedTemplateFatals) > 0 {
-		return ctx, nil, strings.Join(allSectionedTemplateFatals, "\n\n"), nil
 	}
 
 	if substituteEnvVarsFatals := substituteEnvVars(allSectionedTemplates); len(substituteEnvVarsFatals) > 0 {

@@ -1,6 +1,11 @@
 version: '3'
 
 tasks:
+  build:
+    desc: Build the project
+    cmds:
+      - go build -o ain cmd/ain/main.go
+
   test:
     desc: Run tests
     cmds:
