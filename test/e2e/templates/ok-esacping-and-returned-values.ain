@@ -8,6 +8,8 @@ curl
 Escaping: `${VAR} `$(exec) `# # comment
 Envexec: ${EXEC} ${EXECQUOTED}
 Exec: $(templates/env.sh) $(templates/exec.sh)
+`[Headers] # New supported way with backtick 
+\[Headers] # Old legacy way that will be removed
 
 # env:
 #   - EXEC=$(printf 1)
@@ -18,4 +20,6 @@ Exec: $(templates/env.sh) $(templates/exec.sh)
 #   curl -H 'Escaping: ${VAR} $(exec) #' \
 #     -H 'Envexec: 1 $(exec)' \
 #     -H 'Exec: ${ENV} $(exec)' \
+#     -H '[Headers]' \
+#     -H '[Headers]' \
 #     'localhost'
