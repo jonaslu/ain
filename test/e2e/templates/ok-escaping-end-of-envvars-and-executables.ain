@@ -1,0 +1,25 @@
+[Host]
+localhost
+
+[Backend]
+curl
+
+[Headers]
+Escapingendofvars: ${VAR`}}
+Escapingendofexec: $(printf `))
+Quotesnoescape: $(printf ")")
+Literalvarbacktick: ${VAR\`}
+Literalexecbackick: $(printf \`)
+
+# env:
+#   - "VAR}={"
+#   - "VAR`=1"
+# args:
+#   - -p
+# stdout: |
+#   curl -H 'Escapingendofvars: {' \
+#     -H 'Escapingendofexec: )' \
+#     -H 'Quotesnoescape: )' \
+#     -H 'Literalvarbacktick: 1' \
+#     -H 'Literalexecbackick: `' \
+#     'localhost'
