@@ -1,0 +1,12 @@
+[Host]
+${VAR
+
+[Backend]
+
+# stderr: |
+#   Fatal error in file: templates/nok-unterminated-env.ain
+#   Missing closing bracket for environment variable: ${VAR on line 2:
+#   1   [Host]
+#   2 > ${VAR
+#   3
+# exitcode: 1

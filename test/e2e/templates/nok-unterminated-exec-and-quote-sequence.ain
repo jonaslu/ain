@@ -1,0 +1,22 @@
+[Host]
+$(printf
+$(printf "yegga)
+$(printf 'gogga)
+
+# stderr: |
+#   Fatal errors in file: templates/nok-unterminated-exec-and-quote-sequence.ain
+#   Missing closing parenthesis for executable: $(printf on line 2:
+#   1   [Host]
+#   2 > $(printf
+#   3   $(printf "yegga)
+#   
+#   Unterminated quote sequence for executable: $(printf "yegga) on line 3:
+#   2   $(printf
+#   3 > $(printf "yegga)
+#   4   $(printf 'gogga)
+#   
+#   Unterminated quote sequence for executable: $(printf 'gogga) on line 4:
+#   3   $(printf "yegga)
+#   4 > $(printf 'gogga)
+#   5
+# exitcode: 1
