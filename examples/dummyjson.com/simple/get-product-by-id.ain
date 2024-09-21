@@ -3,3 +3,6 @@ https://dummyjson.com/product/${ID}
 
 [Backend]
 curl
+
+[BackendOptions]
+-sS # suppress curl progress bar
