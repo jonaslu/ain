@@ -1,0 +1,12 @@
+[Host]
+https://dummyjson.com/users
+
+[Query]
+limit=10
+skip=0
+
+[Backend]
+wget
+
+[BackendOptions]
+-q # quiet option (no debug prints when making the call)

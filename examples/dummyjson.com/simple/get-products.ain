@@ -1,0 +1,9 @@
+[Host]
+https://dummyjson.com/product
+
+[Backend]
+curl
+
+[Query]
+limit=10
+skip=$(bash -c 'if [-z "$SKIP"]; then echo "0"; else echo $SKIP; fi')

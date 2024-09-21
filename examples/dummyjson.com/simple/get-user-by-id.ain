@@ -1,0 +1,8 @@
+[Host]
+https://dummyjson.com/users/${ID}
+
+[Backend]
+wget
+
+[BackendOptions]
+-q # quiet option (no debug prints when making the call)
