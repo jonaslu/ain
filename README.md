@@ -15,7 +15,7 @@ Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomn
 
 Ain was built to enable scripting of input and further processing of output via pipes. It targets users who work with many API:s using a simple file format. It uses [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) to make the actual calls.
 
-⭐ ¡Please git it a star if you find it useful! ⭐
+⭐ !Please leave a star if you find it useful! ⭐
 
 # Table of contents
 <!-- npx doctoc --github --notitle --maxlevel=2 -->
