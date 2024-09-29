@@ -1,0 +1,11 @@
+[Host]
+https://dummyjson.com/
+
+[Backend]
+curl
+
+[Config]
+Timeout=5
+
+[BackendOptions]
+-sS # no progress bar for curl

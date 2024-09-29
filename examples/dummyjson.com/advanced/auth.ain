@@ -1,0 +1,5 @@
+[Host]
+auth/
+
+[Headers]
+Authorization: Bearer $(bash -c 'ain base.ain get-token.ain | jq -r .accessToken')

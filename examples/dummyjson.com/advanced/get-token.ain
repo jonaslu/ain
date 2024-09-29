@@ -1,0 +1,15 @@
+[Host]
+auth/login
+
+[Method]
+Post
+
+[Headers]
+Content-Type: application/json
+
+[Body]
+{
+    "username": "emilys",
+    "password": "emilyspass",
+    "expiresInMins": 30
+}

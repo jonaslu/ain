@@ -1,0 +1,3 @@
+[Query]
+limit=${LIMIT}
+skip=$(bash -c 'if [-z "$SKIP" ]; then echo "0"; else echo "$SKIP"; fi')

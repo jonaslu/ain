@@ -1,0 +1,14 @@
+[Host]
+products/add
+
+[Method]
+POST
+
+[Headers]
+Content-Type: 'application/json'
+
+[Body]
+{
+    "title": "New title",
+    # Add other fields here
+}

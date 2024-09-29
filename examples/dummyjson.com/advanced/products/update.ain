@@ -1,0 +1,13 @@
+[Host]
+products/${ID}
+
+[Headers]
+Content-Type: 'application/json'
+
+[Method]
+PATCH
+
+[Body]
+{
+    "title": "placeholder"
+}
