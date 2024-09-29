@@ -1,9 +1,8 @@
 # dummyjson.com advanced example
-Example of an advanced layout of an API using data from [https://dummyjson.com](https://dummyjson.com/docs
+Example of an advanced layout of an API using data from [https://dummyjson.com](https://dummyjson.com/docs)
 
 # Follow along
-To follow along you need ain and one of [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) installed. Then copy / clone out the *.ain files in this folder
-to your local drive.
+To follow along you need ain and one of [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/) installed. Then copy / clone out the *.ain files in this folder to your local drive.
 
 Change the backend under the `[Backend]` section in the templates to whatever you have installed on your computer.
 
@@ -18,10 +17,10 @@ ain base.ain products/get.ain # Get the 30 first products
 
 LIMIT=10 SKIP=30 ain base.ain.ain products/get.ain paginate.ain # Get the next 10 products after the initial 30
 
-ain base.ain products/add.ain! # Add a product via one-off edited data
-ID=1 ain base.ain products/get-by-id.ain # Get product with ID 1
-ID=2 ain base.ain products/update.ain! # Update product 2 with one-off data
-ID=4 ain base.ain products/delete.ain
+ain base.ain products/add.ain!            # Add a product via one-off edited data
+ID=1 ain base.ain products/get-by-id.ain  # Get product with ID 1
+ID=2 ain base.ain products/update.ain!    # Update product 2 with one-off data (adding a ! after the file to edit it in-place)
+ID=3 ain base.ain products/delete.ain     # Delete product 3
 
 ain base.ain auth.ain products/get.ain # Get the first 30 products, with an Authorization Bearer: <token> header
 ```
@@ -51,10 +50,10 @@ Most REST endpoints have some pagination and these are usually supplied as query
 Supported parameters are:
 ```bash
 LIMIT=n # LIMIT mandatory
-SKIP=n # SKIP is optional via bash if / else
+SKIP=n  # SKIP is optional via bash if / else
 ```
 
-# products/
+## products/
 All files concerning products are grouped into a folder called products/.
 
 ```bash
@@ -65,7 +64,7 @@ products/get.ain
 products/update.ain
 ```
 
-Composing these files with base.ain (and auth.ain and paginate.ain if need be) makes the resulting command-line clear what's returned:
+Composing these files with base.ain (and auth.ain and paginate.ain if need be) makes the resulting command-line readable:
 
 ```bash
 ID=1 ain base.ain products/get-by-id.ain # Gets product with id 1
