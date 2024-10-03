@@ -1,0 +1,8 @@
+[Host]
+https://httpstat.us/202
+
+[Backend]
+httpie
+
+# stdout:
+#   202 Accepted

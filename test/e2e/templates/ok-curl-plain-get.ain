@@ -1,0 +1,11 @@
+[Host]
+https://httpstat.us/200
+
+[Backend]
+curl
+
+[Backendoptions]
+-sS
+
+# stdout:
+#   200 OK

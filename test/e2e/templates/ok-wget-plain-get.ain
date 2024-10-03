@@ -1,0 +1,11 @@
+[Host]
+https://httpstat.us/201
+
+[Backend]
+wget
+
+[Backendoptions]
+-q
+
+# stdout:
+#   201 Created
