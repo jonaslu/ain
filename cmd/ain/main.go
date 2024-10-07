@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/jonaslu/ain/internal/app/ain"
 	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/disk"
 	"github.com/jonaslu/ain/internal/pkg/parse"
@@ -39,34 +39,14 @@ func checkSignalRaisedAndExit(ctx context.Context, signalRaised os.Signal) {
 }
 
 func main() {
-	var leaveTmpFile, printCommand, showVersion, generateEmptyTemplate bool
-	var envFile string
+	cmdParams := ain.NewCmdParams()
 
-	flag.Usage = func() {
-		w := flag.CommandLine.Output()
-
-		introMsg := `Ain is an HTTP API client. It reads template files to make the HTTP call.
-These can be given on the command line or sent over a pipe.
-
-Project home page: https://github.com/jonaslu/ain`
-
-		fmt.Fprintf(w, "%s\n\nusage: %s [options]... <template.ain>...\n", introMsg, os.Args[0])
-		flag.PrintDefaults()
-	}
-
-	flag.BoolVar(&leaveTmpFile, "l", false, "Leave any temp-files")
-	flag.BoolVar(&printCommand, "p", false, "Print command to the terminal instead of executing")
-	flag.StringVar(&envFile, "e", ".env", "Path to .env file")
-	flag.BoolVar(&showVersion, "v", false, "Show version and exit")
-	flag.BoolVar(&generateEmptyTemplate, "b", false, "Generate basic template files(s)")
-	flag.Parse()
-
-	if showVersion {
+	if cmdParams.ShowVersion {
 		fmt.Printf("Ain %s (%s) %s/%s\n", version, gitSha, runtime.GOOS, runtime.GOARCH)
 		return
 	}
 
-	if generateEmptyTemplate {
+	if cmdParams.GenerateEmptyTemplate {
 		if err := disk.GenerateEmptyTemplates(); err != nil {
 			printInternalErrorAndExit(err)
 		}
@@ -74,11 +54,24 @@ Project home page: https://github.com/jonaslu/ain`
 		return
 	}
 
-	if err := disk.ReadEnvFile(envFile, envFile != ".env"); err != nil {
+	if fatal := cmdParams.SetEnvVarsAndFilenames(); fatal != "" {
+		fmt.Fprintln(os.Stderr, fatal)
+		os.Exit(1)
+	}
+
+	for _, envVars := range cmdParams.EnvVars {
+		varName := envVars[0]
+		if _, exists := os.LookupEnv(varName); !exists {
+			value := envVars[1]
+			os.Setenv(varName, value)
+		}
+	}
+
+	if err := disk.ReadEnvFile(cmdParams.EnvFile, cmdParams.EnvFile != ".env"); err != nil {
 		printInternalErrorAndExit(err)
 	}
 
-	localTemplateFileNames, err := disk.GetTemplateFilenames()
+	localTemplateFileNames, err := disk.GetTemplateFilenames(cmdParams.TemplateFileNames)
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}
@@ -114,21 +107,21 @@ Project home page: https://github.com/jonaslu/ain`
 		os.Exit(1)
 	}
 
-	backendInput.PrintCommand = printCommand
+	backendInput.PrintCommand = cmdParams.PrintCommand
 
 	call, err := call.Setup(backendInput)
 	if err != nil {
 		printInternalErrorAndExit(err)
 	}
 
-	if printCommand {
+	if cmdParams.PrintCommand {
 		// Tempfile always left when calling as string
 		fmt.Fprint(os.Stdout, call.CallAsString())
 		return
 	}
 
 	var errors []string
-	backendInput.LeaveTempFile = leaveTmpFile
+	backendInput.LeaveTempFile = cmdParams.LeaveTmpFile
 	backendOutput, err := call.CallAsCmd(assembledCtx)
 
 	teardownErr := call.Teardown()

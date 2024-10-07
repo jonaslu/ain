@@ -1,7 +1,6 @@
 package disk
 
 import (
-	"flag"
 	"io"
 	"os"
 
@@ -9,13 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GetTemplateFilenames() ([]string, error) {
-	var localTemplateFilenames []string
-
-	if len(flag.Args()) >= 1 {
-		localTemplateFilenames = flag.Args()
-	}
-
+func GetTemplateFilenames(cmdParamTemplateFileNames []string) ([]string, error) {
 	fi, err := os.Stdin.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not stat stdin")
@@ -36,8 +29,8 @@ func GetTemplateFilenames() ([]string, error) {
 			return nil, errors.New("Pipe input did not contain any template names")
 		}
 
-		localTemplateFilenames = append(localTemplateFilenames, localTemplateFilenamesViaPipe...)
+		cmdParamTemplateFileNames = append(cmdParamTemplateFileNames, localTemplateFilenamesViaPipe...)
 	}
 
-	return localTemplateFilenames, nil
+	return cmdParamTemplateFileNames, nil
 }
