@@ -23,8 +23,8 @@ var gitSha = "develop"
 const bashSignalCaughtBase = 128
 
 func printInternalErrorAndExit(err error) {
-	formattedError := fmt.Errorf("Error: %v", err.Error())
-	fmt.Fprintln(os.Stderr, formattedError.Error())
+	formattedError := fmt.Sprintf("Error: %v", err.Error())
+	fmt.Fprintln(os.Stderr, formattedError)
 	os.Exit(1)
 }
 
