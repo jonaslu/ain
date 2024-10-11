@@ -61,10 +61,8 @@ func main() {
 
 	for _, envVars := range cmdParams.EnvVars {
 		varName := envVars[0]
-		if _, exists := os.LookupEnv(varName); !exists {
-			value := envVars[1]
-			os.Setenv(varName, value)
-		}
+		value := envVars[1]
+		os.Setenv(varName, value)
 	}
 
 	if err := disk.ReadEnvFile(cmdParams.EnvFile, cmdParams.EnvFile != ".env"); err != nil {
