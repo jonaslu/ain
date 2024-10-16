@@ -9,8 +9,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pkg/errors"
-
 	"github.com/jonaslu/ain/internal/app/ain"
 	"github.com/jonaslu/ain/internal/pkg/call"
 	"github.com/jonaslu/ain/internal/pkg/disk"
@@ -22,8 +20,8 @@ var gitSha = "develop"
 
 const bashSignalCaughtBase = 128
 
-func printInternalErrorAndExit(err error) {
-	formattedError := fmt.Sprintf("Error: %v", err.Error())
+func printErrorAndExit(err error) {
+	formattedError := fmt.Sprintf("Error: %s", err.Error())
 	fmt.Fprintln(os.Stderr, formattedError)
 	os.Exit(1)
 }
@@ -48,7 +46,7 @@ func main() {
 
 	if cmdParams.GenerateEmptyTemplate {
 		if err := disk.GenerateEmptyTemplates(); err != nil {
-			printInternalErrorAndExit(err)
+			printErrorAndExit(err)
 		}
 
 		return
@@ -66,17 +64,16 @@ func main() {
 	}
 
 	if err := disk.ReadEnvFile(cmdParams.EnvFile, cmdParams.EnvFile != ".env"); err != nil {
-		printInternalErrorAndExit(err)
+		printErrorAndExit(err)
 	}
 
 	localTemplateFileNames, err := disk.GetTemplateFilenames(cmdParams.TemplateFileNames)
 	if err != nil {
-		printInternalErrorAndExit(err)
+		printErrorAndExit(err)
 	}
 
 	if len(localTemplateFileNames) == 0 {
-		// !! TODO !! This is not an internal error
-		printInternalErrorAndExit(errors.New("Missing template file name(s)\n\nTry 'ain -h' for more information"))
+		printErrorAndExit(fmt.Errorf("missing template file name(s)\n\nTry 'ain -h' for more information"))
 	}
 
 	cancelCtx, cancel := context.WithCancel(context.Background())
@@ -94,7 +91,7 @@ func main() {
 	if err != nil {
 		checkSignalRaisedAndExit(assembledCtx, signalRaised)
 
-		printInternalErrorAndExit(err)
+		printErrorAndExit(err)
 	}
 
 	if fatal != "" {
@@ -109,7 +106,7 @@ func main() {
 
 	call, err := call.Setup(backendInput)
 	if err != nil {
-		printInternalErrorAndExit(err)
+		printErrorAndExit(err)
 	}
 
 	if cmdParams.PrintCommand {
