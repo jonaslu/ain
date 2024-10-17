@@ -26,7 +26,7 @@ Project home page: https://github.com/jonaslu/ain`
 		})
 
 		fmt.Fprintf(w, "\nARGUMENTS:\n")
-		fmt.Fprintf(w, "  <template.ain>          One or more template files to process (required)\n")
+		fmt.Fprintf(w, "  <template.ain>[!]       One or more template files to process. Required\n")
 		fmt.Fprintf(w, "  --vars VAR=VALUE [...]  Values for environment variables, set after <template.ain> file(s)\n")
 	}
 
@@ -46,7 +46,7 @@ Project home page: https://github.com/jonaslu/ain`
 	}
 }
 
-func (c *CmdParams) SetEnvVarsAndFilenames() string {
+func (c *CmdParams) SetEnvVarsAndFilenames() error {
 	collectVars := false
 	vars := []string{}
 
@@ -66,16 +66,16 @@ func (c *CmdParams) SetEnvVarsAndFilenames() string {
 	for _, v := range vars {
 		varName, value, found := strings.Cut(v, "=")
 		if !found {
-			return "Invalid environment variable format, (missing =<value>): " + v
+			return fmt.Errorf("invalid environment variable format, (missing =<value>): %s", v)
 		}
 		c.EnvVars = append(c.EnvVars, []string{varName, value})
 	}
 
 	if collectVars && len(c.EnvVars) == 0 {
-		return "--vars passed but no environment variables arguments found"
+		return fmt.Errorf("--vars passed but no environment variables arguments found")
 	}
 
-	return ""
+	return nil
 }
 
 type CmdParams struct {

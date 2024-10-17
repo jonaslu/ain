@@ -52,9 +52,8 @@ func main() {
 		return
 	}
 
-	if fatal := cmdParams.SetEnvVarsAndFilenames(); fatal != "" {
-		fmt.Fprintln(os.Stderr, fatal)
-		os.Exit(1)
+	if err := cmdParams.SetEnvVarsAndFilenames(); err != nil {
+		printErrorAndExit(err)
 	}
 
 	for _, envVars := range cmdParams.EnvVars {
