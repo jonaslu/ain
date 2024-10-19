@@ -42,7 +42,7 @@ Ain was built to enable scripting of input and further processing of output via 
   - [[Config]](#config)
   - [[Backend]](#backend)
   - [[BackendOptions]](#backendoptions)
-- [Environment variables](#environment-variables)
+- [Variables](#variables)
 - [Executables](#executables)
 - [Fatals](#fatals)
 - [Quoting](#quoting)
@@ -107,9 +107,9 @@ ain -b basic-template.ain
 The command above will output a starter-template to the file `basic-template.ain`.
 The basic template calls the / GET http endpoint on localhost with the `Content-Type: application/json`.
 
-To run the template specify a `PORT` environment variable:
+To run the template specify a `PORT` variable:
 ```
-PORT=8080 ain basic-template.ain
+ain basic-template.ain --vars PORT=8080
 ```
 
 See the help for all options ain supports: `ain -h`
@@ -117,7 +117,7 @@ See the help for all options ain supports: `ain -h`
 # Important concepts
 * Templates: Files containing what, how and where to make the API call. By convention has the file suffix `.ain`.
 * Sections: Label in a file grouping the API parameters.
-* Environment variables: Enables variables in a template file.
+* Variables: Things that vary as inputs in a template file.
 * Executables: Enables using the output of a command in a template file.
 * Backends: The thing that makes the API call ([curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)).
 * Fatals: Error in parsing the template files (it's your fault).
@@ -160,7 +160,7 @@ Ain understands eight [Sections] with each of the sections described in details 
 Anything after a pound sign (#) is a comment and will be ignored.
 
 # Running ain
-`ain [options] <template-files...>[!]`
+`ain [OPTIONS] <template.ain> [--vars VAR=VALUE ...]` 
 
 Ain accepts one or more template-file(s) as a mandatory argument. As sections appends or overwrite you can organize API-calls into hierarchical structures with increasing specificity using files and folders.
 
@@ -352,15 +352,12 @@ curl
 
 The [BackendOptions] section appends across template files.
 
-# Environment variables
-Ain supports variables via environment variables. Anything inside `${}` in a template is replaced with the value found in the environment. Example `${NODE_ENV}`.
+# Variables
+Variables lets you specify things that vary such as ports, item ids etc. Ain supports variables via environment variables. Anything inside `${}` in a template is replaced with the value found in the environment. Example `${NODE_ENV}`. Environment variables can be set in your shell in various ways, or via the `--vars VAR1=value1 VAR2=value2` syntax passed after all template file names.
 
-Ain looks for an .env file in the folder from where it's run.  You can pass the path to a custom .env file via the `-e` flag.
+This will set the variable values in ain:s environment (and available via inheritance in any `$(commands)` spawned from the template [executables](#executables)). Variables set via `--vars` overrides any existing values in the environment, meaning `VAR=1 ain template.ain --vars VAR=2` will result in VAR having the value `2`.
 
-Environment variables lets you specify things that may vary, set in the .env file or via the command-line. The command-line (or already existing) value takes precedence. Example:
-```
-PORT=5000 ain base.ain create-blog-post.ain   # Specify PORT on the command line
-```
+Ain looks for any .env file in the folder where it's run for any default variable values. You can pass the path to a custom .env file via the `-e` flag.
 
 Environment variables are replaced before executables and can be used as input to the executable. Example `$(cat ${ENV}/token.json)`.
 
@@ -375,7 +372,7 @@ A real world example is getting JWT tokens from a separate script and share that
 Authorization: Bearer $(bash -c "./get-login.sh | jq -r '.token'")
 ```
 
-If shell features such as pipes are needed this can be done via a command string (e g [bash -c](https://man7.org/linux/man-pages/man1/bash.1.html#OPTIONS) in bash. Note that quoting is needed if the argument contains whitespace as in the example above. See [quoting](#quoting).
+If shell features such as pipes are needed this can be done via a command string (e g [bash -c](https://man7.org/linux/man-pages/man1/bash.1.html#OPTIONS)) in bash. Note that quoting is needed if the argument contains whitespace as in the example above. See [quoting](#quoting).
 
 The first word is an command on your $PATH and the rest are arguments to that command.
 
