@@ -117,13 +117,13 @@ func GenerateEmptyTemplates() error {
 		_, err := os.Stat(filename)
 
 		if !os.IsNotExist(err) {
-			return errors.Errorf("Cannot write basic template. File already exists %s", filename)
+			return errors.Errorf("cannot write basic template. File already exists %s", filename)
 		}
 
 		err = os.WriteFile(filename, []byte(starterTemplate), 0644)
 
 		if err != nil {
-			return errors.Wrapf(err, "Could not write basic template to file %s", filename)
+			return errors.Wrapf(err, "could not write basic template to file %s", filename)
 		}
 	}
 

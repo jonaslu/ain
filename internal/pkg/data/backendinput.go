@@ -17,7 +17,7 @@ func (bi *BackendInput) CreateBodyTempFile() error {
 	if bi.PrintCommand {
 		cwd, err := os.Getwd()
 		if err != nil {
-			return errors.Wrap(err, "Could not get current working dir, cannot store any body temp-file")
+			return errors.Wrap(err, "could not get current working dir, cannot store any body temp-file")
 		}
 
 		tempFileDir = cwd
@@ -27,7 +27,7 @@ func (bi *BackendInput) CreateBodyTempFile() error {
 
 	tmpFile, err := os.CreateTemp(tempFileDir, "ain-body")
 	if err != nil {
-		return errors.Wrap(err, "Could not create tempfile")
+		return errors.Wrap(err, "could not create tempfile")
 	}
 
 	if _, err := tmpFile.Write([]byte(bodyStr)); err != nil {
@@ -35,7 +35,7 @@ func (bi *BackendInput) CreateBodyTempFile() error {
 		// so ignore this, it's only a temp-file that will be deleted eventually
 		_ = tmpFile.Close()
 
-		return errors.Wrap(err, "Could not write to tempfile")
+		return errors.Wrap(err, "could not write to tempfile")
 	}
 
 	bi.TempFileName = tmpFile.Name()
@@ -55,5 +55,5 @@ func (bi *BackendInput) RemoveBodyTempFile(forceDeletion bool) error {
 	err := os.Remove(bi.TempFileName)
 	bi.TempFileName = ""
 
-	return errors.Wrap(err, "Could not remove file with [Body] contents")
+	return errors.Wrap(err, "could not remove file with [Body] contents")
 }
