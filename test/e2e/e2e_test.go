@@ -18,11 +18,12 @@ import (
 const testBinaryPath = "./ain_test"
 
 type testDirectives struct {
-	Env      []string
-	Args     []string
-	Stderr   string
-	Stdout   string
-	ExitCode int
+	Env       []string
+	Args      []string
+	AfterArgs []string `yaml:"afterArgs"`
+	Stderr    string
+	Stdout    string
+	ExitCode  int
 }
 
 func addBarsBeforeNewlines(s string) string {
@@ -91,7 +92,10 @@ func runTest(filename string, templateContents []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "./ain_test", append(testDirectives.Args, filename)...)
+	totalArgs := append(testDirectives.Args, filename)
+	totalArgs = append(totalArgs, testDirectives.AfterArgs...)
+
+	cmd := exec.CommandContext(ctx, "./ain_test", totalArgs...)
 	cmd.Env = testDirectives.Env
 	cmd.Env = append(cmd.Env, "PATH="+os.Getenv("PATH"))
 	if os.Getenv("E2EGOCOVERDIR") != "" {

@@ -1,0 +1,24 @@
+[Host]
+localhost
+
+[Backend]
+curl
+
+[Headers]
+var1: ${VAR1}
+var2: ${VAR2}
+
+# This proves that --vars overwrites any set environment vars
+
+# env:
+#   - "VAR1=1"
+# args:
+#   - -p
+# afterArgs:
+#   - "--vars"
+#   - "VAR1=aah"
+#   - "VAR2=2" 
+# stdout: |
+#   curl -H 'var1: aah' \
+#     -H 'var2: 2' \
+#     'localhost'
