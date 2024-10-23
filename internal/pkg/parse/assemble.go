@@ -11,13 +11,20 @@ import (
 	"github.com/jonaslu/ain/internal/pkg/disk"
 )
 
+const editFileSuffix = "!"
+
 func getAllSectionedTemplates(filenames []string) ([]*sectionedTemplate, error) {
 	allSectionedTemplates := []*sectionedTemplate{}
 
 	for _, filename := range filenames {
-		// !! TODO !! The file-name will be displayed as test.ain! <- Remove the exclamation-mark
-		// when setting the file-name2.
-		rawTemplateString, err := disk.ReadRawTemplateString(filename)
+		editFile := false
+
+		if strings.HasSuffix(filename, editFileSuffix) {
+			editFile = true
+			filename = strings.TrimSuffix(filename, editFileSuffix)
+		}
+
+		rawTemplateString, err := disk.ReadRawTemplateString(filename, editFile)
 		if err != nil {
 			return nil, err
 		}

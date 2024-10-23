@@ -4,13 +4,11 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/jonaslu/ain/internal/pkg/utils"
 	"github.com/pkg/errors"
 )
 
-const editFileSuffix = "!"
 const fallbackEditor = "vim"
 
 func captureEditorOutput(tempFile *os.File) (string, error) {
@@ -99,9 +97,9 @@ func readEditedRawTemplateString(sourceTemplateFileName string) (string, error) 
 	return captureEditorOutput(tempFile)
 }
 
-func ReadRawTemplateString(templateFileName string) (string, error) {
-	if strings.HasSuffix(templateFileName, editFileSuffix) {
-		return readEditedRawTemplateString(strings.TrimSuffix(templateFileName, editFileSuffix))
+func ReadRawTemplateString(templateFileName string, editFile bool) (string, error) {
+	if editFile {
+		return readEditedRawTemplateString(templateFileName)
 	}
 
 	fileContents, err := os.ReadFile(templateFileName)
