@@ -1,0 +1,23 @@
+[Host]
+localhost:300$(printf 1)
+
+[Query]
+goat=1
+yak=2
+
+[Config]
+$(bash -c 'exit 1')
+Timeout=1
+QueryDelim=$(yekal)
+
+[Backend]
+curl
+
+# This proves that executables are not run in the [Config] section
+# as bash -c exit 1 would cause a fatal if run.
+# And the QueryDelim is picked up verbatim.
+
+# args:
+#   - -p
+# stdout: |
+#   curl 'localhost:3001?goat=1$(yekal)yak=2'

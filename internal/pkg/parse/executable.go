@@ -26,6 +26,10 @@ func (s *sectionedTemplate) captureExecutableAndArgs() []executableAndArgs {
 	executables := []executableAndArgs{}
 
 	for expandedTemplateLineIndex, expandedTemplateLine := range s.expandedTemplateLines {
+		if expandedTemplateLine.consumed {
+			continue
+		}
+
 		executableTokens, fatal := tokenizeExecutables(expandedTemplateLine.content)
 		if fatal != "" {
 			s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)

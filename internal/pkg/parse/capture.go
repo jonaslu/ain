@@ -112,9 +112,15 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 	var currentSectionHeader string
 	var currentSectionLines *[]sourceMarker
 
-	for expandedSourceIndex, expandedTemplateLine := range s.expandedTemplateLines {
+	for expandedSourceIndex, _ := range s.expandedTemplateLines {
+		expandedTemplateLine := &s.expandedTemplateLines[expandedSourceIndex]
+
 		templateLineText := expandedTemplateLine.getTextContent()
 		templateLineTextTrimmed := strings.TrimSpace(templateLineText)
+
+		if currentSectionHeader != "" {
+			expandedTemplateLine.consumed = true
+		}
 
 		// Discard empty lines, except if it's the [Body] section
 		if currentSectionHeader != bodySection && templateLineTextTrimmed == "" {
@@ -141,6 +147,8 @@ func (s *sectionedTemplate) setCapturedSections(wantedSectionHeadings ...string)
 				headingSourceLineIndex: expandedSourceIndex,
 				sectionLines:           currentSectionLines,
 			})
+
+			expandedTemplateLine.consumed = true
 
 			continue
 		}

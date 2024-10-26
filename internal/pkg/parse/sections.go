@@ -17,6 +17,7 @@ type expandedSourceMarker struct {
 	comment         string
 	sourceLineIndex int
 	expanded        bool
+	consumed        bool
 }
 
 func (e expandedSourceMarker) String() string {
@@ -98,6 +99,11 @@ func (s *sectionedTemplate) expandTemplateLines(
 	newExpandedTemplateLines := []expandedSourceMarker{}
 
 	for _, expandedTemplateLine := range s.expandedTemplateLines {
+		if expandedTemplateLine.consumed {
+			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedTemplateLine)
+			continue
+		}
+
 		tokens, fatal := tokenize(expandedTemplateLine.content)
 
 		if fatal != "" {
