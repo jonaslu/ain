@@ -44,16 +44,16 @@ func main() {
 		return
 	}
 
+	if err := cmdParams.SetEnvVarsAndFilenames(); err != nil {
+		printErrorAndExit(err)
+	}
+
 	if cmdParams.GenerateEmptyTemplate {
-		if err := disk.GenerateEmptyTemplates(); err != nil {
+		if err := disk.GenerateEmptyTemplates(cmdParams.TemplateFileNames); err != nil {
 			printErrorAndExit(err)
 		}
 
 		return
-	}
-
-	if err := cmdParams.SetEnvVarsAndFilenames(); err != nil {
-		printErrorAndExit(err)
 	}
 
 	for _, envVars := range cmdParams.EnvVars {

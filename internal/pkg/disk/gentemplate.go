@@ -1,7 +1,6 @@
 package disk
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -77,13 +76,7 @@ func getPresentBackendBinaries() ([]string, []string) {
 	return presentBackends, usefulBackendOptions
 }
 
-func GenerateEmptyTemplates() error {
-	var templateFileNames []string
-
-	if len(flag.Args()) >= 1 {
-		templateFileNames = flag.Args()
-	}
-
+func GenerateEmptyTemplates(templateFileNames []string) error {
 	presentBackends, usefulBackendOptions := getPresentBackendBinaries()
 	if len(presentBackends) == 0 {
 		presentBackends = []string{`# No backend binaries found, please install at least one.
