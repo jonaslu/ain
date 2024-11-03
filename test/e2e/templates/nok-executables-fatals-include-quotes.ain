@@ -8,7 +8,7 @@ localhost
 # but the content has it removed (see the error-message lacks a `) 
 
 # stderr: |
-#   Fatal error in file: templates/nok-executables-fatals-include-quotes.ain
+#   Fatal error in file: $filename
 #   Unknown backend $(nope) 1 # on line 5:
 #   4   [Backend]
 #   5 > `$(nope) $(printf 1) `# # comment

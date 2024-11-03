@@ -4,7 +4,7 @@ ${VAR
 [Backend]
 
 # stderr: |
-#   Fatal error in file: templates/nok-unterminated-env.ain
+#   Fatal error in file: $filename
 #   Missing closing bracket for environment variable: ${VAR on line 2:
 #   1   [Host]
 #   2 > ${VAR

@@ -10,7 +10,7 @@ localhost
 # env: 
 #   - VAR=1
 # stderr: |
-#   Fatal error in file: templates/nok-env-fatals-include-quotes.ain
+#   Fatal error in file: $filename
 #   Unknown backend ${var} 1 on line 5:
 #   4   [Backend]
 #   5 > `${VAR} ${VAR} # comment

@@ -4,7 +4,7 @@ $(printf "yegga)
 $(printf 'gogga)
 
 # stderr: |
-#   Fatal errors in file: templates/nok-unterminated-exec-and-quote-sequence.ain
+#   Fatal errors in file: $filename
 #   Missing closing parenthesis for executable: $(printf on line 2:
 #   1   [Host]
 #   2 > $(printf

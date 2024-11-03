@@ -81,10 +81,12 @@ func runTest(filename string, templateContents []byte) error {
 
 	testDirectives := testDirectives{}
 	err := yaml.Unmarshal([]byte(strings.Join(directives, "\n")), &testDirectives)
-
 	if err != nil {
 		return errors.New("Could not unmarshal yaml")
 	}
+
+	testDirectives.Stdout = strings.ReplaceAll(testDirectives.Stdout, "$filename", filename)
+	testDirectives.Stderr = strings.ReplaceAll(testDirectives.Stderr, "$filename", filename)
 
 	var stdout, stderr bytes.Buffer
 

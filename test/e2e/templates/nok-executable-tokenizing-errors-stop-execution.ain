@@ -3,7 +3,7 @@ $(unclosed
 $(unclosed
 
 # stderr: |
-#   Fatal errors in file: templates/nok-executable-tokenizing-errors-stop-execution.ain
+#   Fatal errors in file: $filename
 #   Missing closing parenthesis for executable: $(unclosed on line 1:
 #   1 > $(unclosed
 #   2

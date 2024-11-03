@@ -13,7 +13,7 @@ Timeout=${VAR}
 # env:
 #   - VAR=-1
 # stderr: |
-#   Fatal error in file: templates/ok-envvars-allowed-in-config.ain
+#   Fatal error in file: $filename
 #   Timeout interval must be greater than 0 on line 8:
 #   7   [Config]
 #   8 > Timeout=${VAR}
