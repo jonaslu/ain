@@ -1,0 +1,21 @@
+[Host]
+localhost
+
+[Backend]
+httpie
+
+[Headers]
+${CMDPARAMSTEST}
+
+# This proves that a custom .env file is picked up
+# since the CMDPARAMSTEST is defined there
+
+# args:
+#  - -p
+#  - -e
+#  - templates/cmdparams/.envv
+# stdout: |
+#   http '--ignore-stdin' \
+#     'localhost' \
+#     'cmdparams test:1' \
+#     
