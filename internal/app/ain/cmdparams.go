@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const varsFlagStr = "--vars"
+
 func printUsage(appName string, flags []flag) {
 	w := os.Stderr
 
@@ -14,7 +16,7 @@ These can be given on the command line or sent over a pipe.
 
 Project home page: https://github.com/jonaslu/ain`
 
-	fmt.Fprintf(w, "%s\n\nusage: %s [OPTIONS] <template.ain> [--vars VAR=VALUE ...] \n", introMsg, appName)
+	fmt.Fprintf(w, "%s\n\nusage: %s [OPTIONS] <template.ain> ["+varsFlagStr+" VAR=VALUE ...] \n", introMsg, appName)
 	fmt.Fprintf(w, "\nOPTIONS:\n")
 	for _, f := range flags {
 		fmt.Fprintf(w, "  %-22s %s\n", f.flagName, f.usage)
@@ -22,7 +24,7 @@ Project home page: https://github.com/jonaslu/ain`
 
 	fmt.Fprintf(w, "\nARGUMENTS:\n")
 	fmt.Fprintf(w, "  <template.ain>[!]       One or more template files to process. Required\n")
-	fmt.Fprintf(w, "  --vars VAR=VALUE [...]  Values for environment variables, set after <template.ain> file(s)\n")
+	fmt.Fprintf(w, "  "+varsFlagStr+" VAR=VALUE [...]  Values for environment variables, set after <template.ain> file(s)\n")
 }
 
 type flagConsumer func([]string) (found bool, restArgs []string, error error)
@@ -114,7 +116,7 @@ func NewCmdParams() *CmdParams {
 
 		arg := restArgs[0]
 
-		if arg == "--vars" {
+		if arg == varsFlagStr {
 			break
 		}
 
@@ -167,7 +169,7 @@ func (c *CmdParams) SetEnvVarsAndFilenames() error {
 	vars := []string{}
 
 	for _, arg := range c.restArgs {
-		if arg == "--vars" {
+		if arg == varsFlagStr {
 			collectVars = true
 			continue
 		}
@@ -188,7 +190,7 @@ func (c *CmdParams) SetEnvVarsAndFilenames() error {
 	}
 
 	if collectVars && len(c.EnvVars) == 0 {
-		return fmt.Errorf("--vars passed but no environment variables arguments found")
+		return fmt.Errorf(varsFlagStr + " passed but no environment variables arguments found")
 	}
 
 	return nil
