@@ -1,0 +1,4 @@
+# stderr: |
+#    No mandatory [Host] section found
+#    No mandatory [Backend] section found
+# exitcode: 1

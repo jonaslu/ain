@@ -62,7 +62,7 @@ func runTest(filename string, templateContents []byte) error {
 
 	directives := []string{}
 
-	for idx >= 0 {
+	for idx > 0 {
 		idx--
 
 		line := string(lines[idx])
