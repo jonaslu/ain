@@ -11,6 +11,11 @@ tasks:
     cmds:
       - go test ./...
 
+  test:e2e:files:
+    desc: Run e2e tests for these files
+    cmds:
+      - go test test/e2e/e2e_test.go -- {{.CLI_ARGS}}
+
   test:cover:
     desc: Run tests with coverage
     env:

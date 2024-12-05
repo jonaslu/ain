@@ -141,14 +141,30 @@ func runTest(filename string, templateContents []byte) error {
 	return nil
 }
 
-func readTestFiles(templateFolder string) (map[string][]byte, error) {
+func runOneTest(fileName string, t *testing.T) error {
+	testContents, err := os.ReadFile(fileName)
+	if err != nil {
+		return fmt.Errorf("could not read file: %s", err)
+	}
+
+	t.Run(fileName, func(t *testing.T) {
+		err := runTest(fileName, testContents)
+		if err != nil {
+			t.Errorf("%s: %v", fileName, err)
+		}
+	})
+
+	return nil
+}
+
+func readTestFiles(templateFolder string) ([]string, error) {
 	files, err := os.ReadDir(templateFolder)
 
 	if err != nil {
 		return nil, errors.New("could not read directory")
 	}
 
-	testFiles := map[string][]byte{}
+	testFilePaths := []string{}
 
 	for _, file := range files {
 		if file.IsDir() {
@@ -159,11 +175,7 @@ func readTestFiles(templateFolder string) (map[string][]byte, error) {
 				return nil, errors.Join(errors.New("could not read subfolder"+subFolderPath), err)
 			}
 
-			// Merge the subfolder files with the current files
-			for k, v := range subFolderDirs {
-				testFiles[k] = v
-			}
-
+			testFilePaths = append(testFilePaths, subFolderDirs...)
 			continue
 		}
 
@@ -172,23 +184,14 @@ func readTestFiles(templateFolder string) (map[string][]byte, error) {
 			continue
 		}
 
-		res, err := os.ReadFile(fileName)
-		if err != nil {
-			return nil, errors.New("could not read file")
-		}
+		testFilePaths = append(testFilePaths, fileName)
 
-		testFiles[fileName] = res
 	}
 
-	return testFiles, nil
+	return testFilePaths, nil
 }
 
 func Test_main(t *testing.T) {
-	var coverage bool
-
-	flag.BoolVar(&coverage, "coverage", false, "Enable coverage")
-	flag.Parse()
-
 	if err := buildGoBinary(); err != nil {
 		t.Fatalf("Could not build binary")
 		return
@@ -196,18 +199,27 @@ func Test_main(t *testing.T) {
 
 	defer os.Remove(testBinaryPath)
 
+	if len(flag.Args()) > 0 {
+		for _, testToRun := range flag.Args() {
+			if err := runOneTest(testToRun, t); err != nil {
+				t.Fatalf("Could not run test %s, error: %s", testToRun, err)
+				return
+			}
+		}
+
+		return
+	}
+
 	files, err := readTestFiles("templates")
 	if err != nil {
 		t.Fatalf("Could not read test templates")
 		return
 	}
 
-	for filename, testContents := range files {
-		t.Run(filename, func(t *testing.T) {
-			err := runTest(filename, testContents)
-			if err != nil {
-				t.Errorf("%s: %v", filename, err)
-			}
-		})
+	for _, fileName := range files {
+		if err := runOneTest(fileName, t); err != nil {
+			t.Fatalf("Could not run test %s, error: %s", fileName, err)
+			return
+		}
 	}
 }
