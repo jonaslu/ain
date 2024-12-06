@@ -1,0 +1,7 @@
+# Here so yaml parsing stops on the line below
+
+# args:
+#  - -v
+# stdout: |
+#   Ain 1.5.0 (develop) linux/amd64
+#   
