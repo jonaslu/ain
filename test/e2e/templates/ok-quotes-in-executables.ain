@@ -1,0 +1,23 @@
+[Host]
+http://localhost
+
+[Headers]
+DoubleInSingle: $(printf '"')
+SingleInDouble: $(printf "'")
+DoubleInDouble: $(printf "\"")
+SingleInSingle: $(printf '\'')
+
+[Backend]
+curl
+
+# Tests escaping quoting inside quotes. Only
+# applicable inside executables.
+
+# args:
+#   - -p
+# stdout: |
+#   curl -H 'DoubleInSingle: "' \
+#     -H 'SingleInDouble: '"'"'' \
+#     -H 'DoubleInDouble: "' \
+#     -H 'SingleInSingle: '"'"'' \
+#     'http://localhost'
