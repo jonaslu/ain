@@ -5,7 +5,7 @@ Ain is a terminal HTTP API client. It's an alternative to postman, paw or insomn
 
 ![Show and tell](assets/show-and-tell.gif?raw=true)
 
-* Flexible organization of API:s using files and folders.
+* Flexible organization of API:s using files and folders ([examples](https://github.com/jonaslu/ain/tree/main/examples)).
 * Use shell-scripts and executables for common tasks.
 * Put things that change in environment variables or .env-files.
 * Handles url-encoding.
@@ -112,7 +112,7 @@ To run the template specify a `PORT` variable:
 ain basic-template.ain --vars PORT=8080
 ```
 
-See the help for all options ain supports: `ain -h`
+See help for all options: `ain -h` and check out the [examples](https://github.com/jonaslu/ain/tree/main/examples).
 
 # Important concepts
 * Templates: Files containing what, how and where to make the API call. By convention has the file suffix `.ain`.
