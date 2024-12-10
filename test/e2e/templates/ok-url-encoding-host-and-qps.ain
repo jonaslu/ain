@@ -1,0 +1,13 @@
+[Host]
+https://localhost:8080/download/file/dir with%20spaces # %20=<space>
+
+[Query]
+filename=filename with %24$ in it   # %24=$
+
+[Backend]
+curl
+
+# args:
+#   - -p
+# stdout: |
+#   curl 'https://localhost:8080/download/file/dir%20with%20spaces?filename=filename+with+%24%24+in+it'

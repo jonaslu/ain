@@ -485,15 +485,15 @@ This means that you can mix url-encoded text, half encoded text or unencoded tex
 Example:
 ```
 [Host]
-https://localhost:8080/api/finance/ca$h
+https://localhost:8080/download/file/dir with%20spaces # %20=<space>
 
 [Query]
-account=full of ca%24h   # This is already url-encoded (%24 = $)
+filename=filename with %24$ in it   # %24=$
 ```
 
 Will result in the URL:
 ```
-https://localhost:8080/api/finance/ca%24h?account=full+of+ca%24h
+https://localhost:8080/download/file/dir%20with%20spaces?filename=filename+with+%24%24+in+it
 ```
 
 The only caveats is that ain cannot know if a plus sign (+) is an encoded space or an literal plus sign. In this case ain assumes a space and leave the plus sign as is.
