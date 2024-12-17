@@ -12,13 +12,13 @@ EscapingSymbols: `${VAR} `$(exec) `# # comment
 EnvWithExec: ${EXECNOUOTEISEXPANDED} ${EXECQUOTEDNOTEXPANDED}
 
 # The line below proves that neither envvars nor executables needs quoting when returned from an executable
-Exec: $(templates/return-unquoted-envvar.sh) $(templates/return-unquoted-exec.sh)
+Exec: $(templates/escaping/return-unquoted-envvar.sh) $(templates/escaping/return-unquoted-exec.sh)
 
 # The line below proves that comments need escaping in envvars, lest it becomes a comment
 QuotedCommentAndNoQuotedCommentEnv: ${QUOTEDCOMMENT} ${UNQUOTEDCOMMENT}
 
 # The line below proves that comments need escaping in envvars, lest it becomes a comment
-QuotedCommentAndNoQuotedCommentExec: $(templates/return-quoted-comment.sh) $(templates/return-unquoted-comment.sh)
+QuotedCommentAndNoQuotedCommentExec: $(templates/escaping/return-quoted-comment.sh) $(templates/escaping/return-unquoted-comment.sh)
 
 `[Headers] # New supported way with backtick
 \`[Headers] # Literal backtick before the text [Headers]
