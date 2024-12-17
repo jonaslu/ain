@@ -5,22 +5,38 @@ localhost
 curl
 
 [Headers]
-Escaping: `${VAR} `$(exec) `# # comment
-Envexec: ${EXEC} ${EXECQUOTED}
-Exec: $(templates/env.sh) $(templates/exec.sh)
+# The line below proves that quoting the symbols returns the literal string
+EscapingSymbols: `${VAR} `$(exec) `# # comment
+
+# The line below proves that quoting is needed on execs in envvars, otherwise they're expanded
+EnvWithExec: ${EXECNOUOTEISEXPANDED} ${EXECQUOTEDNOTEXPANDED}
+
+# The line below proves that neither envvars nor executables needs quoting when returned from an executable
+Exec: $(templates/return-unquoted-envvar.sh) $(templates/return-unquoted-exec.sh)
+
+# The line below proves that comments need escaping in envvars, lest it becomes a comment
+QuotedCommentAndNoQuotedCommentEnv: ${QUOTEDCOMMENT} ${UNQUOTEDCOMMENT}
+
+# The line below proves that comments need escaping in envvars, lest it becomes a comment
+QuotedCommentAndNoQuotedCommentExec: $(templates/return-quoted-comment.sh) $(templates/return-unquoted-comment.sh)
+
 `[Headers] # New supported way with backtick
 \`[Headers] # Literal backtick before the text [Headers]
 \[Headers] # Old legacy way that will be removed
 
 # env:
-#   - EXEC=$(printf 1)
-#   - EXECQUOTED=`$(exec)
+#   - EXECNOUOTEISEXPANDED=$(printf 1)
+#   - EXECQUOTEDNOTEXPANDED=`$(iwouldfail)
+#   - QUOTEDCOMMENT=`# comment
+#   - UNQUOTEDCOMMENT=# $(fail)
 # args:
 #   - -p
 # stdout: |
-#   curl -H 'Escaping: ${VAR} $(exec) #' \
-#     -H 'Envexec: 1 $(exec)' \
+#   curl -H 'EscapingSymbols: ${VAR} $(exec) #' \
+#     -H 'EnvWithExec: 1 $(iwouldfail)' \
 #     -H 'Exec: ${ENV} $(exec)' \
+#     -H 'QuotedCommentAndNoQuotedCommentEnv: # comment' \
+#     -H 'QuotedCommentAndNoQuotedCommentExec: #' \
 #     -H '[Headers]' \
 #     -H '`[Headers]' \
 #     -H '[Headers]' \
