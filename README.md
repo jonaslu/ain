@@ -186,14 +186,12 @@ $> find . -name *.ain | fzf -m | ain
 
 Template file names specified on the command line are read before names from a pipe. This means that `echo create-blog-post.ain | ain base.ain` is the same as `ain base.ain create-blog-post.ain`.
 
-Ain functions as bash when it comes to file names: if they contain white-space the name must be quoted.
-
 When making the call ain mimics how data is returned by the backend. After printing any internal errors of it's own, ain echoes back output from the backend: first the standard error (stderr) and then the standard out (stdout). It then returns the exit code from the backend command as it's own unless there are error specific to ain in which it returns status 1.
 
 # Supported sections
 Sections are case-insensitive and whitespace ignored but by convention uses CamelCase and are left indented. A section cannot be defined twice in a file. A section ends where the next begins or the file ends.
 
-See [escaping](#escaping) If you need a literal supported section heading on a new line.
+See [escaping](#escaping) If you need a literal section heading on a new line.
 
 ## [Host]
 Contains the URL to the API. This section appends lines from one template file to the next. This feature allows you to specify a base-url in one file (e g `base.ain`) as such: `http://localhost:3000` and in the next template file specify the endpoint path (e g `login.ain`): `/api/auth/login`.
@@ -202,12 +200,12 @@ It's recommended that you use the [[Query]](#Query) section below for query-para
 
 Any query-parameters added in the [[Query]](#Query) section are appended last to the URL. The whole URL is properly [url-encoded](#url-encoding) before passed to the backend. The [Host] section must combine to one and only one valid URL. Multiple URLs is not supported.
 
-Ain performs no validation on the url (as backends differ on what a valid url looks like). If your call fails use `ain -p` as mentioned in [troubleshooting](#troubleshooting) to see what the run command looks like.
+Ain performs no validation on the url (as backends differ on what a valid url looks like). If your call fails use `ain -p` as mentioned in [troubleshooting](#troubleshooting) to see the resulting command.
 
 The [Host] section is mandatory and appends across template files.
 
 ## [Query]
-All lines in the [Query] section is appended to the URL after it has been assembled. This means that you can specify query-parameters that apply to many endpoints in one file instead of having to include the same parameter in all endpoints.
+All lines in the [Query] section is appended last to the resulting URL. This means that you can specify query-parameters that apply to many endpoints in one file instead of having to include the same parameter in all endpoints.
 
 An example is if an `API_KEY=<secret>` query-parameter applies to several endpoints. You can define this in a base-file and simply have the specific endpoint URL and possible extra query-parameters in their own file.
 
@@ -237,16 +235,16 @@ http://localhost:8080/api/blog/post?API_KEY=a922be9f-1aaf-47ef-b70b-b400a3aa386e
 The whitespace in a query key / value is only significant within the string.
 
 This means that `page=3` and `page = 3` will become the same query parameter and `page = the next one` will become `page=the+next+one` when processed. If you need actual spaces between the equal-sign and the key / value strings you need to encode it yourself: e g `page+=+3` or put
-that key-value in the [[Host]](#Host) section where space is significant.
+the key-value in the [[Host]](#Host) section where space is significant.
 
 Each line under the [Query] section is appended with a delimiter. Ain defaults to the query-string delimiter `&`. See the [[Config]](#Config) section for setting a custom delimiter.
 
-All query-parameters are properly url-encoded. See [url-encoding](#url-encoding).
+All query-parameters are properly [url-encoded](#url-encoding).
 
 The [Query] section appends across template files.
 
 ## [Headers]
-Headers to include in the API call.
+Headers to pass to the API. One header per line.
 
 Example:
 ```
@@ -266,14 +264,14 @@ Example:
 POST
 ```
 
-The [Method] section is overridden by latter template files.
+The [Method] section is overridden across template files.
 
 ## [Body]
-If the API call needs a body (as in the POST or PATCH http methods) the content of this section is passed as a file to the backend with formatting retained. Ain uses files to pass the [Body] contents because white-space may be important (e g yaml) and this section tends to be long.
+If the API call needs a body (as in the POST or PATCH http methods) the content of this section is passed as a file to the backend with formatting retained.
 
-The file is removed after the API call unless you pass the `-l` (as in leave) flag. Ain places the file in the $TMPDIR directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting the `$TMPDIR` environment variable.
+The file is removed after the API call unless you pass the `-l` flag. Ain places the file in the $TMPDIR directory (usually `/tmp` on your box). You can override this in your shell by explicitly setting the `$TMPDIR` environment variable.
 
-Passing the print command `-p` (as in print) flag will cause ain to write out the file named ain-body<random-digits> in the directory where ain is invoked and leave the file after completion. Leaving the body file makes the printed command shareable and runnable.
+Passing the print command `-p` flag will cause ain to write out the file named ain-body<random-digits> in the directory where ain is invoked and leave the file after completion. Leaving the body file makes the printed command shareable and runnable.
 
 The [Body] section removes any leading and trailing whitespace lines, but keeps empty newlines between the first and last non-empty line.
 
@@ -321,7 +319,7 @@ The timeout is enforced during the whole execution of ain (both running executab
 ### Query delimiter
 Config format: `QueryDelim=<text>`
 
-This is the delimiter used when concatenating the lines under the [[Query]](#Query) section. It can be any text that does not contain a space including the empty string.
+This is the delimiter used when concatenating the lines under the [[Query]](#Query) section. It can be any text that does not contain a space (including the empty string).
 
 Defaults to (`&`).
 
@@ -339,7 +337,7 @@ curl
 The [Backend] section is mandatory and overwrites across template files.
 
 ## [BackendOptions]
-Backend specific options that are passed on to the backend command invocation.
+Backend specific options that are passed on to the [backend](#backend).
 
 Example:
 ```
@@ -378,7 +376,7 @@ The first word is an command on your $PATH and the rest are arguments to that co
 
 See [escaping](#escaping) for arguments containing closing-parentheses `)`.
 
-Executables are replaced after environment-variables.
+Executables are replaced after environment-variables and only once (an executable returned from an executable will not be processed again).
 
 # Fatals
 Ain has two types of errors: fatals and errors. Errors are things internal to ain (it's not your fault) such as not finding the backend-binary.
