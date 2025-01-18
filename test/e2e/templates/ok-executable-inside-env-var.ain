@@ -1,0 +1,10 @@
+${VAR}
+
+# This proves envvars can return executables
+
+# env:
+#   - "VAR=[Host]\n$(printf localhost)\n$(printf [Backend])\ncurl"
+# args:
+#   - -p
+# stdout: |
+#   curl 'localhost'
