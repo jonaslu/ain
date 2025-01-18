@@ -1,10 +1,12 @@
 ${VAR}
 
 # This proves envvars can return executables
+# Note that \\ is needed to escape the line break as input to printf
 
 # env:
-#   - "VAR=[Host]\n$(printf localhost)\n$(printf [Backend])\ncurl"
+#   - "VAR=[Host]\n$(printf localhost)\n$(printf [Backend])\ncurl\n$(printf '[Headers]\\n')$(printf 'Goat:')$(printf ' yes!')"
 # args:
 #   - -p
 # stdout: |
-#   curl 'localhost'
+#   curl -H 'Goat: yes!' \
+#     'localhost'
