@@ -6,6 +6,11 @@ tasks:
     cmds:
       - go build -o ain cmd/ain/main.go
 
+  build:release:
+    desc: Builds all release binaries
+    cmds:
+      - goreleaser release --clean --snapshot
+
   test:
     desc: Run tests
     cmds:

@@ -1,3 +1,5 @@
+version: 2
+
 before:
   hooks:
     # You may remove this if you don't use go modules.
@@ -32,16 +34,6 @@ archives:
       - README.md
       - LICENSE
     wrap_in_directory: true
-brews:
-  - repository:
-      owner: jonaslu
-      name: homebrew-tools
-    commit_author:
-      name: Jonas Lundberg
-      email: jonasl@iamjonas.me
-    homepage: "https://github.com/jonaslu/ain"
-    description: "Ain is a terminal API client. It's an alternative to postman, paw or insomnia."
-    license: MIT
 scoops:
   - repository:
       owner: jonaslu
