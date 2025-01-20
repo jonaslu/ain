@@ -2,14 +2,24 @@ version: '3'
 
 tasks:
   build:
-    desc: Build the project
+    desc: Build ain as a binary in the root folder
     cmds:
       - go build -o ain cmd/ain/main.go
 
   build:release:
-    desc: Builds all release binaries
+    desc: Builds all release binaries using goreleaser
     cmds:
       - goreleaser release --clean --snapshot
+
+  run:
+    desc: runs develop version of ain with arguments
+    cmds:
+      - go run cmd/ain/main.go {{.CLI_ARGS}}
+
+  run:stdsplit:
+    desc: runs develop version of ain and annotates stdout, stderr
+    cmds:
+      - "go run cmd/ain/main.go {{.CLI_ARGS}} > >(sed 's/^/(o): /') 2> >(sed 's/^/(e): /' >&2)"
 
   test:
     desc: Run tests
@@ -17,7 +27,7 @@ tasks:
       - go test ./...
 
   test:e2e:files:
-    desc: Run e2e tests for these files
+    desc: Run e2e tests for files specified as arguments
     cmds:
       - go test test/e2e/e2e_test.go -- {{.CLI_ARGS}}
 

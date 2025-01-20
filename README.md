@@ -532,19 +532,20 @@ But wait! There's more!
 With ain being terminal friendly there are few neat tricks in the [wiki](https://github.com/jonaslu/ain/wiki)
 
 # Contributing
-I'd love if you want to get your hands dirty and improve ain! Besides the actual patch there are two things needed:
+I'd love if you want to get your hands dirty and improve ain! 
+
+Besides [go](https://go.dev/), ain comes with a [Taskfile](https://taskfile.dev/). Install it and run `task` in the root-folder for tasks relating to build, running and testing ain. 
 
 ## Commit messages
-Commit messages should reflect why the change is needed, how the patch solves it and any other background information.
-Small focused commits are by far preferable to big blobs unless absolutely necessary. All commits should include a [test plan](https://www.iamjonas.me/2021/04/the-test-plan.html) section. When only automatic tests then it should say you've run them and it did what you expected.
+Commit messages should describe why the change is needed, how the patch solves it and any other background information. Small focused commits are preferable to big blobs. All commits should include a [test plan](https://www.iamjonas.me/2021/04/the-test-plan.html) last in the message.
 
 Background here: [atomic literate commits](https://www.iamjonas.me/2021/01/literate-atomic-commits.html)
 
 ## Testing
-Improving anything involves proving that it's actually an improvement. Adding a patch to ain there are 3 ways to prove this. 
+Any PR modifying code should include verification of changes using tests.
 
 ### End to end tests
-The preferred way is adding or extending an end-to-end test. The tests reside in the folder or sub-folder of `test/e2e/templates` . The main end-to-end task runner is the `test/e2e/e2e_test.go`file. An end-to-end test case is a plain runnable .ain file. By convention ok-{test-name}.ain is used for successful tests and nok-{test-name}.ain for testing failures.
+Ain comes with a battery of end-to-end tests which is the preferable way to verify. The tests reside in the folder or sub-folder of `test/e2e/templates`. The main end-to-end task runner is the `test/e2e/e2e_test.go`file. An end-to-end test case is a plain runnable .ain file. By convention ok-{test-name}.ain is used for successful tests and nok-{test-name}.ain for testing failures.
 
 Yaml is added as comments last in the file, with at lest one empty row between the last section and the yaml, and used by the test runner to validate the output.
 
@@ -560,12 +561,12 @@ exitcode:  <- (int) compared with the test binary exit code. Defaults to 0
 
 Feel free to add more comments with explanation on the verification.
 
-When adding a test case also check the coverage (`task test:cover`) and verify your patch has been touched by tests.
+When adding a test case check the coverage (`task test:cover`) and verify your patch has been touched by tests.
 
 ### Unit tests
-If the patch involves just one or a few methods and it's by far easier to test it in isolation then add a unit-test in the same folder as the method under test.
+If the patch involves just one or a few methods and it's far easier to test it in isolation then add a unit-test in the same folder as the method under test.
 
 ### Test plan
-The third option is documenting any manual testing. Last in the commit message add a [test plan](https://www.iamjonas.me/2021/04/the-test-plan.html) section and with one bullet point for each test-case add: setup, execution and verification. Usage of coverage is encouraged so every part of the patch is properly tested.
+The third option is documenting any manual testing. Last in the commit message add a [test plan](https://www.iamjonas.me/2021/04/the-test-plan.html) with one bullet point for each test-case add: setup, execution and verification. Usage of coverage is encouraged so every part of the patch is properly tested.
 
 For a TL;DR; do a `git log` and see the commit history.
