@@ -20,7 +20,7 @@ const testBinaryPath = "./ain_test"
 type testDirectives struct {
 	Env       []string
 	Args      []string
-	AfterArgs []string `yaml:"afterArgs"`
+	AfterArgs []string `yaml:"afterargs"`
 	Stderr    string
 	Stdout    string
 	ExitCode  int

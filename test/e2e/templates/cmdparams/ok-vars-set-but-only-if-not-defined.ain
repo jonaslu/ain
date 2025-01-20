@@ -14,7 +14,7 @@ var2: ${VAR2}
 #   - "VAR1=1"
 # args:
 #   - -p
-# afterArgs:
+# afterargs:
 #   - "--vars"
 #   - "VAR1=aah"
 #   - "VAR2=2" 
