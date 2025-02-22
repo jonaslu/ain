@@ -1,0 +1,17 @@
+[Host]
+localhost
+
+[Method]
+POST
+PUT
+
+[Backend]
+wget
+
+# stderr: |
+#   Fatal error in file: $filename
+#   Found several lines under [Method] on line 5:
+#   4   [Method]
+#   5 > POST
+#   6   PUT
+# exitcode: 1
