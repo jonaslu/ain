@@ -55,5 +55,9 @@ func (bi *BackendInput) RemoveBodyTempFile(forceDeletion bool) error {
 	err := os.Remove(bi.TempFileName)
 	bi.TempFileName = ""
 
-	return errors.Wrap(err, "could not remove file with [Body] contents")
+	if err != nil {
+		return errors.Wrap(err, "could not remove file with [Body] contents")
+	}
+
+	return nil
 }
