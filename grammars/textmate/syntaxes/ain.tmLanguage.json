@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ain",
+  "patterns": [
+    {
+      "include": "#keywords"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.header.ain",
+          "match": "(?i)^\\s*\\[(config|host|query|headers|method|body|backend|backendoptions)\\]\\s*(?=(?<!`)#|$)"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.ain"
+}
