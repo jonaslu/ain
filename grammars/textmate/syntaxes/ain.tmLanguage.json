@@ -4,6 +4,9 @@
   "patterns": [
     {
       "include": "#keywords"
+    },
+    {
+      "include": "#comments"
     }
   ],
   "repository": {
@@ -12,6 +15,14 @@
         {
           "name": "keyword.control.header.ain",
           "match": "(?i)^\\s*\\[(config|host|query|headers|method|body|backend|backendoptions)\\]\\s*(?=(?<!`)#|$)"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.ain",
+          "match": "(?<!`)#.*$"
         }
       ]
     }
