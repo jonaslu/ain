@@ -3,18 +3,38 @@
   "name": "ain",
   "patterns": [
     {
-      "include": "#keywords"
+      "include": "#headings"
+    },
+    {
+      "include": "#envvars"
     },
     {
       "include": "#comments"
     }
   ],
   "repository": {
-    "keywords": {
+    "headings": {
       "patterns": [
         {
           "name": "keyword.control.header.ain",
           "match": "(?i)^\\s*\\[(config|host|query|headers|method|body|backend|backendoptions)\\]\\s*(?=(?<!`)#|$)"
+        }
+      ]
+    },
+    "envvars": {
+      "name": "keyword.other.envvar.ain",
+      "begin": "(?<!`)\\$\\{",
+      "beginCaptures": {
+        "0": { "name": "punctuation.section.interpolation.begin.custom" }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": { "name": "punctuation.section.interpolation.end.custom" }
+      },
+      "patterns": [
+        {
+          "name": "keyword.other.envvar.ain",
+          "match": "`\\}|`\\$\\{"
         }
       ]
     },
