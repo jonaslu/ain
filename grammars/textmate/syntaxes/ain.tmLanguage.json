@@ -9,6 +9,9 @@
       "include": "#envvars"
     },
     {
+      "include": "#executables"
+    },
+    {
       "include": "#comments"
     }
   ],
@@ -34,7 +37,46 @@
       "patterns": [
         {
           "name": "keyword.other.envvar.ain",
-          "match": "`\\}|`\\$\\{"
+          "match": "`\\}"
+        }
+      ]
+    },
+    "executables": {
+      "name": "entity.name.class",
+      "begin": "(?<!`)\\$\\(",
+      "beginCaptures": {
+        "0": { "name": "punctuation.section.interpolation.begin.custom" }
+      },
+      "end": "\\)",
+      "endCaptures": {
+        "0": { "name": "punctuation.section.interpolation.end.custom" }
+      },
+      "patterns": [
+        {
+          "match": "`\\)",
+          "name": "entity.name.class"
+        },
+        {
+          "begin": "'",
+          "end": "'",
+          "name": "string.quoted.single.custom",
+          "patterns": [
+            {
+              "match": "\\\\'",
+              "name": "constant.character.escape.custom"
+            }
+          ]
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.custom",
+          "patterns": [
+            {
+              "match": "\\\\\"",
+              "name": "constant.character.escape.custom"
+            }
+          ]
         }
       ]
     },
