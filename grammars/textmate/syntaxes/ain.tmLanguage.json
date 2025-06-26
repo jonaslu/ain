@@ -6,6 +6,9 @@
       "include": "#headings"
     },
     {
+      "include": "#escapes"
+    },
+    {
       "include": "#envvars"
     },
     {
@@ -24,9 +27,29 @@
         }
       ]
     },
+    "escapes": {
+      "patterns": [
+        {
+          "name": "source.ain",
+          "match": "\\\\`"
+        },
+        {
+          "name": "source.ain",
+          "match": "`\\$\\{"
+        },
+        {
+          "name": "source.ain",
+          "match": "`\\$\\("
+        },
+        {
+          "name": "source.ain",
+          "match": "`#"
+        }
+      ]
+    },
     "envvars": {
       "name": "keyword.other.envvar.ain",
-      "begin": "(?<!`)\\$\\{",
+      "begin": "\\$\\{",
       "beginCaptures": {
         "0": { "name": "punctuation.section.interpolation.begin.custom" }
       },
@@ -43,7 +66,7 @@
     },
     "executables": {
       "name": "entity.name.class",
-      "begin": "(?<!`)\\$\\(",
+      "begin": "\\$\\(",
       "beginCaptures": {
         "0": { "name": "punctuation.section.interpolation.begin.custom" }
       },
@@ -84,7 +107,7 @@
       "patterns": [
         {
           "name": "comment.line.number-sign.ain",
-          "match": "(?<!`)#.*$"
+          "match": "#.*$"
         }
       ]
     }
