@@ -9,8 +9,15 @@ highlight link ainHeading Keyword
 
 " Escapes
 syntax match ainEscape /\\`/
+syntax match ainEscape /`\${/
 syntax match ainEscape /`#/
 highlight link ainEscape Normal
+
+" Envvars: ${VAR}
+syntax region ainEnvvar start=+\${+ end=+}+ contains=ainEnvvarEscape
+syntax match ainEnvvarEscape /`}/ contained
+highlight link ainEnvvar Keyword
+highlight link ainEnvvarEscape Keyword
 
 " Comments
 syntax match ainComment /#.*/
