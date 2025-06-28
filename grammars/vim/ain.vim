@@ -8,6 +8,7 @@ syntax match ainHeading /^\s*\[\(config\|host\|query\|headers\|method\|body\|bac
 highlight link ainHeading Keyword
 
 " Escapes
+syntax match ainEscape /\\`/
 syntax match ainEscape /`#/
 highlight link ainEscape Normal
 
