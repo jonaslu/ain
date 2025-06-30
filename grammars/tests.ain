@@ -12,7 +12,7 @@
 [backendoptions]
 
 ## Nok
-[host] \`               # but not with 
+[host] \`#              # escaped comment
 [host] [host]           # two on a line
 [config] but not text
 or before [config]

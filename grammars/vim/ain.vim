@@ -21,29 +21,32 @@ syntax match ainEnvvarEndEscape /`}/ contained
 highlight link ainEnvvar Keyword
 highlight link ainEnvvarEndEscape Keyword
 
+syntax match ainEscapeContained /\\`/ contained
+syntax match ainEnvvarEscapeContained /`\${/ contained
+
 " Executables: $(command)
-syntax region ainExec start=+\$(+ end=+)+ contains=ainEscape,ainEnvvarEscape,ainEnvvar,ainExecEscape,ainSQ,ainDQ
+syntax region ainExec start=+\$(+ end=+)+ contains=ainEscapeContained,ainEnvvarEscapeContained,ainEnvvar,ainExecEscape,ainSQ,ainDQ
 syntax match ainExecEscape /`)/ contained
 highlight link ainExec Identifier
 highlight link ainExecEscape Identifier
-highlight link ainEnvvarEscape Identifier
-highlight link ainEscape Identifier
+highlight link ainEnvvarEscapeContained Identifier
+highlight link ainEscapeContained Identifier
 
 " Single-quoted strings inside executables
-syntax region ainSQ start=+'+ end=+'+ contains=ainEscape,ainEnvvarEscape,ainEnvvar,ainSQEscape contained
+syntax region ainSQ start=+'+ end=+'+ contains=ainEscapeContained,ainEnvvarEscapeContained,ainEnvvar,ainSQEscape contained
 syntax match ainSQEscape /\\'/ contained
 highlight link ainSQ String
 highlight link ainSQEscape String
-highlight link ainEnvvarEscape String
-highlight link ainEscape String
+highlight link ainEnvvarEscapeContained String
+highlight link ainEscapeContained String
 
 " Double-quoted strings inside executables
-syntax region ainDQ start=+"+ end=+"+ contains=ainEscape,ainEnvvarEscape,ainEnvvar,ainDQEscape contained
+syntax region ainDQ start=+"+ end=+"+ contains=ainEscapeContained,ainEnvvarEscapeContained,ainEnvvar,ainDQEscape contained
 syntax match ainDQEscape /\\"/ contained
 highlight link ainDQ String
 highlight link ainDQEscape String
-highlight link ainEnvvarEscape String
-highlight link ainEscape String
+highlight link ainEnvvarEscapeContained String
+highlight link ainEscapeContained String
 
 " Comments # comment
 syntax match ainComment /#.*/
