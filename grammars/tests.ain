@@ -1,0 +1,41 @@
+# Headings
+## Ok
+[hOst]
+[HOST]                  # Weird casing alone and with comments
+[config]
+[hOst]
+[quEry]
+[heaDers]
+[methOd]
+[bODY]
+[bACKEND]
+[backendoptions]
+
+## Nok
+[host] \`               # but not with 
+[host] [host]           # two on a line
+[config] but not text
+or before [config]
+`[headers]              # literal section header as text
+
+# Envvars
+${VAR1} text ${VAR2}    # two on a line
+${VAR`}Z} text          # escaped end bracket
+`${VAR}                 # escaped envvar
+\`${VAR}                # literal backtick before envvar
+
+# Executables
+$(exec arg1) text $(exec arg2)              # two on a line
+$(exec `) ab)                               # escaped end parenthesis
+$(exec ab "aljfk()" cd 'alkj()' ef arg2)    # parenthesis inside quoted strings
+$(exec '"' ab '"' 123 "\"" cd '\'' ef)      # escaping single and double quotes
+$(exec ${VAR} ab `${VAR} cd \`${VAR} ef)    # envvars works as outside within executables
+$(exec "${VAR} ab `${VAR} cd \`${VAR}" ef)  # envvars works as outside within double quotes in executables
+$(exec '${VAR} ab `${VAR} cd \`${VAR}' ef)  # envvars works as outside within single quotes in executables
+`$(exec)                                    # escaped executable
+\`$(exec)                                   # literal backtick before executable
+
+# Comments
+# I'm a comment and I'm ok
+text `# not a comment # but I am
+text \`# Literal backtick before a comment
