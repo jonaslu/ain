@@ -76,6 +76,17 @@
       },
       "patterns": [
         {
+          "name": "source.ain",
+          "match": "\\\\`"
+        },
+        {
+          "name": "source.ain",
+          "match": "`\\$\\{"
+        },
+        {
+          "include": "#envvars"
+        },
+        {
           "match": "`\\)",
           "name": "entity.name.class"
         },
@@ -84,6 +95,17 @@
           "end": "'",
           "name": "string.quoted.single.custom",
           "patterns": [
+            {
+              "name": "string.quoted.double.custom",
+              "match": "\\\\`"
+            },
+            {
+              "name": "string.quoted.single.custom",
+              "match": "`\\$\\{"
+            },
+            {
+              "include": "#envvars"
+            },
             {
               "match": "\\\\'",
               "name": "constant.character.escape.custom"
@@ -95,6 +117,17 @@
           "end": "\"",
           "name": "string.quoted.double.custom",
           "patterns": [
+            {
+              "name": "string.quoted.double.custom",
+              "match": "\\\\`"
+            },
+            {
+              "name": "string.quoted.double.custom",
+              "match": "`\\$\\{"
+            },
+            {
+              "include": "#envvars"
+            },
             {
               "match": "\\\\\"",
               "name": "constant.character.escape.custom"
