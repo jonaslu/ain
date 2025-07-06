@@ -22,7 +22,7 @@
     "headings": {
       "patterns": [
         {
-          "name": "keyword.control.header.ain",
+          "name": "entity.name.tag.section.ain",
           "match": "(?i)^\\s*\\[(config|host|query|headers|method|body|backend|backendoptions)\\]\\s*(?=(?<!`)#|$)"
         }
       ]
@@ -48,7 +48,7 @@
       ]
     },
     "envvars": {
-      "name": "keyword.other.envvar.ain",
+      "name": "variable.other.envvar.ain",
       "begin": "\\$\\{",
       "beginCaptures": {
         "0": { "name": "punctuation.section.interpolation.begin.custom" }
@@ -65,7 +65,7 @@
       ]
     },
     "executables": {
-      "name": "entity.name.class",
+      "name": "support.function.executable.ain",
       "begin": "\\$\\(",
       "beginCaptures": {
         "0": { "name": "punctuation.section.interpolation.begin.custom" }
