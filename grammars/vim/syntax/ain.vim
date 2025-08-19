@@ -18,8 +18,8 @@ highlight link ainEnvvarEscape Normal
 " Envvars: ${VAR}
 syntax region ainEnvvar start=+\${+ end=+}+ contains=ainEnvvarEndEscape
 syntax match ainEnvvarEndEscape /`}/ contained
-highlight link ainEnvvar Keyword
-highlight link ainEnvvarEndEscape Keyword
+highlight link ainEnvvar Identifier
+highlight link ainEnvvarEndEscape Identifier
 
 syntax match ainEscapeContained /\\`/ contained
 syntax match ainEnvvarEscapeContained /`\${/ contained
@@ -27,10 +27,10 @@ syntax match ainEnvvarEscapeContained /`\${/ contained
 " Executables: $(command)
 syntax region ainExec start=+\$(+ end=+)+ contains=ainEscapeContained,ainEnvvarEscapeContained,ainEnvvar,ainExecEscape,ainSQ,ainDQ
 syntax match ainExecEscape /`)/ contained
-highlight link ainExec Identifier
-highlight link ainExecEscape Identifier
-highlight link ainEnvvarEscapeContained Identifier
-highlight link ainEscapeContained Identifier
+highlight link ainExec Type
+highlight link ainExecEscape Type
+highlight link ainEnvvarEscapeContained Type
+highlight link ainEscapeContained Type
 
 " Single-quoted strings inside executables
 syntax region ainSQ start=+'+ end=+'+ contains=ainEscapeContained,ainEnvvarEscapeContained,ainEnvvar,ainSQEscape contained
