@@ -1,5 +1,5 @@
 [Host]
-https://httpstat.us/201
+https://mock.httpstatus.io/201
 
 [Backend]
 wget

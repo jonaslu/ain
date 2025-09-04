@@ -1,5 +1,5 @@
 [Host]
-https://httpstat.us/202
+https://mock.httpstatus.io/202
 
 [Backend]
 httpie

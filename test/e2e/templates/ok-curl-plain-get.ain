@@ -1,5 +1,5 @@
 [Host]
-https://httpstat.us/200
+https://mock.httpstatus.io/200
 
 [Backend]
 curl
