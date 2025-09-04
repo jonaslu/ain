@@ -92,9 +92,98 @@ func (s *sectionedTemplate) getNamedSection(sectionHeader string) *[]sourceMarke
 	return &[]sourceMarker{}
 }
 
+func (s *sectionedTemplate) processLineTokens(
+	tokens,
+	fatalTokens []token,
+	tokenIterator func(t token) (string, string),
+	sourceLineIndex int,
+	existingComment string,
+	alreadyExpanded bool,
+) []expandedSourceMarker {
+	newExpandedTemplateLines := []expandedSourceMarker{}
+
+	content := ""
+	fatalContent := ""
+
+	comment := ""
+	expanded := false
+
+	// Range over the lines tokens
+	for tokenIdx, token := range tokens {
+		if token.tokenType == textToken {
+			// Remove the escaping of `${ - because now it's ok to return
+			// `${ and it'll be verbatim this from now on. So if a script
+			// (or an env-var) contains that sequence it should not be erased
+			// anymore.
+			content += token.content
+			fatalContent += fatalTokens[tokenIdx].fatalContent
+
+			continue
+		}
+
+		value, fatal := tokenIterator(token)
+		if fatal != "" {
+			s.setFatalMessage(fatal, sourceLineIndex)
+			continue
+		}
+
+		if s.hasFatalMessages() {
+			// If there are errors the stuff below is busywork
+			// Since we won't set any new expanded template lines
+			// if there are fatals
+			continue
+		}
+
+		expanded = true
+
+		value = strings.ReplaceAll(value, "\r\n", "\n")
+		newLines := strings.Split(value, "\n")
+
+		valueText, valueComment := splitTextOnComment(newLines[0])
+
+		content += valueText
+		fatalContent += valueText
+		comment = valueComment
+
+		for _, newLine := range newLines[1:] {
+			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
+				content:         content,
+				fatalContent:    fatalContent,
+				comment:         valueComment,
+				sourceLineIndex: sourceLineIndex,
+				expanded:        true,
+			})
+
+			valueText, valueComment := splitTextOnComment(newLine)
+
+			content = valueText
+			fatalContent = valueText
+			comment = valueComment
+		}
+
+		if comment != "" {
+			for _, restToken := range tokens[tokenIdx+1:] {
+				comment += restToken.fatalContent
+			}
+
+			break
+		}
+	}
+
+	newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
+		content:         content,
+		fatalContent:    fatalContent,
+		comment:         comment + existingComment,
+		sourceLineIndex: sourceLineIndex,
+		expanded:        alreadyExpanded || expanded,
+	})
+
+	return newExpandedTemplateLines
+}
+
 func (s *sectionedTemplate) expandTemplateLines(
-	tokenize func(string) ([]token, string),
-	iterator func(t token) (string, string),
+	tokenizer func(string) ([]token, string),
+	tokenIterator func(t token) (string, string),
 ) {
 	newExpandedTemplateLines := []expandedSourceMarker{}
 
@@ -104,94 +193,29 @@ func (s *sectionedTemplate) expandTemplateLines(
 			continue
 		}
 
-		tokens, fatal := tokenize(expandedTemplateLine.content)
-
+		tokens, fatal := tokenizer(expandedTemplateLine.content)
 		if fatal != "" {
 			s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)
 			continue
 		}
 
-		fatalTokens, fatal := tokenize(expandedTemplateLine.fatalContent)
+		fatalTokens, fatal := tokenizer(expandedTemplateLine.fatalContent)
 		if fatal != "" {
 			fmt.Fprintf(os.Stderr, "Internal error tokenizing fatals: %s\n", fatal)
 			os.Exit(1)
 		}
 
-		content := ""
-		fatalContent := ""
+		// One token might return several lines
+		expandedLinesFromTokens := s.processLineTokens(
+			tokens,
+			fatalTokens,
+			tokenIterator,
+			expandedTemplateLine.sourceLineIndex,
+			expandedTemplateLine.comment,
+			expandedTemplateLine.expanded,
+		)
 
-		comment := ""
-		expanded := false
-
-		for tokenIdx, token := range tokens {
-			if token.tokenType == textToken {
-				// Remove the escaping of `${ - because now it's ok to return
-				// `${ and it'll be verbatim this from now on. So if a script
-				// (or an env-var) contains that sequence it should not be erased
-				// anymore.
-				content += token.content
-				fatalContent += fatalTokens[tokenIdx].fatalContent
-
-				continue
-			}
-
-			value, fatal := iterator(token)
-
-			if fatal != "" {
-				s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)
-				continue
-			}
-
-			if s.hasFatalMessages() {
-				// If there are errors the stuff below is busywork
-				// Since we won't set any new expanded template lines
-				// if there are fatals
-				continue
-			}
-
-			expanded = true
-
-			value = strings.ReplaceAll(value, "\r\n", "\n")
-			newLines := strings.Split(value, "\n")
-
-			valueText, valueComment := splitTextOnComment(newLines[0])
-
-			content += valueText
-			fatalContent += valueText
-			comment = valueComment
-
-			for _, newLine := range newLines[1:] {
-				newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
-					content:         content,
-					fatalContent:    fatalContent,
-					comment:         valueComment,
-					sourceLineIndex: expandedTemplateLine.sourceLineIndex,
-					expanded:        true,
-				})
-
-				valueText, valueComment := splitTextOnComment(newLine)
-
-				content = valueText
-				fatalContent = valueText
-				comment = valueComment
-			}
-
-			if comment != "" {
-				for _, restToken := range tokens[tokenIdx+1:] {
-					comment += restToken.fatalContent
-				}
-
-				break
-			}
-		}
-
-		newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
-			content:         content,
-			fatalContent:    fatalContent,
-			comment:         comment + expandedTemplateLine.comment,
-			sourceLineIndex: expandedTemplateLine.sourceLineIndex,
-			expanded:        expandedTemplateLine.expanded || expanded,
-		})
+		newExpandedTemplateLines = append(newExpandedTemplateLines, expandedLinesFromTokens...)
 	}
 
 	if !s.hasFatalMessages() {
