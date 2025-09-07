@@ -96,9 +96,7 @@ func (s *sectionedTemplate) processLineTokens(
 	tokens,
 	fatalTokens []token,
 	tokenIterator func(t token) (string, string),
-	sourceLineIndex int,
-	existingComment string,
-	alreadyExpanded bool,
+	expandedTemplateLine expandedSourceMarker,
 ) []expandedSourceMarker {
 	newExpandedTemplateLines := []expandedSourceMarker{}
 
@@ -123,14 +121,15 @@ func (s *sectionedTemplate) processLineTokens(
 
 		value, fatal := tokenIterator(token)
 		if fatal != "" {
-			s.setFatalMessage(fatal, sourceLineIndex)
+			s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)
 			continue
 		}
 
 		if s.hasFatalMessages() {
-			// If there are errors the stuff below is busywork
-			// Since we won't set any new expanded template lines
-			// if there are fatals
+			// Fatals relates to the current expanded lines,
+			// and not the new we're making. Avoid the computation
+			// below but keep iterating over tokens so
+			// we report all fatals on this line
 			continue
 		}
 
@@ -150,7 +149,7 @@ func (s *sectionedTemplate) processLineTokens(
 				content:         content,
 				fatalContent:    fatalContent,
 				comment:         valueComment,
-				sourceLineIndex: sourceLineIndex,
+				sourceLineIndex: expandedTemplateLine.sourceLineIndex,
 				expanded:        true,
 			})
 
@@ -173,9 +172,9 @@ func (s *sectionedTemplate) processLineTokens(
 	newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
 		content:         content,
 		fatalContent:    fatalContent,
-		comment:         comment + existingComment,
-		sourceLineIndex: sourceLineIndex,
-		expanded:        alreadyExpanded || expanded,
+		comment:         comment + expandedTemplateLine.comment,
+		sourceLineIndex: expandedTemplateLine.sourceLineIndex,
+		expanded:        expandedTemplateLine.expanded || expanded,
 	})
 
 	return newExpandedTemplateLines
@@ -210,9 +209,7 @@ func (s *sectionedTemplate) expandTemplateLines(
 			tokens,
 			fatalTokens,
 			tokenIterator,
-			expandedTemplateLine.sourceLineIndex,
-			expandedTemplateLine.comment,
-			expandedTemplateLine.expanded,
+			expandedTemplateLine,
 		)
 
 		newExpandedTemplateLines = append(newExpandedTemplateLines, expandedLinesFromTokens...)
