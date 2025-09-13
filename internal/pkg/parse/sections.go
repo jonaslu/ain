@@ -92,7 +92,7 @@ func (s *sectionedTemplate) getNamedSection(sectionHeader string) *[]sourceMarke
 	return &[]sourceMarker{}
 }
 
-func splitValueOnNewlines(value string, currentLine expandedSourceMarker) (newExpandedTemplateLines []expandedSourceMarker) {
+func splitValueOnNewlines(value string, currentLine expandedSourceMarker) (splitLines []expandedSourceMarker, lastLine expandedSourceMarker) {
 	value = strings.ReplaceAll(value, "\r\n", "\n")
 	newLines := strings.Split(value, "\n")
 
@@ -103,7 +103,7 @@ func splitValueOnNewlines(value string, currentLine expandedSourceMarker) (newEx
 	currentLine.comment = valueComment
 
 	for _, newLine := range newLines[1:] {
-		newExpandedTemplateLines = append(newExpandedTemplateLines, currentLine)
+		splitLines = append(splitLines, currentLine)
 		currentLine = expandedSourceMarker{sourceLineIndex: currentLine.sourceLineIndex, expanded: true}
 
 		valueText, valueComment := splitTextOnComment(newLine)
@@ -113,7 +113,7 @@ func splitValueOnNewlines(value string, currentLine expandedSourceMarker) (newEx
 		currentLine.comment = valueComment
 	}
 
-	return append(newExpandedTemplateLines, currentLine)
+	return splitLines, currentLine
 }
 
 func (s *sectionedTemplate) processLineTokens(
@@ -123,7 +123,7 @@ func (s *sectionedTemplate) processLineTokens(
 	previousLine expandedSourceMarker,
 ) []expandedSourceMarker {
 	currentLine := expandedSourceMarker{sourceLineIndex: previousLine.sourceLineIndex, expanded: previousLine.expanded}
-	newExpandedTemplateLines := []expandedSourceMarker{}
+	expandedLines := []expandedSourceMarker{}
 
 	// Range over the lines tokens
 	for tokenIdx, token := range tokens {
@@ -154,12 +154,15 @@ func (s *sectionedTemplate) processLineTokens(
 
 		currentLine.expanded = true
 
-		splitOnLineMarkers := splitValueOnNewlines(value, currentLine)
-		newExpandedTemplateLines = append(newExpandedTemplateLines, splitOnLineMarkers[:len(splitOnLineMarkers)-1]...)
-		currentLine = splitOnLineMarkers[len(splitOnLineMarkers)-1]
+		// Append any split lines and set the current line to the last
+		var splitLines []expandedSourceMarker
+		splitLines, currentLine = splitValueOnNewlines(value, currentLine)
+		expandedLines = append(expandedLines, splitLines...)
 
+		// If a comment was inserted the rest of the line now becomes part of that comment
 		if currentLine.comment != "" {
 			for _, restToken := range tokens[tokenIdx+1:] {
+				// Use fatalContent because this keeps escaped characters
 				currentLine.comment += restToken.fatalContent
 			}
 			break
@@ -167,30 +170,30 @@ func (s *sectionedTemplate) processLineTokens(
 	}
 
 	currentLine.comment += previousLine.comment
-	newExpandedTemplateLines = append(newExpandedTemplateLines, currentLine)
+	expandedLines = append(expandedLines, currentLine)
 
-	return newExpandedTemplateLines
+	return expandedLines
 }
 
 func (s *sectionedTemplate) expandTemplateLines(
 	tokenizer func(string) ([]token, string),
 	tokenIterator func(t token) (string, string),
 ) {
-	newExpandedTemplateLines := []expandedSourceMarker{}
+	expandedLines := []expandedSourceMarker{}
 
-	for _, expandedTemplateLine := range s.expandedTemplateLines {
-		if expandedTemplateLine.consumed {
-			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedTemplateLine)
+	for _, currentLine := range s.expandedTemplateLines {
+		if currentLine.consumed {
+			expandedLines = append(expandedLines, currentLine)
 			continue
 		}
 
-		tokens, fatal := tokenizer(expandedTemplateLine.content)
+		tokens, fatal := tokenizer(currentLine.content)
 		if fatal != "" {
-			s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)
+			s.setFatalMessage(fatal, currentLine.sourceLineIndex)
 			continue
 		}
 
-		fatalTokens, fatal := tokenizer(expandedTemplateLine.fatalContent)
+		fatalTokens, fatal := tokenizer(currentLine.fatalContent)
 		if fatal != "" {
 			fmt.Fprintf(os.Stderr, "Internal error tokenizing fatals: %s\n", fatal)
 			os.Exit(1)
@@ -201,14 +204,14 @@ func (s *sectionedTemplate) expandTemplateLines(
 			tokens,
 			fatalTokens,
 			tokenIterator,
-			expandedTemplateLine,
+			currentLine,
 		)
 
-		newExpandedTemplateLines = append(newExpandedTemplateLines, expandedLinesFromTokens...)
+		expandedLines = append(expandedLines, expandedLinesFromTokens...)
 	}
 
 	if !s.hasFatalMessages() {
-		s.expandedTemplateLines = newExpandedTemplateLines
+		s.expandedTemplateLines = expandedLines
 	}
 }
 
