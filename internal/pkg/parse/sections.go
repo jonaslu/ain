@@ -92,19 +92,38 @@ func (s *sectionedTemplate) getNamedSection(sectionHeader string) *[]sourceMarke
 	return &[]sourceMarker{}
 }
 
+func splitValueOnNewlines(value string, currentLine expandedSourceMarker) (newExpandedTemplateLines []expandedSourceMarker) {
+	value = strings.ReplaceAll(value, "\r\n", "\n")
+	newLines := strings.Split(value, "\n")
+
+	valueText, valueComment := splitTextOnComment(newLines[0])
+
+	currentLine.content += valueText
+	currentLine.fatalContent += valueText
+	currentLine.comment = valueComment
+
+	for _, newLine := range newLines[1:] {
+		newExpandedTemplateLines = append(newExpandedTemplateLines, currentLine)
+		currentLine = expandedSourceMarker{sourceLineIndex: currentLine.sourceLineIndex, expanded: true}
+
+		valueText, valueComment := splitTextOnComment(newLine)
+
+		currentLine.content = valueText
+		currentLine.fatalContent = valueText
+		currentLine.comment = valueComment
+	}
+
+	return append(newExpandedTemplateLines, currentLine)
+}
+
 func (s *sectionedTemplate) processLineTokens(
 	tokens,
 	fatalTokens []token,
 	tokenIterator func(t token) (string, string),
-	expandedTemplateLine expandedSourceMarker,
+	previousLine expandedSourceMarker,
 ) []expandedSourceMarker {
+	currentLine := expandedSourceMarker{sourceLineIndex: previousLine.sourceLineIndex, expanded: previousLine.expanded}
 	newExpandedTemplateLines := []expandedSourceMarker{}
-
-	content := ""
-	fatalContent := ""
-
-	comment := ""
-	expanded := false
 
 	// Range over the lines tokens
 	for tokenIdx, token := range tokens {
@@ -113,15 +132,15 @@ func (s *sectionedTemplate) processLineTokens(
 			// `${ and it'll be verbatim this from now on. So if a script
 			// (or an env-var) contains that sequence it should not be erased
 			// anymore.
-			content += token.content
-			fatalContent += fatalTokens[tokenIdx].fatalContent
+			currentLine.content += token.content
+			currentLine.fatalContent += fatalTokens[tokenIdx].fatalContent
 
 			continue
 		}
 
 		value, fatal := tokenIterator(token)
 		if fatal != "" {
-			s.setFatalMessage(fatal, expandedTemplateLine.sourceLineIndex)
+			s.setFatalMessage(fatal, previousLine.sourceLineIndex)
 			continue
 		}
 
@@ -133,49 +152,22 @@ func (s *sectionedTemplate) processLineTokens(
 			continue
 		}
 
-		expanded = true
+		currentLine.expanded = true
 
-		value = strings.ReplaceAll(value, "\r\n", "\n")
-		newLines := strings.Split(value, "\n")
+		splitOnLineMarkers := splitValueOnNewlines(value, currentLine)
+		newExpandedTemplateLines = append(newExpandedTemplateLines, splitOnLineMarkers[:len(splitOnLineMarkers)-1]...)
+		currentLine = splitOnLineMarkers[len(splitOnLineMarkers)-1]
 
-		valueText, valueComment := splitTextOnComment(newLines[0])
-
-		content += valueText
-		fatalContent += valueText
-		comment = valueComment
-
-		for _, newLine := range newLines[1:] {
-			newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
-				content:         content,
-				fatalContent:    fatalContent,
-				comment:         valueComment,
-				sourceLineIndex: expandedTemplateLine.sourceLineIndex,
-				expanded:        true,
-			})
-
-			valueText, valueComment := splitTextOnComment(newLine)
-
-			content = valueText
-			fatalContent = valueText
-			comment = valueComment
-		}
-
-		if comment != "" {
+		if currentLine.comment != "" {
 			for _, restToken := range tokens[tokenIdx+1:] {
-				comment += restToken.fatalContent
+				currentLine.comment += restToken.fatalContent
 			}
-
 			break
 		}
 	}
 
-	newExpandedTemplateLines = append(newExpandedTemplateLines, expandedSourceMarker{
-		content:         content,
-		fatalContent:    fatalContent,
-		comment:         comment + expandedTemplateLine.comment,
-		sourceLineIndex: expandedTemplateLine.sourceLineIndex,
-		expanded:        expandedTemplateLine.expanded || expanded,
-	})
+	currentLine.comment += previousLine.comment
+	newExpandedTemplateLines = append(newExpandedTemplateLines, currentLine)
 
 	return newExpandedTemplateLines
 }
