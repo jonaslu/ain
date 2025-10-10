@@ -29,6 +29,8 @@ Ain was built to enable scripting of input and further processing of output via 
   - [Via scoop](#via-scoop)
   - [Via the AUR (Arch Linux)](#via-the-aur-arch-linux)
   - [Download binaries yourself](#download-binaries-yourself)
+- [Syntax highlight](#syntax-highlight)
+  - [Vim plug](#vim-plug)
 - [Quick start](#quick-start)
 - [Important concepts](#important-concepts)
 - [Template files](#template-files)
@@ -97,6 +99,18 @@ yay -S ain-bin
 ## Download binaries yourself
 Install it so it's available on your `$PATH`:
 [https://github.com/jonaslu/ain/releases](https://github.com/jonaslu/ain/releases)
+
+# Syntax highlight
+Ain comes with it's own syntax highlight for vim.
+
+## Vim plug
+Using [vim plug](https://github.com/junegunn/vim-plug)
+
+```
+Plug 'jonaslu/ain', { 'rtp': 'grammars/vim' }
+```
+
+### Manual install
 
 # Quick start
 Ain comes with a built in basic template that you can use as a starting point. Ain checks what backends (that's [curl](https://curl.se/), [wget](https://www.gnu.org/software/wget/) or [httpie](https://httpie.io/)) are available on your system and inserts them into the [[Backend]](#backend) section of the generated template. One will be selected and the rest commented out so the template is runnable directly.
