@@ -51,15 +51,14 @@
       "name": "variable.other.envvar.ain",
       "begin": "\\$\\{",
       "beginCaptures": {
-        "0": { "name": "punctuation.section.interpolation.begin.custom" }
+        "0": { "name": "variable.other.envvar.ain" }
       },
       "end": "\\}",
       "endCaptures": {
-        "0": { "name": "punctuation.section.interpolation.end.custom" }
+        "0": { "name": "variable.other.envvar.ain" }
       },
       "patterns": [
         {
-          "name": "keyword.other.envvar.ain",
           "match": "`\\}"
         }
       ]
