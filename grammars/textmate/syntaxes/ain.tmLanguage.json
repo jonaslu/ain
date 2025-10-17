@@ -67,27 +67,24 @@
       "name": "support.function.executable.ain",
       "begin": "\\$\\(",
       "beginCaptures": {
-        "0": { "name": "punctuation.section.interpolation.begin.custom" }
+        "0": { "name": "support.function.executable.ain" }
       },
       "end": "\\)",
       "endCaptures": {
-        "0": { "name": "punctuation.section.interpolation.end.custom" }
+        "0": { "name": "support.function.executable.ain" }
       },
       "patterns": [
         {
-          "name": "source.ain",
           "match": "\\\\`"
         },
         {
-          "name": "source.ain",
           "match": "`\\$\\{"
         },
         {
           "include": "#envvars"
         },
         {
-          "match": "`\\)",
-          "name": "entity.name.class"
+          "match": "`\\)"
         },
         {
           "begin": "'",
