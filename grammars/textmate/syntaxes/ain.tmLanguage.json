@@ -30,19 +30,15 @@
     "escapes": {
       "patterns": [
         {
-          "name": "source.ain",
           "match": "\\\\`"
         },
         {
-          "name": "source.ain",
           "match": "`\\$\\{"
         },
         {
-          "name": "source.ain",
           "match": "`\\$\\("
         },
         {
-          "name": "source.ain",
           "match": "`#"
         }
       ]
